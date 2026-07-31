@@ -139,8 +139,9 @@ class CatCareState:
         if overdue:
             nearest = min(overdue, key=lambda item: item.due_at)
             return StatusSnapshot("overdue", "Something important is overdue.", nearest.id)
-        if any(item.due_at is None for item in active):
-            return StatusSnapshot("unknown", "Some future care information is unknown.")
+        unknown = next((item for item in active if item.due_at is None), None)
+        if unknown is not None:
+            return StatusSnapshot("unknown", "Some future care information is unknown.", unknown.id)
         nearest = min(
             (item for item in active if item.due_at is not None),
             key=lambda item: item.due_at,

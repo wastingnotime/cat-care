@@ -35,6 +35,8 @@ sentence and a stable status kind for future adapters.
   used by the calm-status projection.
 - Cat deletion clears owned responsibilities and events, returns a deletion
   receipt, and exposes no personal records in later export.
+- Unknown status snapshots identify an active undated responsibility when
+  possible.
 
 ## Scenario
 

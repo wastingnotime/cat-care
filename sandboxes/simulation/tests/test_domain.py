@@ -127,6 +127,9 @@ def test_unknown_future_information_does_not_claim_all_clear():
 def test_responsibility_without_due_date_is_explicitly_uncertain():
     state = CatCareState("Mimi", [Responsibility("r1", "future treatment", None)])
     assert state.status(NOW, THRESHOLD) == "Some future care information is unknown."
+    snapshot = state.status_snapshot(NOW, THRESHOLD)
+    assert snapshot.kind == "unknown"
+    assert snapshot.nearest_responsibility_id == "r1"
 
 
 def test_care_event_cannot_be_future_dated():

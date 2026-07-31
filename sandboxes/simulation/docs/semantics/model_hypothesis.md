@@ -42,6 +42,8 @@ derived from due date, current time, and a configured threshold.
    inputs that affect calm status.
 12. Cat deletion is terminal for the simulation environment and removes owned
    responsibilities and events without leaving orphaned records.
+13. An uncertainty status identifies the responsibility whose missing timing
+   information needs attention when one exists.
 
 ## Open questions
 

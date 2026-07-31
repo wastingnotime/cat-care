@@ -103,3 +103,9 @@ input required to interpret whether a calm status can be trusted.
 Cat deletion is now a terminal operation with a receipt. Owned responsibilities
 and events are cleared, subsequent export contains only deletion metadata, and
 the domain rejects further mutation.
+
+## Uncertainty refinement
+
+Unknown status snapshots now include the active responsibility ID that lacks a
+due date, allowing a future adapter to guide correction without weakening the
+uncertainty message.
