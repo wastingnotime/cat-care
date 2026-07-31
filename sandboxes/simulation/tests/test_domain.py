@@ -1,0 +1,49 @@
+from datetime import datetime, timedelta, timezone
+
+import pytest
+
+from app.simulation.domain import CatCareState, Responsibility, ResponsibilityState
+
+
+NOW = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
+THRESHOLD = timedelta(days=2)
+
+
+def test_due_soon_and_overdue_are_derived_from_time():
+    responsibility = Responsibility("r1", "vaccine", NOW + timedelta(days=1))
+    assert responsibility.derived_state(NOW, THRESHOLD) == "due_soon"
+    assert responsibility.derived_state(NOW + timedelta(days=2), THRESHOLD) == "overdue"
+
+
+def test_completion_records_event_and_recurring_next_occurrence():
+    state = CatCareState(
+        "Mimi", [Responsibility("r1", "treatment", NOW, recurrence_days=30)]
+    )
+    event = state.complete("r1", NOW)
+    assert event.event_type == "responsibility_completed"
+    assert state.responsibilities[0].state == ResponsibilityState.COMPLETED
+    assert state.responsibilities[1].due_at == NOW + timedelta(days=30)
+
+
+def test_completed_responsibility_cannot_be_completed_twice():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW)])
+    state.complete("r1", NOW)
+    with pytest.raises(ValueError):
+        state.complete("r1", NOW)
+
+
+def test_cancelled_responsibility_is_not_urgent():
+    responsibility = Responsibility("r1", "appointment", NOW - timedelta(days=1))
+    responsibility.cancel()
+    assert responsibility.derived_state(NOW, THRESHOLD) == "cancelled"
+
+
+def test_unknown_future_information_does_not_claim_all_clear():
+    state = CatCareState("Mimi", future_information_known=False)
+    assert state.status(NOW, THRESHOLD) == "Some future care information is unknown."
+
+
+def test_care_event_cannot_be_future_dated():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW)])
+    with pytest.raises(ValueError):
+        state.complete("r1", NOW + timedelta(days=1), current_time=NOW)
