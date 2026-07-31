@@ -58,3 +58,9 @@ of relying on runtime comparison errors.
 The calm-status projection now exposes a stable kind and optional nearest
 responsibility identity alongside its sentence. This preserves calm language
 for owners while giving future web/API adapters an explicit contract.
+
+## Duplicate-action refinement
+
+Responsibilities may now carry an explicit action key. The simulation rejects
+a second completion event for the same key while leaving the second
+responsibility planned, preventing silent duplicate care history.

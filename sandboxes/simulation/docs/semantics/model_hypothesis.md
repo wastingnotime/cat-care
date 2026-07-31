@@ -27,6 +27,8 @@ derived from due date, current time, and a configured threshold.
    next occurrence anchored to the planned due date.
 5. All care times are timezone-aware so status and timeline comparisons are
    deterministic across owner locations.
+6. Responsibilities that refer to the same real-world action must share an
+   explicit action key and cannot create duplicate completion events.
 
 ## Open questions
 

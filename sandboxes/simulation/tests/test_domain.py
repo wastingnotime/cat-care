@@ -56,6 +56,22 @@ def test_completed_responsibility_cannot_be_completed_twice():
         state.complete("r1", NOW)
 
 
+def test_same_real_world_action_cannot_complete_two_responsibilities():
+    state = CatCareState(
+        "Mimi",
+        [
+            Responsibility("r1", "vaccine record", NOW, action_key="vaccine-2026"),
+            Responsibility("r2", "vaccine follow-up", NOW, action_key="vaccine-2026"),
+        ],
+    )
+    event = state.complete("r1", NOW)
+    with pytest.raises(ValueError, match="already completed"):
+        state.complete("r2", NOW)
+    assert event.action_key == "vaccine-2026"
+    assert state.responsibilities[1].state == ResponsibilityState.PLANNED
+    assert len(state.events) == 1
+
+
 def test_cancelled_responsibility_is_not_urgent():
     responsibility = Responsibility("r1", "appointment", NOW - timedelta(days=1))
     event = responsibility.cancel(NOW)

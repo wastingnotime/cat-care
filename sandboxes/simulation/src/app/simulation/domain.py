@@ -22,6 +22,7 @@ class CareEvent:
     occurred_at: datetime
     description: str
     responsibility_id: str | None = None
+    action_key: str | None = None
 
     def __post_init__(self) -> None:
         _require_timezone_aware(self.occurred_at, "care event time")
@@ -47,6 +48,7 @@ class Responsibility:
     state: ResponsibilityState = ResponsibilityState.PLANNED
     recurrence: RecurrencePolicy | None = None
     completed_at: datetime | None = None
+    action_key: str | None = None
 
     def __post_init__(self) -> None:
         if self.due_at is not None:
@@ -76,7 +78,7 @@ class Responsibility:
             raise ValueError(f"responsibility {self.id} is not completable")
         self.state = ResponsibilityState.COMPLETED
         self.completed_at = now
-        return CareEvent("responsibility_completed", now, self.title, self.id)
+        return CareEvent("responsibility_completed", now, self.title, self.id, self.action_key)
 
     def cancel(self, now: datetime | None = None) -> CareEvent | None:
         if now is not None:
@@ -137,6 +139,11 @@ class CatCareState:
         current_time: datetime | None = None,
     ) -> CareEvent:
         responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
+        if responsibility.action_key is not None and any(
+            event.event_type == "responsibility_completed" and event.action_key == responsibility.action_key
+            for event in self.events
+        ):
+            raise ValueError(f"care action {responsibility.action_key} was already completed")
         event = responsibility.complete(now, current_time=current_time)
         self.events.append(event)
         if responsibility.recurrence is not None and responsibility.due_at is not None:
@@ -146,6 +153,7 @@ class CatCareState:
                     title=responsibility.title,
                     due_at=responsibility.recurrence.next_due_at(responsibility.due_at),
                     recurrence=responsibility.recurrence,
+                    action_key=responsibility.action_key,
                 )
             )
         return event

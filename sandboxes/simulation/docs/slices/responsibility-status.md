@@ -22,6 +22,8 @@ sentence and a stable status kind for future adapters.
   late.
 - Responsibility, care-event, note, and current-time values must be
   timezone-aware.
+- An explicit shared action key prevents two responsibilities from silently
+  recording the same real-world completion twice.
 
 ## Scenario
 
