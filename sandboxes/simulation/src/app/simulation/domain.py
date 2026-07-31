@@ -48,10 +48,13 @@ class Responsibility:
         self.completed_at = now
         return CareEvent("responsibility_completed", now, self.title, self.id)
 
-    def cancel(self) -> None:
+    def cancel(self, now: datetime | None = None) -> CareEvent | None:
         if self.state != ResponsibilityState.PLANNED:
             raise ValueError(f"responsibility {self.id} is not cancellable")
         self.state = ResponsibilityState.CANCELLED
+        if now is None:
+            return None
+        return CareEvent("responsibility_cancelled", now, self.title, self.id)
 
 
 @dataclass
@@ -97,4 +100,11 @@ class CatCareState:
                     due_at=responsibility.due_at + timedelta(days=responsibility.recurrence_days),
                 )
             )
+        return event
+
+    def cancel(self, responsibility_id: str, now: datetime) -> CareEvent:
+        responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
+        event = responsibility.cancel(now)
+        assert event is not None
+        self.events.append(event)
         return event

@@ -21,7 +21,8 @@ def create_simulation() -> Scenario:
     state = CatCareState(
         cat_name="Mimi",
         responsibilities=[
-            Responsibility("mimi-vaccine-1", "vaccine", INITIAL_TIME + timedelta(days=3))
+            Responsibility("mimi-vaccine-1", "vaccine", INITIAL_TIME + timedelta(days=3)),
+            Responsibility("mimi-appointment-1", "vet appointment", INITIAL_TIME + timedelta(days=5)),
         ],
     )
     threshold = timedelta(days=2)
@@ -52,6 +53,17 @@ def create_simulation() -> Scenario:
         )
         observe_status(context)
 
+    def cancel_appointment(context: object) -> None:
+        event = state.cancel("mimi-appointment-1", context.clock.now())
+        context.emit(
+            "domain_event",
+            event.event_type,
+            source="Responsibility",
+            actor="owner",
+            correlation_id=event.responsibility_id,
+            payload={"description": event.description, "history_preserved": True},
+        )
+
     def no_overdue_completed_responsibility(context: object) -> bool:
         return all(
             item.state.value != "completed" or item.derived_state(context.clock.now(), threshold) != "overdue"
@@ -69,6 +81,7 @@ def create_simulation() -> Scenario:
             InitialScheduledAction(INITIAL_TIME + timedelta(days=1), observe_status, "observe_due_soon_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), observe_status, "observe_overdue_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=2), complete_vaccine, "complete_vaccine", "Responsibility", "mimi-vaccine-1"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(days=4), cancel_appointment, "cancel_appointment", "Responsibility", "mimi-appointment-1"),
         ],
         invariants=[Invariant("completed_responsibility_is_not_overdue", no_overdue_completed_responsibility)],
         observatory_nodes=[

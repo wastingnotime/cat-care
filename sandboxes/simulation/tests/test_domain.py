@@ -34,8 +34,15 @@ def test_completed_responsibility_cannot_be_completed_twice():
 
 def test_cancelled_responsibility_is_not_urgent():
     responsibility = Responsibility("r1", "appointment", NOW - timedelta(days=1))
-    responsibility.cancel()
+    event = responsibility.cancel(NOW)
+    assert event.event_type == "responsibility_cancelled"
     assert responsibility.derived_state(NOW, THRESHOLD) == "cancelled"
+
+
+def test_cancellation_preserves_history_event():
+    state = CatCareState("Mimi", [Responsibility("r1", "appointment", NOW)])
+    state.cancel("r1", NOW)
+    assert [event.event_type for event in state.events] == ["responsibility_cancelled"]
 
 
 def test_unknown_future_information_does_not_claim_all_clear():

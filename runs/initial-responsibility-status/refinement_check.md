@@ -28,3 +28,8 @@ could imply that no future responsibility exists. It was changed to
 - Decide whether recurring responsibilities need a policy value beyond a fixed
   day interval.
 
+## Refinement result
+
+Cancellation now emits a traceable care event while removing the responsibility
+from active urgency. The runtime scenario covers both completion and
+cancellation in the same shared environment.

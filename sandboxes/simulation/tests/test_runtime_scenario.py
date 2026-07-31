@@ -8,5 +8,5 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     names = [item.name for item in result.observations.observations]
     assert "care_status_derived" in names
     assert "responsibility_completed" in names
+    assert "responsibility_cancelled" in names
     assert any(item.name == "completed_responsibility_is_not_overdue" and item.payload["passed"] for item in result.observations.observations)
-
