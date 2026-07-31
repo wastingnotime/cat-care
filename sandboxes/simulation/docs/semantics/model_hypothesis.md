@@ -31,6 +31,8 @@ derived from due date, current time, and a configured threshold.
    explicit action key and cannot create duplicate completion events.
 7. Creating and editing responsibilities are traceable events; completed
    responsibilities are not silently rewritten.
+8. Edit evidence must include the previous and new values needed to explain a
+   correction.
 
 ## Open questions
 

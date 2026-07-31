@@ -26,6 +26,7 @@ sentence and a stable status kind for future adapters.
   recording the same real-world completion twice.
 - Creating and editing a planned responsibility emits history events; completed
   responsibilities cannot be edited through this command.
+- Edit events include previous and new title and due-date values.
 
 ## Scenario
 

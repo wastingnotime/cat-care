@@ -30,6 +30,12 @@ def test_responsibility_can_be_added_and_edited_with_history_events():
     edited = state.edit_responsibility("r1", NOW, title="buy essential food", due_at=NOW + timedelta(days=6))
     assert [event.event_type for event in state.events] == ["responsibility_created", "responsibility_edited"]
     assert created.responsibility_id == edited.responsibility_id == "r1"
+    assert dict(edited.details) == {
+        "previous_title": "buy food",
+        "new_title": "buy essential food",
+        "previous_due_at": (NOW + timedelta(days=7)).isoformat(),
+        "new_due_at": (NOW + timedelta(days=6)).isoformat(),
+    }
     assert responsibility.title == "buy essential food"
     assert responsibility.due_at == NOW + timedelta(days=6)
 

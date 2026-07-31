@@ -23,6 +23,7 @@ class CareEvent:
     description: str
     responsibility_id: str | None = None
     action_key: str | None = None
+    details: tuple[tuple[str, str], ...] = ()
 
     def __post_init__(self) -> None:
         _require_timezone_aware(self.occurred_at, "care event time")
@@ -154,9 +155,22 @@ class CatCareState:
             raise ValueError(f"responsibility {responsibility.id} is not editable")
         if due_at is not None:
             _require_timezone_aware(due_at, "responsibility due time")
+        previous_title = responsibility.title
+        previous_due_at = responsibility.due_at
         responsibility.title = title
         responsibility.due_at = due_at
-        event = CareEvent("responsibility_edited", now, title, responsibility.id)
+        event = CareEvent(
+            "responsibility_edited",
+            now,
+            title,
+            responsibility.id,
+            details=(
+                ("previous_title", previous_title),
+                ("new_title", title),
+                ("previous_due_at", previous_due_at.isoformat() if previous_due_at else "unknown"),
+                ("new_due_at", due_at.isoformat() if due_at else "unknown"),
+            ),
+        )
         self.events.append(event)
         return event
 

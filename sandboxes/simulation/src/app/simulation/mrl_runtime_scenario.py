@@ -56,7 +56,7 @@ def create_simulation() -> Scenario:
             title="buy essential food",
             due_at=INITIAL_TIME + timedelta(days=6),
         )
-        context.emit("domain_event", event.event_type, source="Responsibility", actor="owner", correlation_id=event.responsibility_id, payload={"description": event.description, "history_preserved": True})
+        context.emit("domain_event", event.event_type, source="Responsibility", actor="owner", correlation_id=event.responsibility_id, payload={"description": event.description, "history_preserved": True, "details": dict(event.details)})
 
     def complete_vaccine(context: object) -> None:
         event = state.complete(

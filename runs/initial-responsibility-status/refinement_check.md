@@ -70,3 +70,8 @@ responsibility planned, preventing silent duplicate care history.
 The shared environment now supports adding and correcting planned
 responsibilities with traceable creation and edit events. Completed
 responsibilities remain immutable through the edit command.
+
+## Edit-history refinement
+
+Edit events now preserve previous and new title and due-date values, making a
+correction auditable instead of recording only the final state.
