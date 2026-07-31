@@ -54,3 +54,18 @@ def test_care_event_cannot_be_future_dated():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW)])
     with pytest.raises(ValueError):
         state.complete("r1", NOW + timedelta(days=1), current_time=NOW)
+
+
+def test_timeline_orders_events_newest_first_and_notes_remain_observations():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW)])
+    state.complete("r1", NOW)
+    note = state.record_note("eating less", NOW + timedelta(hours=1))
+    assert state.timeline()[0] == note
+    assert note.event_type == "note_recorded"
+    assert note.responsibility_id is None
+
+
+def test_note_cannot_be_future_dated():
+    state = CatCareState("Mimi")
+    with pytest.raises(ValueError):
+        state.record_note("vomiting", NOW + timedelta(days=1), current_time=NOW)

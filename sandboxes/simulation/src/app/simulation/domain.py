@@ -108,3 +108,13 @@ class CatCareState:
         assert event is not None
         self.events.append(event)
         return event
+
+    def record_note(self, description: str, now: datetime, *, current_time: datetime | None = None) -> CareEvent:
+        if current_time is not None and now > current_time:
+            raise ValueError("a note cannot be recorded in the future")
+        event = CareEvent("note_recorded", now, description)
+        self.events.append(event)
+        return event
+
+    def timeline(self) -> list[CareEvent]:
+        return sorted(self.events, key=lambda event: event.occurred_at, reverse=True)

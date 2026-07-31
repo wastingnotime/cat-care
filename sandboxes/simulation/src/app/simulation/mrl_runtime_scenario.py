@@ -64,6 +64,27 @@ def create_simulation() -> Scenario:
             payload={"description": event.description, "history_preserved": True},
         )
 
+    def record_note(context: object) -> None:
+        event = state.record_note(
+            "eating less",
+            context.clock.now(),
+            current_time=context.clock.now(),
+        )
+        context.emit(
+            "domain_event",
+            event.event_type,
+            source="Note",
+            actor="owner",
+            payload={"description": event.description, "is_diagnosis": False},
+        )
+        context.emit(
+            "semantic_observation",
+            "timeline_ordered",
+            source="Timeline",
+            actor="owner",
+            payload={"event_types": [item.event_type for item in state.timeline()]},
+        )
+
     def no_overdue_completed_responsibility(context: object) -> bool:
         return all(
             item.state.value != "completed" or item.derived_state(context.clock.now(), threshold) != "overdue"
@@ -82,8 +103,12 @@ def create_simulation() -> Scenario:
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), observe_status, "observe_overdue_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=2), complete_vaccine, "complete_vaccine", "Responsibility", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4), cancel_appointment, "cancel_appointment", "Responsibility", "mimi-appointment-1"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=1), record_note, "record_note", "Note"),
         ],
-        invariants=[Invariant("completed_responsibility_is_not_overdue", no_overdue_completed_responsibility)],
+        invariants=[
+            Invariant("completed_responsibility_is_not_overdue", no_overdue_completed_responsibility),
+            Invariant("timeline_is_newest_first", lambda context: state.timeline() == sorted(state.events, key=lambda event: event.occurred_at, reverse=True)),
+        ],
         observatory_nodes=[
             ObservatoryNode("owner", "Owner", "actor", "domain"),
             ObservatoryNode("responsibility", "Responsibility", "aggregate", "domain"),

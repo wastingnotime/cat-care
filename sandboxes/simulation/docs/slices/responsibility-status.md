@@ -15,6 +15,7 @@ calm status and the nearest actionable responsibility.
 - Completing a responsibility records a care event at the current time.
 - Cancelling a responsibility records a cancellation event and preserves its
   history.
+- Notes are timeline observations and are not diagnoses.
 
 ## Scenario
 
