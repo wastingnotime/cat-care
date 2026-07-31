@@ -133,6 +133,8 @@ class CatCareState:
     def __post_init__(self) -> None:
         if not self.cat_name.strip():
             raise ValueError("cat name cannot be empty")
+        if self.birth_date is not None and self.adoption_date is not None and self.adoption_date < self.birth_date:
+            raise ValueError("adoption date cannot be before birth date")
         if self.photo_ref is not None and not self.photo_ref.strip():
             raise ValueError("photo reference cannot be empty")
 

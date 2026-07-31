@@ -40,7 +40,7 @@ sentence and a stable status kind for future adapters.
 - Responsibility category is explicit and required at construction, and is carried through lifecycle events,
   recurrence, and export.
 - Cat birth date, adoption date, and photo reference are optional profile data
-  and are included in export when present.
+  and are included in export when present; known dates must remain coherent.
 
 ## Scenario
 

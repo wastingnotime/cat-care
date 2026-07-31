@@ -123,3 +123,8 @@ model.
 
 The simulation now carries optional birth date, adoption date, and photo
 reference metadata for the cat profile, with privacy-safe export behavior.
+
+## Profile consistency refinement
+
+When both profile dates are known, the domain now rejects an adoption date
+before the birth date.

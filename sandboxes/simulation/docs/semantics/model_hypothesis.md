@@ -48,6 +48,7 @@ derived from due date, current time, and a configured threshold.
    preserved through edits, recurrence, and export.
 15. Cat profile metadata is optional, validated, and included in owner export;
    it does not become a responsibility requirement.
+16. When both are known, adoption date cannot precede birth date.
 
 ## Open questions
 

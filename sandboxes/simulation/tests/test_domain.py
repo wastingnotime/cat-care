@@ -234,6 +234,8 @@ def test_cat_profile_fields_are_optional_and_exported():
     }
     with pytest.raises(ValueError, match="cat name"):
         CatCareState(" ")
+    with pytest.raises(ValueError, match="before birth"):
+        CatCareState("Mimi", birth_date=date(2021, 7, 10), adoption_date=date(2021, 5, 1))
 
 
 def test_cat_deletion_cannot_be_future_dated():
