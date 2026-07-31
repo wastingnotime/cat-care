@@ -19,13 +19,25 @@ class CareEvent:
     responsibility_id: str | None = None
 
 
+@dataclass(frozen=True)
+class RecurrencePolicy:
+    interval_days: int
+
+    def __post_init__(self) -> None:
+        if self.interval_days <= 0:
+            raise ValueError("recurrence interval must be positive")
+
+    def next_due_at(self, due_at: datetime) -> datetime:
+        return due_at + timedelta(days=self.interval_days)
+
+
 @dataclass
 class Responsibility:
     id: str
     title: str
     due_at: datetime | None
     state: ResponsibilityState = ResponsibilityState.PLANNED
-    recurrence_days: int | None = None
+    recurrence: RecurrencePolicy | None = None
     completed_at: datetime | None = None
 
     def derived_state(self, now: datetime, due_soon_threshold: timedelta) -> str:
@@ -94,12 +106,13 @@ class CatCareState:
         responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
         event = responsibility.complete(now, current_time=current_time)
         self.events.append(event)
-        if responsibility.recurrence_days is not None and responsibility.due_at is not None:
+        if responsibility.recurrence is not None and responsibility.due_at is not None:
             self.responsibilities.append(
                 Responsibility(
                     id=f"{responsibility.id}-next",
                     title=responsibility.title,
-                    due_at=responsibility.due_at + timedelta(days=responsibility.recurrence_days),
+                    due_at=responsibility.recurrence.next_due_at(responsibility.due_at),
+                    recurrence=responsibility.recurrence,
                 )
             )
         return event

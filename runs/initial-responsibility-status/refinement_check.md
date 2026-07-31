@@ -40,3 +40,9 @@ An active responsibility without a due date now produces an explicit unknown
 status instead of falling through to “Nothing important is pending”. This
 preserves the product rule that incomplete information must not create false
 confidence.
+
+## Recurrence build
+
+Recurrence is now represented by an explicit positive interval policy. Future
+occurrences remain anchored to the planned due date, avoiding silent drift when
+an owner completes a responsibility late.

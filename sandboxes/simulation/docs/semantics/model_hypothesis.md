@@ -21,12 +21,14 @@ derived from due date, current time, and a configured threshold.
    fine.
 3. Completing a responsibility removes it from active urgency and creates a
    traceable care event.
-4. Recurrence must be explicit before a future occurrence is created.
+4. Recurrence must be explicit before a future occurrence is created, with the
+   next occurrence anchored to the planned due date.
 
 ## Open questions
 
 - What due-soon threshold feels useful without creating urgency inflation?
 - Which missing information is important enough to show as uncertainty?
-- Which recurrence policies are needed by real owners?
+- Which recurrence policies beyond a fixed day interval are needed by real
+  owners?
 - Does an undated responsibility need a separate “needs scheduling” state, or
   is the current uncertainty status sufficient?

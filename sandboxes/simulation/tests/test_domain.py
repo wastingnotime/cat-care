@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from app.simulation.domain import CatCareState, Responsibility, ResponsibilityState
+from app.simulation.domain import CatCareState, RecurrencePolicy, Responsibility, ResponsibilityState
 
 
 NOW = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -17,11 +17,27 @@ def test_due_soon_and_overdue_are_derived_from_time():
 
 def test_completion_records_event_and_recurring_next_occurrence():
     state = CatCareState(
-        "Mimi", [Responsibility("r1", "treatment", NOW, recurrence_days=30)]
+        "Mimi", [Responsibility("r1", "treatment", NOW, recurrence=RecurrencePolicy(30))]
     )
     event = state.complete("r1", NOW)
     assert event.event_type == "responsibility_completed"
     assert state.responsibilities[0].state == ResponsibilityState.COMPLETED
+    assert state.responsibilities[1].due_at == NOW + timedelta(days=30)
+    assert state.responsibilities[1].recurrence == RecurrencePolicy(30)
+
+
+def test_recurrence_policy_rejects_implicit_or_invalid_intervals():
+    with pytest.raises(ValueError):
+        RecurrencePolicy(0)
+    with pytest.raises(ValueError):
+        RecurrencePolicy(-7)
+
+
+def test_recurrence_is_anchored_to_the_planned_due_date_when_completed_late():
+    state = CatCareState(
+        "Mimi", [Responsibility("r1", "treatment", NOW, recurrence=RecurrencePolicy(30))]
+    )
+    state.complete("r1", NOW + timedelta(days=3))
     assert state.responsibilities[1].due_at == NOW + timedelta(days=30)
 
 

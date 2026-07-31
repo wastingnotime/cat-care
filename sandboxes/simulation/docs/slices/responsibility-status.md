@@ -16,6 +16,9 @@ calm status and the nearest actionable responsibility.
 - Cancelling a responsibility records a cancellation event and preserves its
   history.
 - Notes are timeline observations and are not diagnoses.
+- A recurring responsibility requires a positive explicit interval policy; its
+  next occurrence stays anchored to the planned due date even when completed
+  late.
 
 ## Scenario
 
