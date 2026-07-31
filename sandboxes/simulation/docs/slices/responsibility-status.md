@@ -31,7 +31,8 @@ sentence and a stable status kind for future adapters.
   linked to an existing responsibility.
 - Cancellation events cannot be future-dated.
 - Export includes responsibility state and chronological event history without
-  depending on persistence or web infrastructure.
+  depending on persistence or web infrastructure, including uncertainty inputs
+  used by the calm-status projection.
 
 ## Scenario
 

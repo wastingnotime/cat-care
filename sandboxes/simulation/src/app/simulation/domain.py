@@ -255,6 +255,7 @@ class CatCareState:
     def export_data(self) -> dict[str, object]:
         return {
             "cat": {"name": self.cat_name},
+            "future_information_known": self.future_information_known,
             "responsibilities": [
                 {
                     "id": item.id,

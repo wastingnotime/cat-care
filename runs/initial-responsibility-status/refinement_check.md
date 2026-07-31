@@ -92,3 +92,8 @@ history, aligning it with completion, notes, and direct care-event recording.
 The simulation now defines a deterministic owner export containing current
 responsibilities and chronological event history, with JSON serialization
 available to a future web adapter.
+
+## Export completeness refinement
+
+The export now includes `future_information_known`, preserving the uncertainty
+input required to interpret whether a calm status can be trusted.

@@ -38,7 +38,8 @@ derived from due date, current time, and a configured threshold.
 10. Cancellation history, like all care events, cannot be recorded in the
    future.
 11. Owner export includes current responsibility state and chronological event
-   history in a deterministic, portable representation.
+   history in a deterministic, portable representation, including uncertainty
+   inputs that affect calm status.
 
 ## Open questions
 

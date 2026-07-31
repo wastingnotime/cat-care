@@ -174,10 +174,11 @@ def test_domain_rejects_naive_timestamps():
 
 
 def test_export_contains_current_state_and_chronological_event_history():
-    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW)])
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW)], future_information_known=False)
     state.record_note("eating less", NOW + timedelta(hours=1))
     exported = state.export_data()
     assert exported["cat"] == {"name": "Mimi"}
+    assert exported["future_information_known"] is False
     assert exported["responsibilities"][0]["id"] == "r1"
     assert exported["events"][0]["type"] == "note_recorded"
     assert json.loads(state.export_json()) == exported
