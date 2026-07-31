@@ -60,6 +60,8 @@ derived from due date, current time, and a configured threshold.
    reimplementing domain transitions.
 21. Technology adapters expose timeline reads using the domain's newest-first
    ordering.
+22. Technology adapters expose notification, deferral, export, and deletion
+   contracts without adding channel-specific domain behavior.
 
 ## Open questions
 

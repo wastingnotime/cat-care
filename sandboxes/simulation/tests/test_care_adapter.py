@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 from app.interfaces.care_adapter import CareAdapter
-from app.simulation.domain import CatCareState, Responsibility
+from app.simulation.domain import CatCareState, NotificationOutcome, Responsibility
 
 
 NOW = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -43,3 +43,20 @@ def test_adapter_exposes_newest_first_timeline_records():
     adapter.record_note("newer", NOW + timedelta(hours=1), current_time=NOW + timedelta(hours=1))
     timeline = adapter.get_timeline()
     assert [item["description"] for item in timeline] == ["newer", "older"]
+
+
+def test_adapter_exposes_notification_deferral_export_and_delete_contracts():
+    state = CatCareState(
+        "Mimi",
+        [Responsibility("r1", "vaccine", NOW, "preventive care")],
+    )
+    adapter = CareAdapter(state)
+    notification = adapter.record_notification("r1", NOW, NotificationOutcome.FAILED)
+    deferred = adapter.defer_responsibility("r1", NOW, NOW + timedelta(days=7), current_time=NOW)
+    exported = adapter.export_data()
+    deleted = adapter.delete_data(NOW, current_time=NOW)
+    assert notification["type"] == "notification_recorded"
+    assert deferred["type"] == "responsibility_deferred"
+    assert exported["responsibilities"][0]["category"] == "preventive care"
+    assert deleted["responsibilities_removed"] == 1
+    assert adapter.export_data()["deleted"] is True

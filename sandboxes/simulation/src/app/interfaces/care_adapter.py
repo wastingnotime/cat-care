@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from app.simulation.domain import CatCareState, Responsibility
+from app.simulation.domain import CatCareState, NotificationOutcome, Responsibility
 
 
 class CareAdapter:
@@ -59,6 +59,56 @@ class CareAdapter:
         return self._event_record(
             self.state.record_note(description, now, current_time=current_time)
         )
+
+    def record_notification(
+        self,
+        responsibility_id: str,
+        attempted_at: datetime,
+        outcome: NotificationOutcome,
+        *,
+        current_time: datetime | None = None,
+    ) -> dict[str, object]:
+        return self._event_record(
+            self.state.record_notification(
+                responsibility_id,
+                attempted_at,
+                outcome,
+                current_time=current_time,
+            )
+        )
+
+    def defer_responsibility(
+        self,
+        responsibility_id: str,
+        now: datetime,
+        new_due_at: datetime,
+        *,
+        current_time: datetime | None = None,
+    ) -> dict[str, object]:
+        return self._event_record(
+            self.state.defer_responsibility(
+                responsibility_id,
+                now,
+                new_due_at,
+                current_time=current_time,
+            )
+        )
+
+    def export_data(self) -> dict[str, object]:
+        return self.state.export_data()
+
+    def delete_data(
+        self,
+        deleted_at: datetime,
+        *,
+        current_time: datetime | None = None,
+    ) -> dict[str, object]:
+        receipt = self.state.delete_cat(deleted_at, current_time=current_time)
+        return {
+            "deleted_at": receipt.deleted_at.isoformat(),
+            "responsibilities_removed": receipt.responsibilities_removed,
+            "events_removed": receipt.events_removed,
+        }
 
     def get_timeline(self) -> list[dict[str, object]]:
         return [self._event_record(event) for event in self.state.timeline()]

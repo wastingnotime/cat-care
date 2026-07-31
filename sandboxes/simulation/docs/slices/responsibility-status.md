@@ -49,6 +49,8 @@ sentence and a stable status kind for future adapters.
 - The thin adapter contract exposes status and core commands as plain data and
   delegates all behavior to the shared simulation domain.
 - The adapter exposes the newest-first timeline as a read-only response.
+- The adapter also exposes notification, deferral, export, and deletion
+  contracts as thin delegations.
 
 ## Scenario
 

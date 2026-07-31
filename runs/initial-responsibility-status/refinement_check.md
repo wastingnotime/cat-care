@@ -161,3 +161,8 @@ ready to inform a future web adapter without importing a web framework.
 
 The adapter now exposes the domain timeline as a newest-first read-only
 response, keeping web consumers inside the released contract.
+
+## Adapter-surface build
+
+The adapter contract now covers notification outcome, owner deferral, data
+export, and deletion in addition to the original status and lifecycle commands.
