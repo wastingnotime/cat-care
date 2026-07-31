@@ -106,6 +106,12 @@ def test_cancelled_responsibility_is_not_urgent():
     assert responsibility.derived_state(NOW, THRESHOLD) == "cancelled"
 
 
+def test_cancellation_cannot_be_future_dated():
+    state = CatCareState("Mimi", [Responsibility("r1", "appointment", NOW)])
+    with pytest.raises(ValueError, match="future"):
+        state.cancel("r1", NOW + timedelta(days=1), current_time=NOW)
+
+
 def test_cancellation_preserves_history_event():
     state = CatCareState("Mimi", [Responsibility("r1", "appointment", NOW)])
     state.cancel("r1", NOW)

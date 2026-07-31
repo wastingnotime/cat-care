@@ -35,6 +35,8 @@ derived from due date, current time, and a configured threshold.
    correction.
 9. A direct care event may be linked to a responsibility, but remains its own
    timeline record.
+10. Cancellation history, like all care events, cannot be recorded in the
+    future.
 
 ## Open questions
 

@@ -81,3 +81,8 @@ correction auditable instead of recording only the final state.
 The shared environment now accepts direct care events such as measurements or
 exams. They remain independent timeline records while optionally linking to an
 existing responsibility.
+
+## Cancellation-time refinement
+
+Cancellation now accepts an explicit current-time boundary and rejects future
+history, aligning it with completion, notes, and direct care-event recording.

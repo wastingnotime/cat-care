@@ -75,7 +75,11 @@ def create_simulation() -> Scenario:
         observe_status(context)
 
     def cancel_appointment(context: object) -> None:
-        event = state.cancel("mimi-appointment-1", context.clock.now())
+        event = state.cancel(
+            "mimi-appointment-1",
+            context.clock.now(),
+            current_time=context.clock.now(),
+        )
         context.emit(
             "domain_event",
             event.event_type,

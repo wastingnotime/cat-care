@@ -29,6 +29,7 @@ sentence and a stable status kind for future adapters.
 - Edit events include previous and new title and due-date values.
 - Direct care events can be recorded in the past or present and optionally
   linked to an existing responsibility.
+- Cancellation events cannot be future-dated.
 
 ## Scenario
 

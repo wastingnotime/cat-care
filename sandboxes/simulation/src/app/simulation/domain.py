@@ -81,9 +81,18 @@ class Responsibility:
         self.completed_at = now
         return CareEvent("responsibility_completed", now, self.title, self.id, self.action_key)
 
-    def cancel(self, now: datetime | None = None) -> CareEvent | None:
+    def cancel(
+        self,
+        now: datetime | None = None,
+        *,
+        current_time: datetime | None = None,
+    ) -> CareEvent | None:
         if now is not None:
             _require_timezone_aware(now, "cancellation time")
+        if current_time is not None:
+            _require_timezone_aware(current_time, "current time")
+        if now is not None and current_time is not None and now > current_time:
+            raise ValueError("a care event cannot be recorded in the future")
         if self.state != ResponsibilityState.PLANNED:
             raise ValueError(f"responsibility {self.id} is not cancellable")
         self.state = ResponsibilityState.CANCELLED
@@ -201,9 +210,15 @@ class CatCareState:
             )
         return event
 
-    def cancel(self, responsibility_id: str, now: datetime) -> CareEvent:
+    def cancel(
+        self,
+        responsibility_id: str,
+        now: datetime,
+        *,
+        current_time: datetime | None = None,
+    ) -> CareEvent:
         responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
-        event = responsibility.cancel(now)
+        event = responsibility.cancel(now, current_time=current_time)
         assert event is not None
         self.events.append(event)
         return event
