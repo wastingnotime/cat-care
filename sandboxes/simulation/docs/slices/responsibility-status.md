@@ -30,6 +30,8 @@ sentence and a stable status kind for future adapters.
 - Direct care events can be recorded in the past or present and optionally
   linked to an existing responsibility.
 - Cancellation events cannot be future-dated.
+- Export includes responsibility state and chronological event history without
+  depending on persistence or web infrastructure.
 
 ## Scenario
 

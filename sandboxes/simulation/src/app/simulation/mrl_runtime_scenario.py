@@ -127,6 +127,20 @@ def create_simulation() -> Scenario:
             payload={"event_types": [item.event_type for item in state.timeline()]},
         )
 
+    def export_data(context: object) -> None:
+        exported = state.export_data()
+        context.emit(
+            "semantic_observation",
+            "data_exported",
+            source="DataExport",
+            actor="owner",
+            payload={
+                "cat_name": exported["cat"]["name"],
+                "responsibility_count": len(exported["responsibilities"]),
+                "event_count": len(exported["events"]),
+            },
+        )
+
     def no_overdue_completed_responsibility(context: object) -> bool:
         return all(
             item.state.value != "completed" or item.derived_state(context.clock.now(), threshold) != "overdue"
@@ -149,6 +163,7 @@ def create_simulation() -> Scenario:
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=3), record_weight_event, "record_weight_event", "CareEvent", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4), cancel_appointment, "cancel_appointment", "Responsibility", "mimi-appointment-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=1), record_note, "record_note", "Note"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=2), export_data, "export_data", "DataExport"),
         ],
         invariants=[
             Invariant("completed_responsibility_is_not_overdue", no_overdue_completed_responsibility),

@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import json
 
 import pytest
 
@@ -170,3 +171,13 @@ def test_domain_rejects_naive_timestamps():
         Responsibility("r1", "vaccine", naive_now)
     with pytest.raises(ValueError, match="timezone-aware"):
         CatCareState("Mimi").status(naive_now, THRESHOLD)
+
+
+def test_export_contains_current_state_and_chronological_event_history():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW)])
+    state.record_note("eating less", NOW + timedelta(hours=1))
+    exported = state.export_data()
+    assert exported["cat"] == {"name": "Mimi"}
+    assert exported["responsibilities"][0]["id"] == "r1"
+    assert exported["events"][0]["type"] == "note_recorded"
+    assert json.loads(state.export_json()) == exported

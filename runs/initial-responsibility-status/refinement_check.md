@@ -86,3 +86,9 @@ existing responsibility.
 
 Cancellation now accepts an explicit current-time boundary and rejects future
 history, aligning it with completion, notes, and direct care-event recording.
+
+## Export build
+
+The simulation now defines a deterministic owner export containing current
+responsibilities and chronological event history, with JSON serialization
+available to a future web adapter.

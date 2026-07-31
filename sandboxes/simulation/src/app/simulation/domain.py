@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
@@ -250,3 +251,34 @@ class CatCareState:
 
     def timeline(self) -> list[CareEvent]:
         return sorted(self.events, key=lambda event: event.occurred_at, reverse=True)
+
+    def export_data(self) -> dict[str, object]:
+        return {
+            "cat": {"name": self.cat_name},
+            "responsibilities": [
+                {
+                    "id": item.id,
+                    "title": item.title,
+                    "due_at": item.due_at.isoformat() if item.due_at else None,
+                    "state": item.state.value,
+                    "completed_at": item.completed_at.isoformat() if item.completed_at else None,
+                    "recurrence_interval_days": item.recurrence.interval_days if item.recurrence else None,
+                    "action_key": item.action_key,
+                }
+                for item in self.responsibilities
+            ],
+            "events": [
+                {
+                    "type": event.event_type,
+                    "occurred_at": event.occurred_at.isoformat(),
+                    "description": event.description,
+                    "responsibility_id": event.responsibility_id,
+                    "action_key": event.action_key,
+                    "details": dict(event.details),
+                }
+                for event in sorted(self.events, key=lambda event: event.occurred_at)
+            ],
+        }
+
+    def export_json(self) -> str:
+        return json.dumps(self.export_data(), sort_keys=True)
