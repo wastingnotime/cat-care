@@ -97,3 +97,9 @@ available to a future web adapter.
 
 The export now includes `future_information_known`, preserving the uncertainty
 input required to interpret whether a calm status can be trusted.
+
+## Deletion build
+
+Cat deletion is now a terminal operation with a receipt. Owned responsibilities
+and events are cleared, subsequent export contains only deletion metadata, and
+the domain rejects further mutation.

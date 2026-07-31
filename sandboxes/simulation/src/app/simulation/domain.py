@@ -109,17 +109,30 @@ class StatusSnapshot:
     nearest_responsibility_id: str | None = None
 
 
+@dataclass(frozen=True)
+class DeletionReceipt:
+    deleted_at: datetime
+    responsibilities_removed: int
+    events_removed: int
+
+
 @dataclass
 class CatCareState:
     cat_name: str
     responsibilities: list[Responsibility] = field(default_factory=list)
     events: list[CareEvent] = field(default_factory=list)
     future_information_known: bool = True
+    deleted: bool = False
+
+    def _ensure_active(self) -> None:
+        if self.deleted:
+            raise ValueError("cat data has been deleted")
 
     def status(self, now: datetime, due_soon_threshold: timedelta) -> str:
         return self.status_snapshot(now, due_soon_threshold).sentence
 
     def status_snapshot(self, now: datetime, due_soon_threshold: timedelta) -> StatusSnapshot:
+        self._ensure_active()
         _require_timezone_aware(now, "current time")
         active = [item for item in self.responsibilities if item.state == ResponsibilityState.PLANNED]
         overdue = [item for item in active if item.derived_state(now, due_soon_threshold) == "overdue"]
@@ -143,6 +156,7 @@ class CatCareState:
         return StatusSnapshot("clear", "Nothing important is pending.")
 
     def add_responsibility(self, responsibility: Responsibility, now: datetime) -> CareEvent:
+        self._ensure_active()
         _require_timezone_aware(now, "creation time")
         if any(item.id == responsibility.id for item in self.responsibilities):
             raise ValueError(f"responsibility {responsibility.id} already exists")
@@ -159,6 +173,7 @@ class CatCareState:
         title: str,
         due_at: datetime | None,
     ) -> CareEvent:
+        self._ensure_active()
         _require_timezone_aware(now, "edit time")
         responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
         if responsibility.state != ResponsibilityState.PLANNED:
@@ -191,6 +206,7 @@ class CatCareState:
         *,
         current_time: datetime | None = None,
     ) -> CareEvent:
+        self._ensure_active()
         responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
         if responsibility.action_key is not None and any(
             event.event_type == "responsibility_completed" and event.action_key == responsibility.action_key
@@ -218,6 +234,7 @@ class CatCareState:
         *,
         current_time: datetime | None = None,
     ) -> CareEvent:
+        self._ensure_active()
         responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
         event = responsibility.cancel(now, current_time=current_time)
         assert event is not None
@@ -233,6 +250,7 @@ class CatCareState:
         current_time: datetime | None = None,
         responsibility_id: str | None = None,
     ) -> CareEvent:
+        self._ensure_active()
         _require_timezone_aware(occurred_at, "care event time")
         if current_time is not None:
             _require_timezone_aware(current_time, "current time")
@@ -253,8 +271,17 @@ class CatCareState:
         return sorted(self.events, key=lambda event: event.occurred_at, reverse=True)
 
     def export_data(self) -> dict[str, object]:
+        if self.deleted:
+            return {
+                "cat": {"name": None},
+                "deleted": True,
+                "future_information_known": None,
+                "responsibilities": [],
+                "events": [],
+            }
         return {
             "cat": {"name": self.cat_name},
+            "deleted": False,
             "future_information_known": self.future_information_known,
             "responsibilities": [
                 {
@@ -283,3 +310,18 @@ class CatCareState:
 
     def export_json(self) -> str:
         return json.dumps(self.export_data(), sort_keys=True)
+
+    def delete_cat(self, deleted_at: datetime, *, current_time: datetime | None = None) -> DeletionReceipt:
+        self._ensure_active()
+        _require_timezone_aware(deleted_at, "deletion time")
+        if current_time is not None:
+            _require_timezone_aware(current_time, "current time")
+        if current_time is not None and deleted_at > current_time:
+            raise ValueError("deletion cannot be recorded in the future")
+        receipt = DeletionReceipt(deleted_at, len(self.responsibilities), len(self.events))
+        self.responsibilities.clear()
+        self.events.clear()
+        self.cat_name = ""
+        self.future_information_known = True
+        self.deleted = True
+        return receipt

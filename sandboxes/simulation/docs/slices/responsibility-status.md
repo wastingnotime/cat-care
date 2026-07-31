@@ -33,6 +33,8 @@ sentence and a stable status kind for future adapters.
 - Export includes responsibility state and chronological event history without
   depending on persistence or web infrastructure, including uncertainty inputs
   used by the calm-status projection.
+- Cat deletion clears owned responsibilities and events, returns a deletion
+  receipt, and exposes no personal records in later export.
 
 ## Scenario
 

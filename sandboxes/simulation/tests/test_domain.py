@@ -182,3 +182,25 @@ def test_export_contains_current_state_and_chronological_event_history():
     assert exported["responsibilities"][0]["id"] == "r1"
     assert exported["events"][0]["type"] == "note_recorded"
     assert json.loads(state.export_json()) == exported
+
+
+def test_deleting_cat_removes_owned_records_and_leaves_no_orphans():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW)])
+    state.record_note("eating less", NOW)
+    receipt = state.delete_cat(NOW)
+    assert receipt.responsibilities_removed == 1
+    assert receipt.events_removed == 1
+    assert state.export_data() == {
+        "cat": {"name": None},
+        "deleted": True,
+        "future_information_known": None,
+        "responsibilities": [],
+        "events": [],
+    }
+    with pytest.raises(ValueError, match="deleted"):
+        state.record_note("after deletion", NOW)
+
+
+def test_cat_deletion_cannot_be_future_dated():
+    with pytest.raises(ValueError, match="future"):
+        CatCareState("Mimi").delete_cat(NOW + timedelta(days=1), current_time=NOW)

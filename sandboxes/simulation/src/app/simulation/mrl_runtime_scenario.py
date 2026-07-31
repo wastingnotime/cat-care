@@ -141,6 +141,20 @@ def create_simulation() -> Scenario:
             },
         )
 
+    def delete_data(context: object) -> None:
+        receipt = state.delete_cat(context.clock.now(), current_time=context.clock.now())
+        context.emit(
+            "semantic_observation",
+            "data_deleted",
+            source="DataLifecycle",
+            actor="owner",
+            payload={
+                "responsibilities_removed": receipt.responsibilities_removed,
+                "events_removed": receipt.events_removed,
+                "orphaned_records": 0,
+            },
+        )
+
     def no_overdue_completed_responsibility(context: object) -> bool:
         return all(
             item.state.value != "completed" or item.derived_state(context.clock.now(), threshold) != "overdue"
@@ -164,6 +178,7 @@ def create_simulation() -> Scenario:
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4), cancel_appointment, "cancel_appointment", "Responsibility", "mimi-appointment-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=1), record_note, "record_note", "Note"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=2), export_data, "export_data", "DataExport"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=3), delete_data, "delete_data", "DataLifecycle"),
         ],
         invariants=[
             Invariant("completed_responsibility_is_not_overdue", no_overdue_completed_responsibility),

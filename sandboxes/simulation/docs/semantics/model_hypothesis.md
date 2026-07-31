@@ -40,6 +40,8 @@ derived from due date, current time, and a configured threshold.
 11. Owner export includes current responsibility state and chronological event
    history in a deterministic, portable representation, including uncertainty
    inputs that affect calm status.
+12. Cat deletion is terminal for the simulation environment and removes owned
+   responsibilities and events without leaving orphaned records.
 
 ## Open questions
 
