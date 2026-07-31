@@ -114,3 +114,7 @@ uncertainty message.
 
 Responsibilities now require non-empty category vocabulary, and category is
 preserved through edits, recurring occurrences, and export.
+
+The category is now required at construction rather than silently defaulting to
+`general`, preventing incomplete responsibility records from entering the
+model.

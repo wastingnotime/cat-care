@@ -47,7 +47,7 @@ class Responsibility:
     id: str
     title: str
     due_at: datetime | None
-    category: str = "general"
+    category: str
     state: ResponsibilityState = ResponsibilityState.PLANNED
     recurrence: RecurrencePolicy | None = None
     completed_at: datetime | None = None
