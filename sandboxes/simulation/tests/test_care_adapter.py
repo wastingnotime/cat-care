@@ -26,7 +26,7 @@ def test_adapter_commands_return_event_records_and_use_domain_transitions():
     state = CatCareState("Mimi")
     adapter = CareAdapter(state)
     created = adapter.create_responsibility(
-        Responsibility("r1", "vaccine", NOW, "preventive care"), NOW
+        "r1", "vaccine", "preventive care", NOW, NOW
     )
     completed = adapter.complete_responsibility("r1", NOW, current_time=NOW)
     note = adapter.record_note("eating less", NOW, current_time=NOW)

@@ -51,6 +51,8 @@ sentence and a stable status kind for future adapters.
 - The adapter exposes the newest-first timeline as a read-only response.
 - The adapter also exposes notification, deferral, export, and deletion
   contracts as thin delegations.
+- Adapter creation accepts plain responsibility fields and constructs domain
+  values inside the boundary.
 
 ## Scenario
 

@@ -166,3 +166,9 @@ response, keeping web consumers inside the released contract.
 
 The adapter contract now covers notification outcome, owner deferral, data
 export, and deletion in addition to the original status and lifecycle commands.
+
+## Adapter-boundary refinement
+
+Responsibility creation now accepts plain ID, title, category, due date, and
+recurrence fields. Callers no longer need to construct simulation domain
+objects to use the adapter contract.

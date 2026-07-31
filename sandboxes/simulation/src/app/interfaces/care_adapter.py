@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from app.simulation.domain import CatCareState, NotificationOutcome, Responsibility
+from app.simulation.domain import CatCareState, NotificationOutcome, RecurrencePolicy, Responsibility
 
 
 class CareAdapter:
@@ -22,9 +22,27 @@ class CareAdapter:
 
     def create_responsibility(
         self,
-        responsibility: Responsibility,
+        responsibility_id: str,
+        title: str,
+        category: str,
+        due_at: datetime | None,
         now: datetime,
+        *,
+        recurrence_interval_days: int | None = None,
+        action_key: str | None = None,
     ) -> dict[str, object]:
+        responsibility = Responsibility(
+            responsibility_id,
+            title,
+            due_at,
+            category,
+            recurrence=(
+                RecurrencePolicy(recurrence_interval_days)
+                if recurrence_interval_days is not None
+                else None
+            ),
+            action_key=action_key,
+        )
         return self._event_record(self.state.add_responsibility(responsibility, now))
 
     def complete_responsibility(

@@ -62,6 +62,8 @@ derived from due date, current time, and a configured threshold.
    ordering.
 22. Technology adapters expose notification, deferral, export, and deletion
    contracts without adding channel-specific domain behavior.
+23. Technology create commands use plain fields and do not require callers to
+   construct domain objects.
 
 ## Open questions
 
