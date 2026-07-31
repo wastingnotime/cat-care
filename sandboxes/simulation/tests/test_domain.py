@@ -137,6 +137,21 @@ def test_timeline_orders_events_newest_first_and_notes_remain_observations():
     assert note.responsibility_id is None
 
 
+def test_care_event_can_be_logged_and_linked_to_a_responsibility():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW)])
+    event = state.record_care_event("weight_measured", "4.2 kg", NOW, responsibility_id="r1")
+    assert event in state.timeline()
+    assert event.responsibility_id == "r1"
+
+
+def test_care_event_requires_existing_link_and_cannot_be_future_dated():
+    state = CatCareState("Mimi")
+    with pytest.raises(ValueError, match="does not exist"):
+        state.record_care_event("exam_performed", "exam", NOW, responsibility_id="missing")
+    with pytest.raises(ValueError, match="future"):
+        state.record_care_event("exam_performed", "exam", NOW + timedelta(days=1), current_time=NOW)
+
+
 def test_note_cannot_be_future_dated():
     state = CatCareState("Mimi")
     with pytest.raises(ValueError):

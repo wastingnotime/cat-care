@@ -208,15 +208,30 @@ class CatCareState:
         self.events.append(event)
         return event
 
-    def record_note(self, description: str, now: datetime, *, current_time: datetime | None = None) -> CareEvent:
-        _require_timezone_aware(now, "note time")
+    def record_care_event(
+        self,
+        event_type: str,
+        description: str,
+        occurred_at: datetime,
+        *,
+        current_time: datetime | None = None,
+        responsibility_id: str | None = None,
+    ) -> CareEvent:
+        _require_timezone_aware(occurred_at, "care event time")
         if current_time is not None:
             _require_timezone_aware(current_time, "current time")
-        if current_time is not None and now > current_time:
-            raise ValueError("a note cannot be recorded in the future")
-        event = CareEvent("note_recorded", now, description)
+        if current_time is not None and occurred_at > current_time:
+            raise ValueError("a care event cannot be recorded in the future")
+        if responsibility_id is not None and not any(
+            item.id == responsibility_id for item in self.responsibilities
+        ):
+            raise ValueError(f"responsibility {responsibility_id} does not exist")
+        event = CareEvent(event_type, occurred_at, description, responsibility_id)
         self.events.append(event)
         return event
+
+    def record_note(self, description: str, now: datetime, *, current_time: datetime | None = None) -> CareEvent:
+        return self.record_care_event("note_recorded", description, now, current_time=current_time)
 
     def timeline(self) -> list[CareEvent]:
         return sorted(self.events, key=lambda event: event.occurred_at, reverse=True)

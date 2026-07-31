@@ -33,6 +33,8 @@ derived from due date, current time, and a configured threshold.
    responsibilities are not silently rewritten.
 8. Edit evidence must include the previous and new values needed to explain a
    correction.
+9. A direct care event may be linked to a responsibility, but remains its own
+   timeline record.
 
 ## Open questions
 

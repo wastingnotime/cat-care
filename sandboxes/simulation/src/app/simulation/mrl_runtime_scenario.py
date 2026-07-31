@@ -85,6 +85,23 @@ def create_simulation() -> Scenario:
             payload={"description": event.description, "history_preserved": True},
         )
 
+    def record_weight_event(context: object) -> None:
+        event = state.record_care_event(
+            "weight_measured",
+            "4.2 kg",
+            context.clock.now(),
+            current_time=context.clock.now(),
+            responsibility_id="mimi-vaccine-1",
+        )
+        context.emit(
+            "domain_event",
+            event.event_type,
+            source="CareEvent",
+            actor="owner",
+            correlation_id=event.responsibility_id,
+            payload={"description": event.description, "responsibility_id": event.responsibility_id},
+        )
+
     def record_note(context: object) -> None:
         event = state.record_note(
             "eating less",
@@ -125,6 +142,7 @@ def create_simulation() -> Scenario:
             InitialScheduledAction(INITIAL_TIME + timedelta(days=1), observe_status, "observe_due_soon_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), observe_status, "observe_overdue_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=2), complete_vaccine, "complete_vaccine", "Responsibility", "mimi-vaccine-1"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=3), record_weight_event, "record_weight_event", "CareEvent", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4), cancel_appointment, "cancel_appointment", "Responsibility", "mimi-appointment-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=1), record_note, "record_note", "Note"),
         ],

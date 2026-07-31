@@ -75,3 +75,9 @@ responsibilities remain immutable through the edit command.
 
 Edit events now preserve previous and new title and due-date values, making a
 correction auditable instead of recording only the final state.
+
+## Care-event build
+
+The shared environment now accepts direct care events such as measurements or
+exams. They remain independent timeline records while optionally linking to an
+existing responsibility.

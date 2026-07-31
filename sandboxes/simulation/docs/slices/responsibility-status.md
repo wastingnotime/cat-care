@@ -27,6 +27,8 @@ sentence and a stable status kind for future adapters.
 - Creating and editing a planned responsibility emits history events; completed
   responsibilities cannot be edited through this command.
 - Edit events include previous and new title and due-date values.
+- Direct care events can be recorded in the past or present and optionally
+  linked to an existing responsibility.
 
 ## Scenario
 
