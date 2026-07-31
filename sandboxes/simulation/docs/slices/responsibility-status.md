@@ -41,6 +41,8 @@ sentence and a stable status kind for future adapters.
   recurrence, and export.
 - Cat birth date, adoption date, and photo reference are optional profile data
   and are included in export when present; known dates must remain coherent.
+- Notification outcome is recorded separately from responsibility completion;
+  delivery failure does not become owner inaction or completion.
 
 ## Scenario
 

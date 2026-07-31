@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from app.simulation.domain import CatCareState, RecurrencePolicy, Responsibility, ResponsibilityState
+from app.simulation.domain import CatCareState, NotificationOutcome, RecurrencePolicy, Responsibility, ResponsibilityState
 
 
 NOW = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -170,6 +170,14 @@ def test_care_event_requires_existing_link_and_cannot_be_future_dated():
         state.record_care_event("exam_performed", "exam", NOW, responsibility_id="missing")
     with pytest.raises(ValueError, match="future"):
         state.record_care_event("exam_performed", "exam", NOW + timedelta(days=1), current_time=NOW)
+
+
+def test_failed_notification_does_not_change_owner_responsibility_state():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
+    event = state.record_notification("r1", NOW, NotificationOutcome.FAILED)
+    assert event.details == (("outcome", "failed"),)
+    assert state.responsibilities[0].state == ResponsibilityState.PLANNED
+    assert state.responsibilities[0].derived_state(NOW + timedelta(days=1), THRESHOLD) == "overdue"
 
 
 def test_note_cannot_be_future_dated():

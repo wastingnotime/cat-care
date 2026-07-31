@@ -6,7 +6,7 @@ from mrl_simulation_runtime.actors import Actor
 from mrl_simulation_runtime.invariants import Invariant
 from mrl_simulation_runtime.scenario import InitialScheduledAction, ObservatoryEdge, ObservatoryNode, Scenario
 
-from app.simulation.domain import CatCareState, Responsibility
+from app.simulation.domain import CatCareState, NotificationOutcome, Responsibility
 
 
 INITIAL_TIME = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -77,6 +77,22 @@ def create_simulation() -> Scenario:
             payload={"description": event.description},
         )
         observe_status(context)
+
+    def record_failed_notification(context: object) -> None:
+        event = state.record_notification(
+            "mimi-vaccine-1",
+            context.clock.now(),
+            NotificationOutcome.FAILED,
+            current_time=context.clock.now(),
+        )
+        context.emit(
+            "domain_event",
+            event.event_type,
+            source="Notification",
+            actor="system",
+            correlation_id=event.responsibility_id,
+            payload={"outcome": NotificationOutcome.FAILED.value, "responsibility_state": state.responsibilities[0].derived_state(context.clock.now(), threshold)},
+        )
 
     def cancel_appointment(context: object) -> None:
         event = state.cancel(
@@ -177,6 +193,7 @@ def create_simulation() -> Scenario:
             InitialScheduledAction(INITIAL_TIME + timedelta(hours=4), edit_food_responsibility, "edit_food_responsibility", "Responsibility", "mimi-food-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=1), observe_status, "observe_due_soon_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), observe_status, "observe_overdue_status", "CareStatus"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), record_failed_notification, "record_failed_notification", "Notification", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=2), complete_vaccine, "complete_vaccine", "Responsibility", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=3), record_weight_event, "record_weight_event", "CareEvent", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4), cancel_appointment, "cancel_appointment", "Responsibility", "mimi-appointment-1"),

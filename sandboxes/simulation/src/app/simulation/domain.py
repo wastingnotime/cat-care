@@ -17,6 +17,11 @@ class ResponsibilityState(str, Enum):
     CANCELLED = "cancelled"
 
 
+class NotificationOutcome(str, Enum):
+    DELIVERED = "delivered"
+    FAILED = "failed"
+
+
 @dataclass(frozen=True)
 class CareEvent:
     event_type: str
@@ -177,6 +182,31 @@ class CatCareState:
             raise ValueError(f"responsibility {responsibility.id} already exists")
         self.responsibilities.append(responsibility)
         event = CareEvent("responsibility_created", now, responsibility.title, responsibility.id)
+        self.events.append(event)
+        return event
+
+    def record_notification(
+        self,
+        responsibility_id: str,
+        attempted_at: datetime,
+        outcome: NotificationOutcome,
+        *,
+        current_time: datetime | None = None,
+    ) -> CareEvent:
+        self._ensure_active()
+        _require_timezone_aware(attempted_at, "notification time")
+        if current_time is not None:
+            _require_timezone_aware(current_time, "current time")
+        if current_time is not None and attempted_at > current_time:
+            raise ValueError("a notification cannot be recorded in the future")
+        responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
+        event = CareEvent(
+            "notification_recorded",
+            attempted_at,
+            f"notification for {responsibility.title}",
+            responsibility_id,
+            details=(("outcome", outcome.value),),
+        )
         self.events.append(event)
         return event
 

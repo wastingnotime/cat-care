@@ -8,6 +8,7 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     names = [item.name for item in result.observations.observations]
     assert "care_status_derived" in names
     assert "responsibility_completed" in names
+    assert "notification_recorded" in names
     assert "responsibility_cancelled" in names
     assert "note_recorded" in names
     assert "data_exported" in names

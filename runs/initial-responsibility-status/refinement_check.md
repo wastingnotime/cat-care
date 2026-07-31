@@ -128,3 +128,9 @@ reference metadata for the cat profile, with privacy-safe export behavior.
 
 When both profile dates are known, the domain now rejects an adoption date
 before the birth date.
+
+## Notification build
+
+The simulation now records delivered or failed notification outcomes separately
+from owner action. A failed notification leaves the responsibility planned or
+overdue rather than changing its care state.

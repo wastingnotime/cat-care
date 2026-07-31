@@ -49,6 +49,8 @@ derived from due date, current time, and a configured threshold.
 15. Cat profile metadata is optional, validated, and included in owner export;
    it does not become a responsibility requirement.
 16. When both are known, adoption date cannot precede birth date.
+17. Notification delivery outcome is separate from owner action; a failed or
+   delivered notification never silently completes a responsibility.
 
 ## Open questions
 
