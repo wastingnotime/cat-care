@@ -43,6 +43,7 @@ sentence and a stable status kind for future adapters.
   and are included in export when present; known dates must remain coherent.
 - Notification outcome is recorded separately from responsibility completion;
   delivery failure does not become owner inaction or completion.
+- Notification outcome values are explicit and validated.
 
 ## Scenario
 

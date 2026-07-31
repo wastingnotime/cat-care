@@ -194,6 +194,8 @@ class CatCareState:
         current_time: datetime | None = None,
     ) -> CareEvent:
         self._ensure_active()
+        if not isinstance(outcome, NotificationOutcome):
+            raise ValueError("notification outcome must be explicit")
         _require_timezone_aware(attempted_at, "notification time")
         if current_time is not None:
             _require_timezone_aware(current_time, "current time")

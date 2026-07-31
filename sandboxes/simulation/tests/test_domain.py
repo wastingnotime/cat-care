@@ -180,6 +180,19 @@ def test_failed_notification_does_not_change_owner_responsibility_state():
     assert state.responsibilities[0].derived_state(NOW + timedelta(days=1), THRESHOLD) == "overdue"
 
 
+def test_delivered_notification_also_does_not_complete_responsibility():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
+    event = state.record_notification("r1", NOW, NotificationOutcome.DELIVERED)
+    assert dict(event.details) == {"outcome": "delivered"}
+    assert state.responsibilities[0].state == ResponsibilityState.PLANNED
+
+
+def test_notification_outcome_must_be_explicit():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
+    with pytest.raises(ValueError, match="explicit"):
+        state.record_notification("r1", NOW, "failed")
+
+
 def test_note_cannot_be_future_dated():
     state = CatCareState("Mimi")
     with pytest.raises(ValueError):

@@ -134,3 +134,8 @@ before the birth date.
 The simulation now records delivered or failed notification outcomes separately
 from owner action. A failed notification leaves the responsibility planned or
 overdue rather than changing its care state.
+
+## Notification validation refinement
+
+Delivered and failed outcomes are both covered, and arbitrary channel strings
+are rejected before they can enter the care history.

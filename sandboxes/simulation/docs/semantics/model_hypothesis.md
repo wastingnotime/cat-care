@@ -51,6 +51,8 @@ derived from due date, current time, and a configured threshold.
 16. When both are known, adoption date cannot precede birth date.
 17. Notification delivery outcome is separate from owner action; a failed or
    delivered notification never silently completes a responsibility.
+18. Notification outcomes must be explicit domain values rather than
+   unvalidated channel strings.
 
 ## Open questions
 
