@@ -53,6 +53,8 @@ derived from due date, current time, and a configured threshold.
    delivered notification never silently completes a responsibility.
 18. Notification outcomes must be explicit domain values rather than
    unvalidated channel strings.
+19. An owner deferral is an explicit decision that reschedules a planned
+   responsibility and remains distinct from notification failure.
 
 ## Open questions
 

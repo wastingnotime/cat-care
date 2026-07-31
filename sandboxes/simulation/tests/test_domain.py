@@ -193,6 +193,23 @@ def test_notification_outcome_must_be_explicit():
         state.record_notification("r1", NOW, "failed")
 
 
+def test_owner_deferral_records_decision_and_reschedules_responsibility():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
+    event = state.defer_responsibility("r1", NOW, NOW + timedelta(days=7), current_time=NOW)
+    assert event.event_type == "responsibility_deferred"
+    assert dict(event.details)["new_due_at"] == (NOW + timedelta(days=7)).isoformat()
+    assert state.responsibilities[0].derived_state(NOW, THRESHOLD) == "planned"
+
+
+def test_deferral_requires_a_future_date_and_planned_responsibility():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
+    with pytest.raises(ValueError, match="future"):
+        state.defer_responsibility("r1", NOW, NOW, current_time=NOW)
+    state.complete("r1", NOW)
+    with pytest.raises(ValueError, match="not deferrable"):
+        state.defer_responsibility("r1", NOW, NOW + timedelta(days=1), current_time=NOW)
+
+
 def test_note_cannot_be_future_dated():
     state = CatCareState("Mimi")
     with pytest.raises(ValueError):

@@ -94,6 +94,22 @@ def create_simulation() -> Scenario:
             payload={"outcome": NotificationOutcome.FAILED.value, "responsibility_state": state.responsibilities[0].derived_state(context.clock.now(), threshold)},
         )
 
+    def defer_vaccine(context: object) -> None:
+        event = state.defer_responsibility(
+            "mimi-vaccine-1",
+            context.clock.now(),
+            INITIAL_TIME + timedelta(days=10),
+            current_time=context.clock.now(),
+        )
+        context.emit(
+            "domain_event",
+            event.event_type,
+            source="Responsibility",
+            actor="owner",
+            correlation_id=event.responsibility_id,
+            payload={"details": dict(event.details), "owner_decision": True},
+        )
+
     def cancel_appointment(context: object) -> None:
         event = state.cancel(
             "mimi-appointment-1",
@@ -194,6 +210,7 @@ def create_simulation() -> Scenario:
             InitialScheduledAction(INITIAL_TIME + timedelta(days=1), observe_status, "observe_due_soon_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), observe_status, "observe_overdue_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), record_failed_notification, "record_failed_notification", "Notification", "mimi-vaccine-1"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), defer_vaccine, "defer_vaccine", "Responsibility", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=2), complete_vaccine, "complete_vaccine", "Responsibility", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=3), record_weight_event, "record_weight_event", "CareEvent", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4), cancel_appointment, "cancel_appointment", "Responsibility", "mimi-appointment-1"),

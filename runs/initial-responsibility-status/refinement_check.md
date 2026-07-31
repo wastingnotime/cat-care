@@ -139,3 +139,9 @@ overdue rather than changing its care state.
 
 Delivered and failed outcomes are both covered, and arbitrary channel strings
 are rejected before they can enter the care history.
+
+## Owner-deferral build
+
+Owners can now explicitly defer a planned or overdue responsibility to a future
+date. The decision is recorded separately from notification delivery and
+completion.

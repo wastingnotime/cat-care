@@ -212,6 +212,41 @@ class CatCareState:
         self.events.append(event)
         return event
 
+    def defer_responsibility(
+        self,
+        responsibility_id: str,
+        now: datetime,
+        new_due_at: datetime,
+        *,
+        current_time: datetime | None = None,
+    ) -> CareEvent:
+        self._ensure_active()
+        _require_timezone_aware(now, "deferral time")
+        _require_timezone_aware(new_due_at, "new responsibility due time")
+        if current_time is not None:
+            _require_timezone_aware(current_time, "current time")
+        if current_time is not None and now > current_time:
+            raise ValueError("a deferral cannot be recorded in the future")
+        if new_due_at <= now:
+            raise ValueError("deferred due time must be in the future")
+        responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
+        if responsibility.state != ResponsibilityState.PLANNED:
+            raise ValueError(f"responsibility {responsibility.id} is not deferrable")
+        previous_due_at = responsibility.due_at
+        responsibility.due_at = new_due_at
+        event = CareEvent(
+            "responsibility_deferred",
+            now,
+            responsibility.title,
+            responsibility.id,
+            details=(
+                ("previous_due_at", previous_due_at.isoformat() if previous_due_at else "unknown"),
+                ("new_due_at", new_due_at.isoformat()),
+            ),
+        )
+        self.events.append(event)
+        return event
+
     def edit_responsibility(
         self,
         responsibility_id: str,
