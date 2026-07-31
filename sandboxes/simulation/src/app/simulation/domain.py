@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from enum import Enum
 
 
@@ -126,6 +126,15 @@ class CatCareState:
     events: list[CareEvent] = field(default_factory=list)
     future_information_known: bool = True
     deleted: bool = False
+    birth_date: date | None = None
+    adoption_date: date | None = None
+    photo_ref: str | None = None
+
+    def __post_init__(self) -> None:
+        if not self.cat_name.strip():
+            raise ValueError("cat name cannot be empty")
+        if self.photo_ref is not None and not self.photo_ref.strip():
+            raise ValueError("photo reference cannot be empty")
 
     def _ensure_active(self) -> None:
         if self.deleted:
@@ -286,14 +295,19 @@ class CatCareState:
     def export_data(self) -> dict[str, object]:
         if self.deleted:
             return {
-                "cat": {"name": None},
+                "cat": {"name": None, "birth_date": None, "adoption_date": None, "photo_ref": None},
                 "deleted": True,
                 "future_information_known": None,
                 "responsibilities": [],
                 "events": [],
             }
         return {
-            "cat": {"name": self.cat_name},
+            "cat": {
+                "name": self.cat_name,
+                "birth_date": self.birth_date.isoformat() if self.birth_date else None,
+                "adoption_date": self.adoption_date.isoformat() if self.adoption_date else None,
+                "photo_ref": self.photo_ref,
+            },
             "deleted": False,
             "future_information_known": self.future_information_known,
             "responsibilities": [
@@ -336,6 +350,9 @@ class CatCareState:
         self.responsibilities.clear()
         self.events.clear()
         self.cat_name = ""
+        self.birth_date = None
+        self.adoption_date = None
+        self.photo_ref = None
         self.future_information_known = True
         self.deleted = True
         return receipt

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 import json
 
 import pytest
@@ -190,7 +190,12 @@ def test_export_contains_current_state_and_chronological_event_history():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")], future_information_known=False)
     state.record_note("eating less", NOW + timedelta(hours=1))
     exported = state.export_data()
-    assert exported["cat"] == {"name": "Mimi"}
+    assert exported["cat"] == {
+        "name": "Mimi",
+        "birth_date": None,
+        "adoption_date": None,
+        "photo_ref": None,
+    }
     assert exported["future_information_known"] is False
     assert exported["responsibilities"][0]["id"] == "r1"
     assert exported["events"][0]["type"] == "note_recorded"
@@ -204,7 +209,7 @@ def test_deleting_cat_removes_owned_records_and_leaves_no_orphans():
     assert receipt.responsibilities_removed == 1
     assert receipt.events_removed == 1
     assert state.export_data() == {
-        "cat": {"name": None},
+        "cat": {"name": None, "birth_date": None, "adoption_date": None, "photo_ref": None},
         "deleted": True,
         "future_information_known": None,
         "responsibilities": [],
@@ -212,6 +217,23 @@ def test_deleting_cat_removes_owned_records_and_leaves_no_orphans():
     }
     with pytest.raises(ValueError, match="deleted"):
         state.record_note("after deletion", NOW)
+
+
+def test_cat_profile_fields_are_optional_and_exported():
+    state = CatCareState(
+        "Mimi",
+        birth_date=date(2021, 5, 1),
+        adoption_date=date(2021, 7, 10),
+        photo_ref="mimi-profile.jpg",
+    )
+    assert state.export_data()["cat"] == {
+        "name": "Mimi",
+        "birth_date": "2021-05-01",
+        "adoption_date": "2021-07-10",
+        "photo_ref": "mimi-profile.jpg",
+    }
+    with pytest.raises(ValueError, match="cat name"):
+        CatCareState(" ")
 
 
 def test_cat_deletion_cannot_be_future_dated():

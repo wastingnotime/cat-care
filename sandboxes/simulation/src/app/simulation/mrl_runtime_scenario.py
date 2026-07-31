@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from mrl_simulation_runtime.actors import Actor
 from mrl_simulation_runtime.invariants import Invariant
@@ -20,6 +20,9 @@ class OwnerBehavior:
 def create_simulation() -> Scenario:
     state = CatCareState(
         cat_name="Mimi",
+        birth_date=date(2021, 5, 1),
+        adoption_date=date(2021, 7, 10),
+        photo_ref="mimi-profile.jpg",
         responsibilities=[
             Responsibility("mimi-vaccine-1", "vaccine", INITIAL_TIME + timedelta(days=3), category="preventive care"),
             Responsibility("mimi-appointment-1", "vet appointment", INITIAL_TIME + timedelta(days=5), category="veterinary"),

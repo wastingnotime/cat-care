@@ -118,3 +118,8 @@ preserved through edits, recurring occurrences, and export.
 The category is now required at construction rather than silently defaulting to
 `general`, preventing incomplete responsibility records from entering the
 model.
+
+## Cat-profile build
+
+The simulation now carries optional birth date, adoption date, and photo
+reference metadata for the cat profile, with privacy-safe export behavior.

@@ -46,6 +46,8 @@ derived from due date, current time, and a configured threshold.
    information needs attention when one exists.
 14. Responsibility category is explicit required domain vocabulary and is
    preserved through edits, recurrence, and export.
+15. Cat profile metadata is optional, validated, and included in owner export;
+   it does not become a responsibility requirement.
 
 ## Open questions
 
