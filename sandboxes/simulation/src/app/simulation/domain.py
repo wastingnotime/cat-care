@@ -233,6 +233,8 @@ class CatCareState:
         if responsibility.state != ResponsibilityState.PLANNED:
             raise ValueError(f"responsibility {responsibility.id} is not deferrable")
         previous_due_at = responsibility.due_at
+        if previous_due_at is not None and new_due_at <= previous_due_at:
+            raise ValueError("deferral must move the due time later")
         responsibility.due_at = new_due_at
         event = CareEvent(
             "responsibility_deferred",

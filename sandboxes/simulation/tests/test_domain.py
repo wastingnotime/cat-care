@@ -205,6 +205,11 @@ def test_deferral_requires_a_future_date_and_planned_responsibility():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
     with pytest.raises(ValueError, match="future"):
         state.defer_responsibility("r1", NOW, NOW, current_time=NOW)
+    later_check = CatCareState(
+        "Mimi", [Responsibility("r2", "appointment", NOW + timedelta(days=3), "veterinary")]
+    )
+    with pytest.raises(ValueError, match="later"):
+        later_check.defer_responsibility("r2", NOW, NOW + timedelta(days=1), current_time=NOW)
     state.complete("r1", NOW)
     with pytest.raises(ValueError, match="not deferrable"):
         state.defer_responsibility("r1", NOW, NOW + timedelta(days=1), current_time=NOW)

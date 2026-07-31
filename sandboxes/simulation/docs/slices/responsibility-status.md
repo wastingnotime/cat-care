@@ -44,8 +44,8 @@ sentence and a stable status kind for future adapters.
 - Notification outcome is recorded separately from responsibility completion;
   delivery failure does not become owner inaction or completion.
 - Notification outcome values are explicit and validated.
-- Owner deferral records a decision and future due date; it does not masquerade
-  as completion or notification delivery.
+- Owner deferral records a decision and later future due date; it does not
+  masquerade as completion or notification delivery.
 
 ## Scenario
 

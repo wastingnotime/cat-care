@@ -145,3 +145,8 @@ are rejected before they can enter the care history.
 Owners can now explicitly defer a planned or overdue responsibility to a future
 date. The decision is recorded separately from notification delivery and
 completion.
+
+## Deferral consistency refinement
+
+Deferral now requires a later date when the previous due date was known; an
+undated responsibility may still be scheduled for its first future date.
