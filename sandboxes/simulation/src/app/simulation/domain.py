@@ -47,12 +47,15 @@ class Responsibility:
     id: str
     title: str
     due_at: datetime | None
+    category: str = "general"
     state: ResponsibilityState = ResponsibilityState.PLANNED
     recurrence: RecurrencePolicy | None = None
     completed_at: datetime | None = None
     action_key: str | None = None
 
     def __post_init__(self) -> None:
+        if not self.category.strip():
+            raise ValueError("responsibility category cannot be empty")
         if self.due_at is not None:
             _require_timezone_aware(self.due_at, "responsibility due time")
         if self.completed_at is not None:
@@ -173,6 +176,7 @@ class CatCareState:
         *,
         title: str,
         due_at: datetime | None,
+        category: str | None = None,
     ) -> CareEvent:
         self._ensure_active()
         _require_timezone_aware(now, "edit time")
@@ -181,10 +185,15 @@ class CatCareState:
             raise ValueError(f"responsibility {responsibility.id} is not editable")
         if due_at is not None:
             _require_timezone_aware(due_at, "responsibility due time")
+        if category is not None and not category.strip():
+            raise ValueError("responsibility category cannot be empty")
         previous_title = responsibility.title
         previous_due_at = responsibility.due_at
+        previous_category = responsibility.category
         responsibility.title = title
         responsibility.due_at = due_at
+        if category is not None:
+            responsibility.category = category
         event = CareEvent(
             "responsibility_edited",
             now,
@@ -195,6 +204,8 @@ class CatCareState:
                 ("new_title", title),
                 ("previous_due_at", previous_due_at.isoformat() if previous_due_at else "unknown"),
                 ("new_due_at", due_at.isoformat() if due_at else "unknown"),
+                ("previous_category", previous_category),
+                ("new_category", responsibility.category),
             ),
         )
         self.events.append(event)
@@ -222,6 +233,7 @@ class CatCareState:
                     id=f"{responsibility.id}-next",
                     title=responsibility.title,
                     due_at=responsibility.recurrence.next_due_at(responsibility.due_at),
+                    category=responsibility.category,
                     recurrence=responsibility.recurrence,
                     action_key=responsibility.action_key,
                 )
@@ -288,6 +300,7 @@ class CatCareState:
                 {
                     "id": item.id,
                     "title": item.title,
+                    "category": item.category,
                     "due_at": item.due_at.isoformat() if item.due_at else None,
                     "state": item.state.value,
                     "completed_at": item.completed_at.isoformat() if item.completed_at else None,

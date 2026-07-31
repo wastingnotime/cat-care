@@ -109,3 +109,8 @@ the domain rejects further mutation.
 Unknown status snapshots now include the active responsibility ID that lacks a
 due date, allowing a future adapter to guide correction without weakening the
 uncertainty message.
+
+## Category build
+
+Responsibilities now require non-empty category vocabulary, and category is
+preserved through edits, recurring occurrences, and export.

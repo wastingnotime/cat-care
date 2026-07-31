@@ -21,8 +21,8 @@ def create_simulation() -> Scenario:
     state = CatCareState(
         cat_name="Mimi",
         responsibilities=[
-            Responsibility("mimi-vaccine-1", "vaccine", INITIAL_TIME + timedelta(days=3)),
-            Responsibility("mimi-appointment-1", "vet appointment", INITIAL_TIME + timedelta(days=5)),
+            Responsibility("mimi-vaccine-1", "vaccine", INITIAL_TIME + timedelta(days=3), category="preventive care"),
+            Responsibility("mimi-appointment-1", "vet appointment", INITIAL_TIME + timedelta(days=5), category="veterinary"),
         ],
     )
     threshold = timedelta(days=2)
@@ -44,7 +44,7 @@ def create_simulation() -> Scenario:
 
     def add_food_responsibility(context: object) -> None:
         event = state.add_responsibility(
-            Responsibility("mimi-food-1", "buy food", INITIAL_TIME + timedelta(days=7)),
+            Responsibility("mimi-food-1", "buy food", INITIAL_TIME + timedelta(days=7), category="supplies"),
             context.clock.now(),
         )
         context.emit("domain_event", event.event_type, source="Responsibility", actor="owner", correlation_id=event.responsibility_id, payload={"description": event.description})
@@ -55,6 +55,7 @@ def create_simulation() -> Scenario:
             context.clock.now(),
             title="buy essential food",
             due_at=INITIAL_TIME + timedelta(days=6),
+            category="supplies",
         )
         context.emit("domain_event", event.event_type, source="Responsibility", actor="owner", correlation_id=event.responsibility_id, payload={"description": event.description, "history_preserved": True, "details": dict(event.details)})
 

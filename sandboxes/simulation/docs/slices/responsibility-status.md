@@ -37,6 +37,8 @@ sentence and a stable status kind for future adapters.
   receipt, and exposes no personal records in later export.
 - Unknown status snapshots identify an active undated responsibility when
   possible.
+- Responsibility category is required and is carried through lifecycle events,
+  recurrence, and export.
 
 ## Scenario
 

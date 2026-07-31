@@ -28,7 +28,7 @@ def test_responsibility_can_be_added_and_edited_with_history_events():
     state = CatCareState("Mimi")
     responsibility = Responsibility("r1", "buy food", NOW + timedelta(days=7))
     created = state.add_responsibility(responsibility, NOW)
-    edited = state.edit_responsibility("r1", NOW, title="buy essential food", due_at=NOW + timedelta(days=6))
+    edited = state.edit_responsibility("r1", NOW, title="buy essential food", due_at=NOW + timedelta(days=6), category="supplies")
     assert [event.event_type for event in state.events] == ["responsibility_created", "responsibility_edited"]
     assert created.responsibility_id == edited.responsibility_id == "r1"
     assert dict(edited.details) == {
@@ -36,9 +36,19 @@ def test_responsibility_can_be_added_and_edited_with_history_events():
         "new_title": "buy essential food",
         "previous_due_at": (NOW + timedelta(days=7)).isoformat(),
         "new_due_at": (NOW + timedelta(days=6)).isoformat(),
+        "previous_category": "general",
+        "new_category": "supplies",
     }
     assert responsibility.title == "buy essential food"
     assert responsibility.due_at == NOW + timedelta(days=6)
+    assert responsibility.category == "supplies"
+
+
+def test_responsibility_category_is_required_and_exported():
+    with pytest.raises(ValueError, match="category"):
+        Responsibility("r1", "vaccine", NOW, category=" ")
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, category="preventive care")])
+    assert state.export_data()["responsibilities"][0]["category"] == "preventive care"
 
 
 def test_duplicate_responsibility_ids_and_editing_completed_items_are_rejected():

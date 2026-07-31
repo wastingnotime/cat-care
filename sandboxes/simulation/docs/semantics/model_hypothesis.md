@@ -44,6 +44,8 @@ derived from due date, current time, and a configured threshold.
    responsibilities and events without leaving orphaned records.
 13. An uncertainty status identifies the responsibility whose missing timing
    information needs attention when one exists.
+14. Responsibility category is required domain vocabulary and is preserved
+   through edits, recurrence, and export.
 
 ## Open questions
 
