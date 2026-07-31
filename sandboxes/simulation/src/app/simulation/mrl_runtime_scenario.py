@@ -28,13 +28,18 @@ def create_simulation() -> Scenario:
     threshold = timedelta(days=2)
 
     def observe_status(context: object) -> None:
-        status = state.status(context.clock.now(), threshold)
+        snapshot = state.status_snapshot(context.clock.now(), threshold)
         context.emit(
             "semantic_observation",
             "care_status_derived",
             source="CareStatus",
             actor="owner",
-            payload={"cat": state.cat_name, "status": status},
+            payload={
+                "cat": state.cat_name,
+                "status": snapshot.sentence,
+                "kind": snapshot.kind,
+                "nearest_responsibility_id": snapshot.nearest_responsibility_id,
+            },
         )
 
     def complete_vaccine(context: object) -> None:

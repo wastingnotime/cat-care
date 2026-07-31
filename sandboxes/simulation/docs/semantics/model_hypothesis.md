@@ -7,6 +7,8 @@
 - **Care event**: something that happened, recorded in the past or present.
 - **Note**: a lightweight observation, never a diagnosis.
 - **Calm status**: a derived summary of responsibilities and known gaps.
+- **Status snapshot**: a stable kind, sentence, and optional nearest
+  responsibility identity for technology adapters.
 
 ## First boundary
 

@@ -15,6 +15,14 @@ def test_due_soon_and_overdue_are_derived_from_time():
     assert responsibility.derived_state(NOW + timedelta(days=2), THRESHOLD) == "overdue"
 
 
+def test_status_snapshot_exposes_stable_kind_and_nearest_responsibility():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW + timedelta(days=1))])
+    snapshot = state.status_snapshot(NOW, THRESHOLD)
+    assert snapshot.kind == "due_soon"
+    assert snapshot.nearest_responsibility_id == "r1"
+    assert snapshot.sentence == "Next: vaccine soon."
+
+
 def test_completion_records_event_and_recurring_next_occurrence():
     state = CatCareState(
         "Mimi", [Responsibility("r1", "treatment", NOW, recurrence=RecurrencePolicy(30))]

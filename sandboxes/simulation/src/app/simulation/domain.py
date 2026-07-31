@@ -89,6 +89,13 @@ class Responsibility:
         return CareEvent("responsibility_cancelled", now, self.title, self.id)
 
 
+@dataclass(frozen=True)
+class StatusSnapshot:
+    kind: str
+    sentence: str
+    nearest_responsibility_id: str | None = None
+
+
 @dataclass
 class CatCareState:
     cat_name: str
@@ -97,12 +104,17 @@ class CatCareState:
     future_information_known: bool = True
 
     def status(self, now: datetime, due_soon_threshold: timedelta) -> str:
+        return self.status_snapshot(now, due_soon_threshold).sentence
+
+    def status_snapshot(self, now: datetime, due_soon_threshold: timedelta) -> StatusSnapshot:
         _require_timezone_aware(now, "current time")
         active = [item for item in self.responsibilities if item.state == ResponsibilityState.PLANNED]
-        if any(item.derived_state(now, due_soon_threshold) == "overdue" for item in active):
-            return "Something important is overdue."
+        overdue = [item for item in active if item.derived_state(now, due_soon_threshold) == "overdue"]
+        if overdue:
+            nearest = min(overdue, key=lambda item: item.due_at)
+            return StatusSnapshot("overdue", "Something important is overdue.", nearest.id)
         if any(item.due_at is None for item in active):
-            return "Some future care information is unknown."
+            return StatusSnapshot("unknown", "Some future care information is unknown.")
         nearest = min(
             (item for item in active if item.due_at is not None),
             key=lambda item: item.due_at,
@@ -111,11 +123,11 @@ class CatCareState:
         if nearest is not None:
             state = nearest.derived_state(now, due_soon_threshold)
             if state == "due_soon":
-                return f"Next: {nearest.title} soon."
-            return f"Nothing important is due soon. Next: {nearest.title}."
+                return StatusSnapshot("due_soon", f"Next: {nearest.title} soon.", nearest.id)
+            return StatusSnapshot("planned", f"Nothing important is due soon. Next: {nearest.title}.", nearest.id)
         if not self.future_information_known:
-            return "Some future care information is unknown."
-        return "Nothing important is pending."
+            return StatusSnapshot("unknown", "Some future care information is unknown.")
+        return StatusSnapshot("clear", "Nothing important is pending.")
 
     def complete(
         self,

@@ -52,3 +52,9 @@ an owner completes a responsibility late.
 The domain now rejects naive timestamps at responsibility, care-event, note, and
 status boundaries. This makes timezone handling an explicit invariant instead
 of relying on runtime comparison errors.
+
+## Status contract build
+
+The calm-status projection now exposes a stable kind and optional nearest
+responsibility identity alongside its sentence. This preserves calm language
+for owners while giving future web/API adapters an explicit contract.

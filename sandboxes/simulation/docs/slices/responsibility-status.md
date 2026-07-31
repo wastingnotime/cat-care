@@ -3,7 +3,8 @@
 ## Contract
 
 Given one cat, responsibilities, and a deterministic current time, derive a
-calm status and the nearest actionable responsibility.
+calm status and the nearest actionable responsibility. Expose both a human
+sentence and a stable status kind for future adapters.
 
 ## Rules
 
