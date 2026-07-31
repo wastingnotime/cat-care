@@ -46,3 +46,9 @@ confidence.
 Recurrence is now represented by an explicit positive interval policy. Future
 occurrences remain anchored to the planned due date, avoiding silent drift when
 an owner completes a responsibility late.
+
+## Time refinement
+
+The domain now rejects naive timestamps at responsibility, care-event, note, and
+status boundaries. This makes timezone handling an explicit invariant instead
+of relying on runtime comparison errors.

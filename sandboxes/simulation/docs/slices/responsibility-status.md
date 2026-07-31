@@ -19,6 +19,8 @@ calm status and the nearest actionable responsibility.
 - A recurring responsibility requires a positive explicit interval policy; its
   next occurrence stays anchored to the planned due date even when completed
   late.
+- Responsibility, care-event, note, and current-time values must be
+  timezone-aware.
 
 ## Scenario
 

@@ -5,6 +5,11 @@ from datetime import datetime, timedelta
 from enum import Enum
 
 
+def _require_timezone_aware(value: datetime, field_name: str) -> None:
+    if value.tzinfo is None or value.utcoffset() is None:
+        raise ValueError(f"{field_name} must be timezone-aware")
+
+
 class ResponsibilityState(str, Enum):
     PLANNED = "planned"
     COMPLETED = "completed"
@@ -17,6 +22,9 @@ class CareEvent:
     occurred_at: datetime
     description: str
     responsibility_id: str | None = None
+
+    def __post_init__(self) -> None:
+        _require_timezone_aware(self.occurred_at, "care event time")
 
 
 @dataclass(frozen=True)
@@ -40,7 +48,14 @@ class Responsibility:
     recurrence: RecurrencePolicy | None = None
     completed_at: datetime | None = None
 
+    def __post_init__(self) -> None:
+        if self.due_at is not None:
+            _require_timezone_aware(self.due_at, "responsibility due time")
+        if self.completed_at is not None:
+            _require_timezone_aware(self.completed_at, "responsibility completion time")
+
     def derived_state(self, now: datetime, due_soon_threshold: timedelta) -> str:
+        _require_timezone_aware(now, "current time")
         if self.state != ResponsibilityState.PLANNED:
             return self.state.value
         if self.due_at is None:
@@ -52,6 +67,9 @@ class Responsibility:
         return "planned"
 
     def complete(self, now: datetime, *, current_time: datetime | None = None) -> CareEvent:
+        _require_timezone_aware(now, "completion time")
+        if current_time is not None:
+            _require_timezone_aware(current_time, "current time")
         if current_time is not None and now > current_time:
             raise ValueError("a care event cannot be recorded in the future")
         if self.state != ResponsibilityState.PLANNED:
@@ -61,6 +79,8 @@ class Responsibility:
         return CareEvent("responsibility_completed", now, self.title, self.id)
 
     def cancel(self, now: datetime | None = None) -> CareEvent | None:
+        if now is not None:
+            _require_timezone_aware(now, "cancellation time")
         if self.state != ResponsibilityState.PLANNED:
             raise ValueError(f"responsibility {self.id} is not cancellable")
         self.state = ResponsibilityState.CANCELLED
@@ -77,6 +97,7 @@ class CatCareState:
     future_information_known: bool = True
 
     def status(self, now: datetime, due_soon_threshold: timedelta) -> str:
+        _require_timezone_aware(now, "current time")
         active = [item for item in self.responsibilities if item.state == ResponsibilityState.PLANNED]
         if any(item.derived_state(now, due_soon_threshold) == "overdue" for item in active):
             return "Something important is overdue."
@@ -125,6 +146,9 @@ class CatCareState:
         return event
 
     def record_note(self, description: str, now: datetime, *, current_time: datetime | None = None) -> CareEvent:
+        _require_timezone_aware(now, "note time")
+        if current_time is not None:
+            _require_timezone_aware(current_time, "current time")
         if current_time is not None and now > current_time:
             raise ValueError("a note cannot be recorded in the future")
         event = CareEvent("note_recorded", now, description)

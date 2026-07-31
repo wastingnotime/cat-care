@@ -90,3 +90,11 @@ def test_note_cannot_be_future_dated():
     state = CatCareState("Mimi")
     with pytest.raises(ValueError):
         state.record_note("vomiting", NOW + timedelta(days=1), current_time=NOW)
+
+
+def test_domain_rejects_naive_timestamps():
+    naive_now = datetime(2026, 1, 1, 9)
+    with pytest.raises(ValueError, match="timezone-aware"):
+        Responsibility("r1", "vaccine", naive_now)
+    with pytest.raises(ValueError, match="timezone-aware"):
+        CatCareState("Mimi").status(naive_now, THRESHOLD)

@@ -23,6 +23,8 @@ derived from due date, current time, and a configured threshold.
    traceable care event.
 4. Recurrence must be explicit before a future occurrence is created, with the
    next occurrence anchored to the planned due date.
+5. All care times are timezone-aware so status and timeline comparisons are
+   deterministic across owner locations.
 
 ## Open questions
 
