@@ -58,6 +58,8 @@ derived from due date, current time, and a configured threshold.
    failure.
 20. Technology adapters expose released status and command contracts without
    reimplementing domain transitions.
+21. Technology adapters expose timeline reads using the domain's newest-first
+   ordering.
 
 ## Open questions
 

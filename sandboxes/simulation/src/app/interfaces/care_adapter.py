@@ -60,6 +60,9 @@ class CareAdapter:
             self.state.record_note(description, now, current_time=current_time)
         )
 
+    def get_timeline(self) -> list[dict[str, object]]:
+        return [self._event_record(event) for event in self.state.timeline()]
+
     @staticmethod
     def _event_record(event: object) -> dict[str, object]:
         return {
@@ -69,4 +72,3 @@ class CareAdapter:
             "responsibility_id": event.responsibility_id,
             "details": dict(event.details),
         }
-

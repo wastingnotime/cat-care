@@ -34,3 +34,12 @@ def test_adapter_commands_return_event_records_and_use_domain_transitions():
     assert completed["type"] == "responsibility_completed"
     assert note["type"] == "note_recorded"
     assert len(state.events) == 3
+
+
+def test_adapter_exposes_newest_first_timeline_records():
+    state = CatCareState("Mimi")
+    adapter = CareAdapter(state)
+    adapter.record_note("older", NOW, current_time=NOW)
+    adapter.record_note("newer", NOW + timedelta(hours=1), current_time=NOW + timedelta(hours=1))
+    timeline = adapter.get_timeline()
+    assert [item["description"] for item in timeline] == ["newer", "older"]
