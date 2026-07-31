@@ -46,6 +46,8 @@ sentence and a stable status kind for future adapters.
 - Notification outcome values are explicit and validated.
 - Owner deferral records a decision and later future due date; it does not
   masquerade as completion or notification delivery.
+- The thin adapter contract exposes status and core commands as plain data and
+  delegates all behavior to the shared simulation domain.
 
 ## Scenario
 

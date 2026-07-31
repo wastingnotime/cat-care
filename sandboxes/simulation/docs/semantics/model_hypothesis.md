@@ -56,6 +56,8 @@ derived from due date, current time, and a configured threshold.
 19. An owner deferral is an explicit decision that reschedules a planned
    responsibility to a later date and remains distinct from notification
    failure.
+20. Technology adapters expose released status and command contracts without
+   reimplementing domain transitions.
 
 ## Open questions
 

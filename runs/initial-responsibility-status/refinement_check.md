@@ -150,3 +150,9 @@ completion.
 
 Deferral now requires a later date when the previous due date was known; an
 undated responsibility may still be scheduled for its first future date.
+
+## Adapter-contract build
+
+A thin Python adapter now exposes status, create, complete, cancel, and note
+commands as plain records while delegating behavior to the shared domain. It is
+ready to inform a future web adapter without importing a web framework.
