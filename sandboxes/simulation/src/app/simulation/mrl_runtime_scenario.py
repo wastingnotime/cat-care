@@ -42,6 +42,22 @@ def create_simulation() -> Scenario:
             },
         )
 
+    def add_food_responsibility(context: object) -> None:
+        event = state.add_responsibility(
+            Responsibility("mimi-food-1", "buy food", INITIAL_TIME + timedelta(days=7)),
+            context.clock.now(),
+        )
+        context.emit("domain_event", event.event_type, source="Responsibility", actor="owner", correlation_id=event.responsibility_id, payload={"description": event.description})
+
+    def edit_food_responsibility(context: object) -> None:
+        event = state.edit_responsibility(
+            "mimi-food-1",
+            context.clock.now(),
+            title="buy essential food",
+            due_at=INITIAL_TIME + timedelta(days=6),
+        )
+        context.emit("domain_event", event.event_type, source="Responsibility", actor="owner", correlation_id=event.responsibility_id, payload={"description": event.description, "history_preserved": True})
+
     def complete_vaccine(context: object) -> None:
         event = state.complete(
             "mimi-vaccine-1",
@@ -104,6 +120,8 @@ def create_simulation() -> Scenario:
         actors=[Actor("owner", OwnerBehavior())],
         scheduled_actions=[
             InitialScheduledAction(INITIAL_TIME, observe_status, "observe_initial_status", "CareStatus"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(hours=2), add_food_responsibility, "add_food_responsibility", "Responsibility"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(hours=4), edit_food_responsibility, "edit_food_responsibility", "Responsibility", "mimi-food-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=1), observe_status, "observe_due_soon_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), observe_status, "observe_overdue_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=2), complete_vaccine, "complete_vaccine", "Responsibility", "mimi-vaccine-1"),

@@ -24,6 +24,8 @@ sentence and a stable status kind for future adapters.
   timezone-aware.
 - An explicit shared action key prevents two responsibilities from silently
   recording the same real-world completion twice.
+- Creating and editing a planned responsibility emits history events; completed
+  responsibilities cannot be edited through this command.
 
 ## Scenario
 

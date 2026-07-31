@@ -131,6 +131,35 @@ class CatCareState:
             return StatusSnapshot("unknown", "Some future care information is unknown.")
         return StatusSnapshot("clear", "Nothing important is pending.")
 
+    def add_responsibility(self, responsibility: Responsibility, now: datetime) -> CareEvent:
+        _require_timezone_aware(now, "creation time")
+        if any(item.id == responsibility.id for item in self.responsibilities):
+            raise ValueError(f"responsibility {responsibility.id} already exists")
+        self.responsibilities.append(responsibility)
+        event = CareEvent("responsibility_created", now, responsibility.title, responsibility.id)
+        self.events.append(event)
+        return event
+
+    def edit_responsibility(
+        self,
+        responsibility_id: str,
+        now: datetime,
+        *,
+        title: str,
+        due_at: datetime | None,
+    ) -> CareEvent:
+        _require_timezone_aware(now, "edit time")
+        responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
+        if responsibility.state != ResponsibilityState.PLANNED:
+            raise ValueError(f"responsibility {responsibility.id} is not editable")
+        if due_at is not None:
+            _require_timezone_aware(due_at, "responsibility due time")
+        responsibility.title = title
+        responsibility.due_at = due_at
+        event = CareEvent("responsibility_edited", now, title, responsibility.id)
+        self.events.append(event)
+        return event
+
     def complete(
         self,
         responsibility_id: str,

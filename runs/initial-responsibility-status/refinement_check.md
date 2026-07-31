@@ -64,3 +64,9 @@ for owners while giving future web/API adapters an explicit contract.
 Responsibilities may now carry an explicit action key. The simulation rejects
 a second completion event for the same key while leaving the second
 responsibility planned, preventing silent duplicate care history.
+
+## Responsibility lifecycle build
+
+The shared environment now supports adding and correcting planned
+responsibilities with traceable creation and edit events. Completed
+responsibilities remain immutable through the edit command.

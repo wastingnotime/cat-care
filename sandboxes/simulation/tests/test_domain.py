@@ -23,6 +23,27 @@ def test_status_snapshot_exposes_stable_kind_and_nearest_responsibility():
     assert snapshot.sentence == "Next: vaccine soon."
 
 
+def test_responsibility_can_be_added_and_edited_with_history_events():
+    state = CatCareState("Mimi")
+    responsibility = Responsibility("r1", "buy food", NOW + timedelta(days=7))
+    created = state.add_responsibility(responsibility, NOW)
+    edited = state.edit_responsibility("r1", NOW, title="buy essential food", due_at=NOW + timedelta(days=6))
+    assert [event.event_type for event in state.events] == ["responsibility_created", "responsibility_edited"]
+    assert created.responsibility_id == edited.responsibility_id == "r1"
+    assert responsibility.title == "buy essential food"
+    assert responsibility.due_at == NOW + timedelta(days=6)
+
+
+def test_duplicate_responsibility_ids_and_editing_completed_items_are_rejected():
+    state = CatCareState("Mimi")
+    state.add_responsibility(Responsibility("r1", "vaccine", NOW), NOW)
+    with pytest.raises(ValueError, match="already exists"):
+        state.add_responsibility(Responsibility("r1", "other", NOW), NOW)
+    state.complete("r1", NOW)
+    with pytest.raises(ValueError, match="not editable"):
+        state.edit_responsibility("r1", NOW, title="corrected", due_at=NOW)
+
+
 def test_completion_records_event_and_recurring_next_occurrence():
     state = CatCareState(
         "Mimi", [Responsibility("r1", "treatment", NOW, recurrence=RecurrencePolicy(30))]

@@ -29,6 +29,8 @@ derived from due date, current time, and a configured threshold.
    deterministic across owner locations.
 6. Responsibilities that refer to the same real-world action must share an
    explicit action key and cannot create duplicate completion events.
+7. Creating and editing responsibilities are traceable events; completed
+   responsibilities are not silently rewritten.
 
 ## Open questions
 
