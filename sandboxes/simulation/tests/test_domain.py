@@ -50,6 +50,11 @@ def test_unknown_future_information_does_not_claim_all_clear():
     assert state.status(NOW, THRESHOLD) == "Some future care information is unknown."
 
 
+def test_responsibility_without_due_date_is_explicitly_uncertain():
+    state = CatCareState("Mimi", [Responsibility("r1", "future treatment", None)])
+    assert state.status(NOW, THRESHOLD) == "Some future care information is unknown."
+
+
 def test_care_event_cannot_be_future_dated():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW)])
     with pytest.raises(ValueError):

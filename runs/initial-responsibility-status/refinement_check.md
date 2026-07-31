@@ -33,3 +33,10 @@ could imply that no future responsibility exists. It was changed to
 Cancellation now emits a traceable care event while removing the responsibility
 from active urgency. The runtime scenario covers both completion and
 cancellation in the same shared environment.
+
+## Further refinement
+
+An active responsibility without a due date now produces an explicit unknown
+status instead of falling through to “Nothing important is pending”. This
+preserves the product rule that incomplete information must not create false
+confidence.

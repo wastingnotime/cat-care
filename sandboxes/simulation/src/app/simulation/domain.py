@@ -68,6 +68,8 @@ class CatCareState:
         active = [item for item in self.responsibilities if item.state == ResponsibilityState.PLANNED]
         if any(item.derived_state(now, due_soon_threshold) == "overdue" for item in active):
             return "Something important is overdue."
+        if any(item.due_at is None for item in active):
+            return "Some future care information is unknown."
         nearest = min(
             (item for item in active if item.due_at is not None),
             key=lambda item: item.due_at,

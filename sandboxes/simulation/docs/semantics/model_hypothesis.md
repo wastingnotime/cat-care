@@ -28,4 +28,5 @@ derived from due date, current time, and a configured threshold.
 - What due-soon threshold feels useful without creating urgency inflation?
 - Which missing information is important enough to show as uncertainty?
 - Which recurrence policies are needed by real owners?
-
+- Does an undated responsibility need a separate “needs scheduling” state, or
+  is the current uncertainty status sufficient?
