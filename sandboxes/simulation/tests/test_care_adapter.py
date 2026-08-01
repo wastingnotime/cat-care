@@ -36,6 +36,18 @@ def test_adapter_exposes_sorted_responsibility_views_with_derived_states():
     assert [view["state"] for view in views] == ["overdue", "planned", "unknown"]
 
 
+def test_adapter_uses_id_as_tie_breaker_for_equal_due_dates():
+    state = CatCareState(
+        "Mimi",
+        [
+            Responsibility("z-last", "later added", NOW + timedelta(days=1), "care"),
+            Responsibility("a-first", "earlier id", NOW + timedelta(days=1), "care"),
+        ],
+    )
+    views = CareAdapter(state).get_responsibilities(NOW, timedelta(days=2))
+    assert [view["id"] for view in views] == ["a-first", "z-last"]
+
+
 def test_adapter_commands_return_event_records_and_use_domain_transitions():
     state = CatCareState("Mimi")
     adapter = CareAdapter(state)

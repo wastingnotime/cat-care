@@ -29,7 +29,7 @@ class CareAdapter:
             raise ValueError("cat data has been deleted")
         items = sorted(
             self.state.responsibilities,
-            key=lambda item: (item.due_at is None, item.due_at or now),
+            key=lambda item: (item.due_at is None, item.due_at or now, item.id),
         )
         return [
             {

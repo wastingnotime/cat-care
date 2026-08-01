@@ -55,6 +55,7 @@ sentence and a stable status kind for future adapters.
   values inside the boundary.
 - The adapter exposes responsibility views with category, due date, and
   domain-derived urgency ordered by due date, with undated items last.
+  Equal due dates are ordered by responsibility ID.
 
 ## Scenario
 
