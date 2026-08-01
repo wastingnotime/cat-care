@@ -108,6 +108,7 @@ class Responsibility:
     state: ResponsibilityState = ResponsibilityState.PLANNED
     recurrence: RecurrencePolicy | None = None
     completed_at: datetime | None = None
+    cancelled_at: datetime | None = None
     action_key: str | None = None
 
     def __post_init__(self) -> None:
@@ -117,6 +118,8 @@ class Responsibility:
             _require_timezone_aware(self.due_at, "responsibility due time")
         if self.completed_at is not None:
             _require_timezone_aware(self.completed_at, "responsibility completion time")
+        if self.cancelled_at is not None:
+            _require_timezone_aware(self.cancelled_at, "responsibility cancellation time")
 
     def derived_state(self, now: datetime, due_soon_threshold: timedelta) -> str:
         _require_timezone_aware(now, "current time")
@@ -157,6 +160,7 @@ class Responsibility:
         if self.state != ResponsibilityState.PLANNED:
             raise ValueError(f"responsibility {self.id} is not cancellable")
         self.state = ResponsibilityState.CANCELLED
+        self.cancelled_at = now
         if now is None:
             return None
         return CareEvent("responsibility_cancelled", now, self.title, self.id)
@@ -511,6 +515,7 @@ class CatCareState:
                     "due_at": item.due_at.isoformat() if item.due_at else None,
                     "state": item.state.value,
                     "completed_at": item.completed_at.isoformat() if item.completed_at else None,
+                    "cancelled_at": item.cancelled_at.isoformat() if item.cancelled_at else None,
                     "recurrence_interval_days": item.recurrence.interval_days if item.recurrence else None,
                     "action_key": item.action_key,
                 }

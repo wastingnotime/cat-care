@@ -151,6 +151,8 @@ derived from due date, current time, and a configured threshold.
    visible at the adapter boundary.
 66. Responsibility list views expose completion timestamps when a responsibility
    is completed, keeping state and its evidence together.
+67. Cancellation is retained as responsibility evidence through a timezone-aware
+   cancellation timestamp, not only a terminal state label.
 
 ## Open questions
 

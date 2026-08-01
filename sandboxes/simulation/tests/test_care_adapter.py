@@ -95,6 +95,16 @@ def test_adapter_exposes_completed_at_in_responsibility_views():
     view = adapter.get_responsibilities(NOW, timedelta(days=2))[0]
     assert view["state"] == "completed"
     assert view["completed_at"] == NOW.isoformat()
+    assert view["cancelled_at"] is None
+
+
+def test_adapter_exposes_cancelled_at_in_responsibility_views():
+    state = CatCareState("Mimi", [Responsibility("r1", "appointment", NOW, "veterinary")])
+    adapter = CareAdapter(state)
+    adapter.cancel_responsibility("r1", NOW, current_time=NOW)
+    view = adapter.get_responsibilities(NOW, timedelta(days=2))[0]
+    assert view["state"] == "cancelled"
+    assert view["cancelled_at"] == NOW.isoformat()
 
 
 def test_adapter_uses_id_as_tie_breaker_for_equal_due_dates():

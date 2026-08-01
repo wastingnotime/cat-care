@@ -65,6 +65,7 @@ class CareAdapter:
                 "due_at": item.due_at.isoformat() if item.due_at else None,
                 "state": item.derived_state(now, due_soon_threshold),
                 "completed_at": item.completed_at.isoformat() if item.completed_at else None,
+                "cancelled_at": item.cancelled_at.isoformat() if item.cancelled_at else None,
                 "recurrence_interval_days": (
                     item.recurrence.interval_days if item.recurrence else None
                 ),
