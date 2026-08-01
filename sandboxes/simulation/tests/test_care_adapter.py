@@ -142,6 +142,7 @@ def test_adapter_exposes_newest_first_notification_history():
     adapter.record_notification("r1", NOW + timedelta(hours=1), "delivered")
     notifications = adapter.get_notifications()
     assert [item["details"]["outcome"] for item in notifications] == ["delivered", "failed"]
+    assert all(item["type"] == "notification_recorded" for item in notifications)
 
 
 def test_adapter_rejects_unknown_notification_outcome():

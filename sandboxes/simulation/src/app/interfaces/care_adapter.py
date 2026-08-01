@@ -225,10 +225,28 @@ class CareAdapter:
         if self.state.deleted:
             raise ValueError("cat data has been deleted")
         return [
-            self._event_record(event)
-            for event in self.state.timeline()
-            if event.event_type == "notification_recorded"
+            self._notification_record(notification)
+            for notification in sorted(
+                self.state.notifications,
+                key=lambda item: item.attempted_at,
+                reverse=True,
+            )
         ]
+
+    def _notification_record(self, notification: object) -> dict[str, object]:
+        responsibility = next(
+            item
+            for item in self.state.responsibilities
+            if item.id == notification.responsibility_id
+        )
+        return {
+            "type": "notification_recorded",
+            "occurred_at": notification.attempted_at.isoformat(),
+            "description": f"notification for {responsibility.title}",
+            "responsibility_id": notification.responsibility_id,
+            "action_key": responsibility.action_key,
+            "details": {"outcome": notification.outcome.value},
+        }
 
     @staticmethod
     def _event_record(event: object) -> dict[str, object]:

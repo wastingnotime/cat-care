@@ -123,6 +123,8 @@ derived from due date, current time, and a configured threshold.
    application use cases, so read models remain visually distinct from commands.
 52. Notification attempts have a typed domain record and remain separately
    exportable while their timeline event preserves the unified history view.
+53. Notification history adapters read the typed notification collection directly
+   while preserving the released timeline-shaped response contract.
 
 ## Open questions
 
