@@ -277,7 +277,14 @@ class CareAdapter:
                 "occurred_at": care.occurred_at.isoformat(),
                 "description": care.description,
                 "responsibility_id": care.responsibility_id,
-                "action_key": None,
+                "action_key": next(
+                    (
+                        item.action_key
+                        for item in self.state.responsibilities
+                        if item.id == care.responsibility_id
+                    ),
+                    None,
+                ),
                 "details": {},
             }
             for care in sorted(self.state.direct_care, key=lambda item: item.occurred_at, reverse=True)

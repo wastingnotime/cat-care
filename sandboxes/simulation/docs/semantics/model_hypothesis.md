@@ -161,6 +161,8 @@ derived from due date, current time, and a configured threshold.
    counts, making terminal cleanup independently auditable.
 71. A post-deletion export retains the deletion timestamp even though owned
    records and profile data are removed.
+72. Direct-care adapter records preserve the linked responsibility action key
+   when one exists.
 
 ## Open questions
 

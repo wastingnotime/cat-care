@@ -224,7 +224,10 @@ def test_adapter_exposes_newest_first_note_history():
 
 
 def test_adapter_exposes_newest_first_direct_care_history():
-    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
+    state = CatCareState(
+        "Mimi",
+        [Responsibility("r1", "vaccine", NOW, "preventive care", action_key="vaccine-2026")],
+    )
     adapter = CareAdapter(state)
     adapter.record_care_event("weight_measured", "4.1 kg", NOW, current_time=NOW, responsibility_id="r1")
     adapter.record_care_event(
@@ -236,6 +239,7 @@ def test_adapter_exposes_newest_first_direct_care_history():
     )
     events = adapter.get_care_events()
     assert [item["description"] for item in events] == ["4.2 kg", "4.1 kg"]
+    assert all(item["action_key"] == "vaccine-2026" for item in events)
 
 
 def test_adapter_rejects_unknown_notification_outcome():
