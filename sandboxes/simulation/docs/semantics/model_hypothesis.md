@@ -193,6 +193,8 @@ derived from due date, current time, and a configured threshold.
    explainable delivery read.
 87. Direct-care review is a distinct read use case that queries typed care
    records and preserves responsibility/action-key linkage.
+88. Direct-care review includes newest-observation context for an explainable
+   summary of the latest recorded care.
 
 ## Open questions
 

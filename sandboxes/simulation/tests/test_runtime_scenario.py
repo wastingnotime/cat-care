@@ -45,6 +45,9 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert care_review.payload["care_event_count"] == 1
     assert care_review.payload["responsibility_ids"] == ["mimi-vaccine-1"]
     assert care_review.payload["action_keys"] == ["mimi-vaccine-2026"]
+    assert care_review.payload["newest_event_type"] == "weight_measured"
+    assert care_review.payload["newest_description"] == "4.2 kg"
+    assert care_review.payload["newest_occurred_at"] == "2026-01-04T12:00:00+00:00"
     delivered_notification = next(
         item
         for item in result.observations.observations

@@ -211,6 +211,7 @@ def create_simulation() -> Scenario:
             key=lambda item: item.occurred_at,
             reverse=True,
         )
+        newest = care_events[0] if care_events else None
         context.emit(
             "query",
             "care-event",
@@ -221,6 +222,9 @@ def create_simulation() -> Scenario:
                 "care_event_count": len(care_events),
                 "responsibility_ids": [item.responsibility_id for item in care_events],
                 "action_keys": [item.action_key for item in care_events],
+                "newest_event_type": newest.event_type if newest else None,
+                "newest_description": newest.description if newest else None,
+                "newest_occurred_at": newest.occurred_at.isoformat() if newest else None,
             },
         )
     def edit_profile(context: object) -> None:
