@@ -75,6 +75,13 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         for item in result.observations.observations
         if item.type == "command" and item.name == "data-lifecycle"
     } >= {"export_data", "delete_data"}
+    assert any(
+        item.type == "command"
+        and item.name == "care-event"
+        and item.source == "record-care"
+        and item.payload["use_case"] == "record_care_event"
+        for item in result.observations.observations
+    )
     responsibility_commands = [
         item
         for item in result.observations.observations

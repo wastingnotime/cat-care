@@ -107,6 +107,8 @@ derived from due date, current time, and a configured threshold.
    portability and terminal deletion remain visible as separate operations.
 44. Owner use-case invocations and their downstream commands share a correlation
    ID so observatory beam animation preserves the interaction handoff order.
+45. Direct care history targets a dedicated care-event entity; a responsibility
+   link enriches the event without making the event a responsibility mutation.
 
 ## Open questions
 
