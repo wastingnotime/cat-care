@@ -55,6 +55,7 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert note_review.source == "review-notes"
     assert note_review.payload["note_count"] == 1
     assert note_review.payload["newest_description"] == "eating less"
+    assert note_review.payload["is_diagnosis"] is False
     delivered_notification = next(
         item
         for item in result.observations.observations

@@ -197,6 +197,8 @@ derived from due date, current time, and a configured threshold.
    summary of the latest recorded care.
 89. Note review is a distinct read use case that queries typed note records and
    preserves lightweight-note semantics.
+90. Note review explicitly carries the non-diagnosis boundary into runtime
+   observations.
 
 ## Open questions
 

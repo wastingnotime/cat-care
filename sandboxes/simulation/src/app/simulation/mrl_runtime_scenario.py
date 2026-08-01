@@ -243,6 +243,7 @@ def create_simulation() -> Scenario:
                 "note_count": len(notes),
                 "newest_description": newest.description if newest else None,
                 "newest_occurred_at": newest.occurred_at.isoformat() if newest else None,
+                "is_diagnosis": False,
             },
         )
     def edit_profile(context: object) -> None:
