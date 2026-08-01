@@ -143,6 +143,8 @@ derived from due date, current time, and a configured threshold.
    projection without being conflated with recording care.
 62. Timeline queries include newest-event summary data so a history read is
    explainable without requiring a second timeline reconstruction.
+63. The adapter exposes the same compact timeline summary as the runtime history
+   read path without duplicating timeline ordering rules.
 
 ## Open questions
 

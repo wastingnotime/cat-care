@@ -138,6 +138,11 @@ def test_adapter_exposes_newest_first_timeline_records():
     adapter.record_note("newer", NOW + timedelta(hours=1), current_time=NOW + timedelta(hours=1))
     timeline = adapter.get_timeline()
     assert [item["description"] for item in timeline] == ["newer", "older"]
+    assert CareAdapter(state).get_timeline_summary() == {
+        "event_count": 2,
+        "newest_event_type": "note_recorded",
+        "newest_event_at": (NOW + timedelta(hours=1)).isoformat(),
+    }
 
 
 def test_adapter_exposes_notification_deferral_export_and_delete_contracts():

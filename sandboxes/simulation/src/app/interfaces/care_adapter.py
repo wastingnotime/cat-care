@@ -224,6 +224,17 @@ class CareAdapter:
     def get_timeline(self) -> list[dict[str, object]]:
         return [self._event_record(event) for event in self.state.timeline()]
 
+    def get_timeline_summary(self) -> dict[str, object]:
+        if self.state.deleted:
+            raise ValueError("cat data has been deleted")
+        timeline = self.state.timeline()
+        newest = timeline[0] if timeline else None
+        return {
+            "event_count": len(timeline),
+            "newest_event_type": newest.event_type if newest else None,
+            "newest_event_at": newest.occurred_at.isoformat() if newest else None,
+        }
+
     def get_notifications(self) -> list[dict[str, object]]:
         if self.state.deleted:
             raise ValueError("cat data has been deleted")
