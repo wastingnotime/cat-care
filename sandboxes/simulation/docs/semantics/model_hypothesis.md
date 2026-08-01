@@ -64,6 +64,8 @@ derived from due date, current time, and a configured threshold.
    contracts without adding channel-specific domain behavior.
 23. Technology create commands use plain fields and do not require callers to
    construct domain objects.
+24. Technology adapters expose responsibility lists with domain-derived states
+   and deterministic due-date ordering.
 
 ## Open questions
 

@@ -172,3 +172,8 @@ export, and deletion in addition to the original status and lifecycle commands.
 Responsibility creation now accepts plain ID, title, category, due date, and
 recurrence fields. Callers no longer need to construct simulation domain
 objects to use the adapter contract.
+
+## Responsibility-list build
+
+The adapter now exposes sorted responsibility views with category, due date,
+and domain-derived state, keeping urgency calculation out of future clients.

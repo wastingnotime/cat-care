@@ -22,6 +22,20 @@ def test_adapter_exposes_status_contract_without_reimplementing_domain_rules():
     }
 
 
+def test_adapter_exposes_sorted_responsibility_views_with_derived_states():
+    state = CatCareState(
+        "Mimi",
+        [
+            Responsibility("unknown", "future treatment", None, "treatment"),
+            Responsibility("later", "appointment", NOW + timedelta(days=4), "veterinary"),
+            Responsibility("urgent", "vaccine", NOW - timedelta(days=1), "preventive care"),
+        ],
+    )
+    views = CareAdapter(state).get_responsibilities(NOW, timedelta(days=2))
+    assert [view["id"] for view in views] == ["urgent", "later", "unknown"]
+    assert [view["state"] for view in views] == ["overdue", "planned", "unknown"]
+
+
 def test_adapter_commands_return_event_records_and_use_domain_transitions():
     state = CatCareState("Mimi")
     adapter = CareAdapter(state)

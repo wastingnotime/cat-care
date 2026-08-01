@@ -53,6 +53,8 @@ sentence and a stable status kind for future adapters.
   contracts as thin delegations.
 - Adapter creation accepts plain responsibility fields and constructs domain
   values inside the boundary.
+- The adapter exposes responsibility views with category, due date, and
+  domain-derived urgency ordered by due date, with undated items last.
 
 ## Scenario
 

@@ -20,6 +20,28 @@ class CareAdapter:
             "nearest_responsibility_id": snapshot.nearest_responsibility_id,
         }
 
+    def get_responsibilities(
+        self,
+        now: datetime,
+        due_soon_threshold: timedelta,
+    ) -> list[dict[str, object]]:
+        if self.state.deleted:
+            raise ValueError("cat data has been deleted")
+        items = sorted(
+            self.state.responsibilities,
+            key=lambda item: (item.due_at is None, item.due_at or now),
+        )
+        return [
+            {
+                "id": item.id,
+                "title": item.title,
+                "category": item.category,
+                "due_at": item.due_at.isoformat() if item.due_at else None,
+                "state": item.derived_state(now, due_soon_threshold),
+            }
+            for item in items
+        ]
+
     def create_responsibility(
         self,
         responsibility_id: str,
