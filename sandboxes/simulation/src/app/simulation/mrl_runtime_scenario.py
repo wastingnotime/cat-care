@@ -11,6 +11,21 @@ from app.simulation.domain import CatCareState, NotificationOutcome, Responsibil
 
 INITIAL_TIME = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
 
+USE_CASE_NODE_IDS = {
+    "review_care_status": "review-status",
+    "edit_cat_profile": "manage-cat-profile",
+    "create_responsibility": "manage-responsibility",
+    "edit_responsibility": "manage-responsibility",
+    "complete_responsibility": "manage-responsibility",
+    "record_notification": "deliver-notification",
+    "defer_responsibility": "manage-responsibility",
+    "cancel_responsibility": "manage-responsibility",
+    "record_care_event": "record-care",
+    "record_note": "record-care",
+    "export_data": "manage-data",
+    "delete_data": "manage-data",
+}
+
 
 class OwnerBehavior:
     def on_start(self, context: object) -> None:
@@ -32,23 +47,9 @@ def create_simulation() -> Scenario:
 
     def invoke_use_case(context: object, name: str, *, actor: str = "owner") -> None:
         context.emit("use_case_invoked", name, source="Application", actor=actor)
-        use_case_nodes = {
-            "review_care_status": "review-status",
-            "edit_cat_profile": "manage-cat-profile",
-            "create_responsibility": "manage-responsibility",
-            "edit_responsibility": "manage-responsibility",
-            "complete_responsibility": "manage-responsibility",
-            "record_notification": "deliver-notification",
-            "defer_responsibility": "manage-responsibility",
-            "cancel_responsibility": "manage-responsibility",
-            "record_care_event": "record-care",
-            "record_note": "record-care",
-            "export_data": "manage-data",
-            "delete_data": "manage-data",
-        }
         context.emit(
             "command",
-            use_case_nodes[name],
+            USE_CASE_NODE_IDS[name],
             source="owner",
             actor=actor,
             payload={"use_case": name},

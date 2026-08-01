@@ -84,6 +84,9 @@ derived from due date, current time, and a configured threshold.
    validate them at the adapter boundary.
 33. The runtime observatory exposes application use cases as explicit nodes and
    records their invocation separately from domain events.
+34. Every use-case invocation resolves to a declared observatory node so its
+   owner-to-use-case beam remains renderable and cannot silently fall back to a
+   hidden observation node.
 
 ## Open questions
 
