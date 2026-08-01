@@ -279,6 +279,29 @@ def create_simulation() -> Scenario:
             },
         )
 
+    def record_delivered_notification(context: object) -> None:
+        invoke_use_case(context, "record_notification", actor="system")
+        event = state.record_notification(
+            "mimi-appointment-1",
+            context.clock.now(),
+            NotificationOutcome.DELIVERED,
+            current_time=context.clock.now(),
+        )
+        context.emit(
+            "domain_event",
+            event.event_type,
+            source="Notification",
+            actor="system",
+            correlation_id=event.responsibility_id,
+            payload={
+                "outcome": NotificationOutcome.DELIVERED.value,
+                "responsibility_state": next(
+                    item for item in state.responsibilities if item.id == "mimi-appointment-1"
+                ).derived_state(context.clock.now(), threshold),
+                "action_key": event.action_key,
+            },
+        )
+
     def defer_vaccine(context: object) -> None:
         invoke_use_case(context, "defer_responsibility")
         event = state.defer_responsibility(
@@ -460,6 +483,7 @@ def create_simulation() -> Scenario:
             InitialScheduledAction(INITIAL_TIME + timedelta(days=1), observe_status, "observe_due_soon_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), observe_status, "observe_overdue_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), record_failed_notification, "record_failed_notification", "Notification", "mimi-vaccine-1"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=1), record_delivered_notification, "record_delivered_notification", "Notification", "mimi-appointment-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), defer_vaccine, "defer_vaccine", "Responsibility", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=2), complete_vaccine, "complete_vaccine", "Responsibility", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=3), record_weight_event, "record_weight_event", "CareEvent", "mimi-vaccine-1"),

@@ -21,6 +21,11 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     }
     assert completed_event.payload["action_key"] == "mimi-vaccine-2026"
     assert "notification_recorded" in names
+    assert {
+        item.payload["outcome"]
+        for item in result.observations.observations
+        if item.name == "notification_recorded"
+    } == {"failed", "delivered"}
     assert "responsibility_deferred" in names
     assert "responsibility_cancelled" in names
     assert "note_recorded" in names
@@ -30,7 +35,7 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         item for item in result.observations.observations if item.name == "data_deleted"
     )
     assert deletion.payload["deleted_at"] == "2026-01-05T12:00:00+00:00"
-    assert deletion.payload["notifications_removed"] == 1
+    assert deletion.payload["notifications_removed"] == 2
     assert deletion.payload["notes_removed"] == 1
     assert deletion.payload["direct_care_removed"] == 1
     notification = next(

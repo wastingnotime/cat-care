@@ -79,6 +79,8 @@ due-soon, and overdue states, then completes it and records the care event.
 The vaccine, food, and appointment responsibilities use explicit action keys;
 the vaccine recurs every 30 days and completion records the next occurrence in
 the timeline and export.
+The scenario also exercises both failed and delivered notification outcomes
+without changing responsibility state.
 
 ## Done criteria
 
