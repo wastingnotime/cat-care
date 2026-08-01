@@ -188,6 +188,11 @@ returns the domain's previous/new value details for history-aware clients.
 Adapter event records now preserve action keys, keeping duplicate-care
 protection visible to technology clients.
 
+## Profile-adapter build
+
+The adapter now exposes cat name, optional dates, and photo reference as plain
+profile data for future web surfaces.
+
 ## Responsibility-order refinement
 
 Equal due dates now use responsibility ID as an explicit tie-breaker, making the

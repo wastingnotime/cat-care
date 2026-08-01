@@ -70,6 +70,7 @@ derived from due date, current time, and a configured threshold.
    history details.
 26. Adapter event records preserve action keys used for duplicate-care
    protection.
+27. Technology adapters expose optional cat profile metadata as plain data.
 
 ## Open questions
 

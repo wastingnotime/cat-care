@@ -59,6 +59,8 @@ sentence and a stable status kind for future adapters.
 - The adapter exposes plain-field edits for planned responsibilities and returns
   previous/new value details.
 - Adapter event records include action keys when present.
+- The adapter exposes optional cat profile metadata without exposing domain
+  objects.
 
 ## Scenario
 

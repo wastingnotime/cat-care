@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from app.interfaces.care_adapter import CareAdapter
 from app.simulation.domain import CatCareState, NotificationOutcome, Responsibility
@@ -19,6 +19,21 @@ def test_adapter_exposes_status_contract_without_reimplementing_domain_rules():
         "kind": "due_soon",
         "status": "Next: vaccine soon.",
         "nearest_responsibility_id": "r1",
+    }
+
+
+def test_adapter_exposes_cat_profile_as_plain_data():
+    state = CatCareState(
+        "Mimi",
+        birth_date=date(2021, 5, 1),
+        adoption_date=date(2021, 7, 10),
+        photo_ref="mimi-profile.jpg",
+    )
+    assert CareAdapter(state).get_cat_profile() == {
+        "name": "Mimi",
+        "birth_date": "2021-05-01",
+        "adoption_date": "2021-07-10",
+        "photo_ref": "mimi-profile.jpg",
     }
 
 
