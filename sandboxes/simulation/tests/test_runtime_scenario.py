@@ -34,6 +34,8 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert notification_review.source == "review-notifications"
     assert notification_review.payload["notification_count"] == 2
     assert set(notification_review.payload["outcomes"]) == {"failed", "delivered"}
+    assert notification_review.payload["newest_outcome"] == "delivered"
+    assert notification_review.payload["newest_attempted_at"] == "2026-01-05T10:00:00+00:00"
     delivered_notification = next(
         item
         for item in result.observations.observations

@@ -189,6 +189,8 @@ derived from due date, current time, and a configured threshold.
    identity in runtime observations.
 85. Notification history review is a distinct read use case from notification
    delivery and queries the notification record collection explicitly.
+86. Notification history review includes newest-attempt context for a concise,
+   explainable delivery read.
 
 ## Open questions
 

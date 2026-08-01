@@ -183,6 +183,12 @@ def create_simulation() -> Scenario:
 
     def review_notification_history(context: object) -> None:
         correlation_id = invoke_use_case(context, "review_notification_history")
+        notifications = sorted(
+            state.notifications,
+            key=lambda item: item.attempted_at,
+            reverse=True,
+        )
+        newest = notifications[0] if notifications else None
         context.emit(
             "query",
             "notification",
@@ -190,8 +196,10 @@ def create_simulation() -> Scenario:
             actor="owner",
             correlation_id=correlation_id,
             payload={
-                "notification_count": len(state.notifications),
-                "outcomes": [item.outcome.value for item in state.notifications],
+                "notification_count": len(notifications),
+                "outcomes": [item.outcome.value for item in notifications],
+                "newest_outcome": newest.outcome.value if newest else None,
+                "newest_attempted_at": newest.attempted_at.isoformat() if newest else None,
             },
         )
 
