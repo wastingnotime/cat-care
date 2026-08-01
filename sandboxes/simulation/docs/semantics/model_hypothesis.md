@@ -149,6 +149,8 @@ derived from due date, current time, and a configured threshold.
    null newest-event fields.
 65. Responsibility list views expose action keys so duplicate-care protection is
    visible at the adapter boundary.
+66. Responsibility list views expose completion timestamps when a responsibility
+   is completed, keeping state and its evidence together.
 
 ## Open questions
 

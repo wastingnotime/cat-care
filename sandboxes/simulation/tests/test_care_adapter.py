@@ -88,6 +88,15 @@ def test_adapter_exposes_responsibility_action_key():
     assert view["action_key"] == "vaccine-2026"
 
 
+def test_adapter_exposes_completed_at_in_responsibility_views():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
+    adapter = CareAdapter(state)
+    adapter.complete_responsibility("r1", NOW, current_time=NOW)
+    view = adapter.get_responsibilities(NOW, timedelta(days=2))[0]
+    assert view["state"] == "completed"
+    assert view["completed_at"] == NOW.isoformat()
+
+
 def test_adapter_uses_id_as_tie_breaker_for_equal_due_dates():
     state = CatCareState(
         "Mimi",
