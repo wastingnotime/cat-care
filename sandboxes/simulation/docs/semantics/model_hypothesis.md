@@ -191,6 +191,8 @@ derived from due date, current time, and a configured threshold.
    delivery and queries the notification record collection explicitly.
 86. Notification history review includes newest-attempt context for a concise,
    explainable delivery read.
+87. Direct-care review is a distinct read use case that queries typed care
+   records and preserves responsibility/action-key linkage.
 
 ## Open questions
 

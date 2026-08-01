@@ -36,6 +36,15 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert set(notification_review.payload["outcomes"]) == {"failed", "delivered"}
     assert notification_review.payload["newest_outcome"] == "delivered"
     assert notification_review.payload["newest_attempted_at"] == "2026-01-05T10:00:00+00:00"
+    care_review = next(
+        item
+        for item in result.observations.observations
+        if item.type == "query" and item.name == "care-event"
+    )
+    assert care_review.source == "review-care"
+    assert care_review.payload["care_event_count"] == 1
+    assert care_review.payload["responsibility_ids"] == ["mimi-vaccine-1"]
+    assert care_review.payload["action_keys"] == ["mimi-vaccine-2026"]
     delivered_notification = next(
         item
         for item in result.observations.observations
@@ -214,6 +223,7 @@ def test_observatory_graph_exposes_application_use_cases():
         "review-status",
         "review-history",
         "review-notifications",
+        "review-care",
         "manage-responsibility",
         "manage-cat-profile",
         "record-care",
