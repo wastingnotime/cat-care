@@ -48,6 +48,13 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert care_review.payload["newest_event_type"] == "weight_measured"
     assert care_review.payload["newest_description"] == "4.2 kg"
     assert care_review.payload["newest_occurred_at"] == "2026-01-04T12:00:00+00:00"
+    note_review = next(
+        item for item in result.observations.observations
+        if item.type == "query" and item.name == "note"
+    )
+    assert note_review.source == "review-notes"
+    assert note_review.payload["note_count"] == 1
+    assert note_review.payload["newest_description"] == "eating less"
     delivered_notification = next(
         item
         for item in result.observations.observations
@@ -227,6 +234,7 @@ def test_observatory_graph_exposes_application_use_cases():
         "review-history",
         "review-notifications",
         "review-care",
+        "review-notes",
         "manage-responsibility",
         "manage-cat-profile",
         "record-care",

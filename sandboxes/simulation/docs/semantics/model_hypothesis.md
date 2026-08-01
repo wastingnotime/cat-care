@@ -195,6 +195,8 @@ derived from due date, current time, and a configured threshold.
    records and preserves responsibility/action-key linkage.
 88. Direct-care review includes newest-observation context for an explainable
    summary of the latest recorded care.
+89. Note review is a distinct read use case that queries typed note records and
+   preserves lightweight-note semantics.
 
 ## Open questions
 

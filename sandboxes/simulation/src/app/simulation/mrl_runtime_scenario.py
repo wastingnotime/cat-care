@@ -16,6 +16,7 @@ USE_CASE_NODE_IDS = {
     "review_care_history": "review-history",
     "review_notification_history": "review-notifications",
     "review_care_events": "review-care",
+    "review_notes": "review-notes",
     "edit_cat_profile": "manage-cat-profile",
     "create_responsibility": "manage-responsibility",
     "edit_responsibility": "manage-responsibility",
@@ -223,6 +224,23 @@ def create_simulation() -> Scenario:
                 "responsibility_ids": [item.responsibility_id for item in care_events],
                 "action_keys": [item.action_key for item in care_events],
                 "newest_event_type": newest.event_type if newest else None,
+                "newest_description": newest.description if newest else None,
+                "newest_occurred_at": newest.occurred_at.isoformat() if newest else None,
+            },
+        )
+
+    def review_notes(context: object) -> None:
+        correlation_id = invoke_use_case(context, "review_notes")
+        notes = sorted(state.notes, key=lambda item: item.occurred_at, reverse=True)
+        newest = notes[0] if notes else None
+        context.emit(
+            "query",
+            "note",
+            source="review-notes",
+            actor="owner",
+            correlation_id=correlation_id,
+            payload={
+                "note_count": len(notes),
                 "newest_description": newest.description if newest else None,
                 "newest_occurred_at": newest.occurred_at.isoformat() if newest else None,
             },
@@ -533,6 +551,7 @@ def create_simulation() -> Scenario:
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=1), record_delivered_notification, "record_delivered_notification", "Notification", "mimi-appointment-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=2), review_notification_history, "review_notification_history", "Notification"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4), review_care_events, "review_care_events", "CareEvent"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=2), review_notes, "review_notes", "Note"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), defer_vaccine, "defer_vaccine", "Responsibility", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=2), complete_vaccine, "complete_vaccine", "Responsibility", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=3), record_weight_event, "record_weight_event", "CareEvent", "mimi-vaccine-1"),
@@ -552,6 +571,7 @@ def create_simulation() -> Scenario:
             ObservatoryNode("review-history", "Review care history", "use_case", "use_cases"),
             ObservatoryNode("review-notifications", "Review notification history", "use_case", "use_cases"),
             ObservatoryNode("review-care", "Review care events", "use_case", "use_cases"),
+            ObservatoryNode("review-notes", "Review notes", "use_case", "use_cases"),
             ObservatoryNode("manage-responsibility", "Manage responsibility", "use_case", "use_cases"),
             ObservatoryNode("manage-cat-profile", "Edit cat profile", "use_case", "use_cases"),
             ObservatoryNode("record-care", "Record care history", "use_case", "use_cases"),
@@ -571,6 +591,7 @@ def create_simulation() -> Scenario:
             ObservatoryEdge("owner", "review-history", "invokes"),
             ObservatoryEdge("owner", "review-notifications", "invokes"),
             ObservatoryEdge("owner", "review-care", "invokes"),
+            ObservatoryEdge("owner", "review-notes", "invokes"),
             ObservatoryEdge("owner", "manage-responsibility", "invokes"),
             ObservatoryEdge("owner", "manage-cat-profile", "invokes"),
             ObservatoryEdge("owner", "record-care", "invokes"),
