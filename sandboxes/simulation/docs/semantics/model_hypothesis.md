@@ -139,6 +139,8 @@ derived from due date, current time, and a configured threshold.
    notifications while remaining represented in the unified timeline.
 60. The adapter exposes typed direct-care history independently with newest-first
    ordering and responsibility linkage.
+61. Reviewing care history is a distinct read use case that queries the timeline
+   projection without being conflated with recording care.
 
 ## Open questions
 

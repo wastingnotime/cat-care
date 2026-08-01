@@ -28,6 +28,13 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert "use_case_invoked" in [item.type for item in result.observations.observations]
     assert any(
         item.type == "query"
+        and item.name == "timeline"
+        and item.source == "review-history"
+        and item.payload["event_count"] > 0
+        for item in result.observations.observations
+    )
+    assert any(
+        item.type == "query"
         and item.name == "status"
         and item.source == "review-status"
         and item.payload["kind"] == "overdue"
@@ -133,6 +140,7 @@ def test_observatory_graph_exposes_application_use_cases():
     use_case_ids = {node.id for node in scenario.observatory_nodes if node.kind == "use_case"}
     assert use_case_ids == {
         "review-status",
+        "review-history",
         "manage-responsibility",
         "manage-cat-profile",
         "record-care",

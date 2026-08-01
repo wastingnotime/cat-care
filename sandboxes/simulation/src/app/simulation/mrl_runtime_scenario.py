@@ -13,6 +13,7 @@ INITIAL_TIME = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
 
 USE_CASE_NODE_IDS = {
     "review_care_status": "review-status",
+    "review_care_history": "review-history",
     "edit_cat_profile": "manage-cat-profile",
     "create_responsibility": "manage-responsibility",
     "edit_responsibility": "manage-responsibility",
@@ -154,6 +155,17 @@ def create_simulation() -> Scenario:
             )
         last_status_kind = snapshot.kind
         last_nearest_responsibility_id = snapshot.nearest_responsibility_id
+
+    def review_history(context: object) -> None:
+        correlation_id = invoke_use_case(context, "review_care_history")
+        context.emit(
+            "query",
+            "timeline",
+            source="review-history",
+            actor="owner",
+            correlation_id=correlation_id,
+            payload={"event_count": len(state.timeline())},
+        )
 
     def edit_profile(context: object) -> None:
         invoke_use_case(context, "edit_cat_profile")
@@ -343,6 +355,7 @@ def create_simulation() -> Scenario:
             InitialScheduledAction(INITIAL_TIME + timedelta(hours=2), add_food_responsibility, "add_food_responsibility", "Responsibility"),
             InitialScheduledAction(INITIAL_TIME + timedelta(hours=4), edit_food_responsibility, "edit_food_responsibility", "Responsibility", "mimi-food-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(hours=5), edit_profile, "edit_profile", "CatProfile"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(hours=6), review_history, "review_history", "Timeline"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=1), observe_status, "observe_due_soon_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), observe_status, "observe_overdue_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), record_failed_notification, "record_failed_notification", "Notification", "mimi-vaccine-1"),
@@ -361,6 +374,7 @@ def create_simulation() -> Scenario:
         observatory_nodes=[
             ObservatoryNode("owner", "Owner", "actor", "domain"),
             ObservatoryNode("review-status", "Review care status", "use_case", "use_cases"),
+            ObservatoryNode("review-history", "Review care history", "use_case", "use_cases"),
             ObservatoryNode("manage-responsibility", "Manage responsibility", "use_case", "use_cases"),
             ObservatoryNode("manage-cat-profile", "Edit cat profile", "use_case", "use_cases"),
             ObservatoryNode("record-care", "Record care history", "use_case", "use_cases"),
@@ -373,9 +387,11 @@ def create_simulation() -> Scenario:
             ObservatoryNode("note", "Note", "entity", "domain"),
             ObservatoryNode("responsibility", "Responsibility", "aggregate", "domain"),
             ObservatoryNode("status", "Calm status", "projection", "projections"),
+            ObservatoryNode("timeline", "Timeline", "projection", "projections"),
         ],
         observatory_edges=[
             ObservatoryEdge("owner", "review-status", "invokes"),
+            ObservatoryEdge("owner", "review-history", "invokes"),
             ObservatoryEdge("owner", "manage-responsibility", "invokes"),
             ObservatoryEdge("owner", "manage-cat-profile", "invokes"),
             ObservatoryEdge("owner", "record-care", "invokes"),
