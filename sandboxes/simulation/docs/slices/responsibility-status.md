@@ -56,6 +56,8 @@ sentence and a stable status kind for future adapters.
 - The adapter exposes responsibility views with category, due date, and
   domain-derived urgency ordered by due date, with undated items last.
   Equal due dates are ordered by responsibility ID.
+- The adapter exposes plain-field edits for planned responsibilities and returns
+  previous/new value details.
 
 ## Scenario
 

@@ -178,6 +178,11 @@ objects to use the adapter contract.
 The adapter now exposes sorted responsibility views with category, due date,
 and domain-derived state, keeping urgency calculation out of future clients.
 
+## Adapter-edit build
+
+The adapter now exposes planned-responsibility edits using plain fields and
+returns the domain's previous/new value details for history-aware clients.
+
 ## Responsibility-order refinement
 
 Equal due dates now use responsibility ID as an explicit tie-breaker, making the

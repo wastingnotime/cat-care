@@ -66,6 +66,8 @@ derived from due date, current time, and a configured threshold.
    construct domain objects.
 24. Technology adapters expose responsibility lists with domain-derived states
    and deterministic due-date ordering, including an ID tie-breaker.
+25. Technology adapters expose planned-responsibility edits with complete
+   history details.
 
 ## Open questions
 

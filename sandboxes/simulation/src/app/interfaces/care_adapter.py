@@ -78,6 +78,24 @@ class CareAdapter:
             self.state.complete(responsibility_id, now, current_time=current_time)
         )
 
+    def edit_responsibility(
+        self,
+        responsibility_id: str,
+        title: str,
+        category: str,
+        due_at: datetime | None,
+        now: datetime,
+    ) -> dict[str, object]:
+        return self._event_record(
+            self.state.edit_responsibility(
+                responsibility_id,
+                now,
+                title=title,
+                category=category,
+                due_at=due_at,
+            )
+        )
+
     def cancel_responsibility(
         self,
         responsibility_id: str,
