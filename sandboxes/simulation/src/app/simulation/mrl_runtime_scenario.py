@@ -35,6 +35,8 @@ USE_CASE_COMMAND_TARGETS = {
     "defer_responsibility": "responsibility",
     "cancel_responsibility": "responsibility",
     "record_care_event": "responsibility",
+    "export_data": "data-lifecycle",
+    "delete_data": "data-lifecycle",
 }
 
 
@@ -331,6 +333,7 @@ def create_simulation() -> Scenario:
             ObservatoryNode("manage-data", "Manage owner data", "use_case", "use_cases"),
             ObservatoryNode("cat-profile", "Cat profile", "aggregate", "domain"),
             ObservatoryNode("notification", "Notification", "aggregate", "domain"),
+            ObservatoryNode("data-lifecycle", "Data lifecycle", "aggregate", "domain"),
             ObservatoryNode("responsibility", "Responsibility", "aggregate", "domain"),
             ObservatoryNode("status", "Calm status", "projection", "domain"),
         ],
@@ -344,6 +347,7 @@ def create_simulation() -> Scenario:
             ObservatoryEdge("manage-cat-profile", "cat-profile", "updates"),
             ObservatoryEdge("record-care", "responsibility", "records"),
             ObservatoryEdge("deliver-notification", "notification", "records"),
+            ObservatoryEdge("manage-data", "data-lifecycle", "manages"),
             ObservatoryEdge("review-status", "status", "derives"),
             ObservatoryEdge("owner", "deliver-notification", "invokes"),
             ObservatoryEdge("responsibility", "status", "derives"),

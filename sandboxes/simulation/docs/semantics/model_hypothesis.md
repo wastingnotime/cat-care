@@ -103,6 +103,8 @@ derived from due date, current time, and a configured threshold.
    being modeled as a responsibility mutation.
 42. Notification delivery targets a distinct notification aggregate and does not
    imply a responsibility state transition.
+43. Export and deletion target a distinct data-lifecycle aggregate so data
+   portability and terminal deletion remain visible as separate operations.
 
 ## Open questions
 

@@ -70,6 +70,11 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         and item.payload["use_case"] == "record_notification"
         for item in result.observations.observations
     )
+    assert {
+        item.payload["use_case"]
+        for item in result.observations.observations
+        if item.type == "command" and item.name == "data-lifecycle"
+    } >= {"export_data", "delete_data"}
     declared_use_case_ids = {
         node.id for node in create_simulation().observatory_nodes if node.kind == "use_case"
     }
