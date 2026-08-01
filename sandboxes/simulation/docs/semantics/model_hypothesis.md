@@ -91,6 +91,8 @@ derived from due date, current time, and a configured threshold.
    transition evidence, rather than requiring consumers to diff snapshots.
 36. Status transition evidence includes the responsibility context and resulting
    sentence needed to explain the change without reconstructing prior snapshots.
+37. The status read path is explicit: reviewing care status queries the calm
+   status projection and can be observed as a use-case-to-projection beam.
 
 ## Open questions
 

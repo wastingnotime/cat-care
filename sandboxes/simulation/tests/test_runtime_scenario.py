@@ -15,6 +15,13 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert "data_exported" in names
     assert "data_deleted" in names
     assert "use_case_invoked" in [item.type for item in result.observations.observations]
+    assert any(
+        item.type == "query"
+        and item.name == "status"
+        and item.source == "review-status"
+        and item.payload["kind"] == "overdue"
+        for item in result.observations.observations
+    )
     transitions = [
         item.payload
         for item in result.observations.observations
