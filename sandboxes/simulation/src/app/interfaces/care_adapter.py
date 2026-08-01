@@ -233,6 +233,21 @@ class CareAdapter:
             )
         ]
 
+    def get_notes(self) -> list[dict[str, object]]:
+        if self.state.deleted:
+            raise ValueError("cat data has been deleted")
+        return [
+            {
+                "type": "note_recorded",
+                "occurred_at": note.occurred_at.isoformat(),
+                "description": note.description,
+                "responsibility_id": None,
+                "action_key": None,
+                "details": {},
+            }
+            for note in sorted(self.state.notes, key=lambda item: item.occurred_at, reverse=True)
+        ]
+
     def _notification_record(self, notification: object) -> dict[str, object]:
         responsibility = next(
             item

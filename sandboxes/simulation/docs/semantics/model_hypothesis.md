@@ -127,6 +127,8 @@ derived from due date, current time, and a configured threshold.
    while preserving the released timeline-shaped response contract.
 54. Lightweight notes have typed domain records and remain separately exportable
    while their timeline event preserves chronological history.
+55. The adapter exposes typed note history independently from care-event history,
+   preserving newest-first ordering and note-specific meaning.
 
 ## Open questions
 

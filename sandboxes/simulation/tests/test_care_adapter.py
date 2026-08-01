@@ -145,6 +145,16 @@ def test_adapter_exposes_newest_first_notification_history():
     assert all(item["type"] == "notification_recorded" for item in notifications)
 
 
+def test_adapter_exposes_newest_first_note_history():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
+    adapter = CareAdapter(state)
+    adapter.record_note("older", NOW, current_time=NOW)
+    adapter.record_note("newer", NOW + timedelta(hours=1), current_time=NOW + timedelta(hours=1))
+    notes = adapter.get_notes()
+    assert [item["description"] for item in notes] == ["newer", "older"]
+    assert all(item["responsibility_id"] is None for item in notes)
+
+
 def test_adapter_rejects_unknown_notification_outcome():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
     with pytest.raises(ValueError, match="unsupported"):
