@@ -158,13 +158,19 @@ def create_simulation() -> Scenario:
 
     def review_history(context: object) -> None:
         correlation_id = invoke_use_case(context, "review_care_history")
+        timeline = state.timeline()
+        newest = timeline[0] if timeline else None
         context.emit(
             "query",
             "timeline",
             source="review-history",
             actor="owner",
             correlation_id=correlation_id,
-            payload={"event_count": len(state.timeline())},
+            payload={
+                "event_count": len(timeline),
+                "newest_event_type": newest.event_type if newest else None,
+                "newest_event_at": newest.occurred_at.isoformat() if newest else None,
+            },
         )
 
     def edit_profile(context: object) -> None:

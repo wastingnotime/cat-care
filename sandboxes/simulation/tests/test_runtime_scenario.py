@@ -31,6 +31,8 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         and item.name == "timeline"
         and item.source == "review-history"
         and item.payload["event_count"] > 0
+        and item.payload["newest_event_type"] == "cat_profile_edited"
+        and item.payload["newest_event_at"] == "2026-01-01T14:00:00+00:00"
         for item in result.observations.observations
     )
     assert any(

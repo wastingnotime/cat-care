@@ -141,6 +141,8 @@ derived from due date, current time, and a configured threshold.
    ordering and responsibility linkage.
 61. Reviewing care history is a distinct read use case that queries the timeline
    projection without being conflated with recording care.
+62. Timeline queries include newest-event summary data so a history read is
+   explainable without requiring a second timeline reconstruction.
 
 ## Open questions
 
