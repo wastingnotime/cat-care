@@ -69,6 +69,7 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         item.type == "command_rejected"
         and item.name == "responsibility"
         and item.source == "manage-responsibility"
+        and item.correlation_id == "use-case:complete_responsibility"
         for item in result.observations.observations
     )
     assert "use_case_invoked" in [item.type for item in result.observations.observations]

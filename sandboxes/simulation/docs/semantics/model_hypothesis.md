@@ -181,6 +181,8 @@ derived from due date, current time, and a configured threshold.
    protection decisions remain independently auditable.
 81. Duplicate-care rejection has a visible use-case-to-responsibility beam in the
    observatory while retaining the detailed operation-level rejection record.
+82. Rejection beams share the originating use-case correlation so they appear only
+   after the command handoff they reject.
 
 ## Open questions
 

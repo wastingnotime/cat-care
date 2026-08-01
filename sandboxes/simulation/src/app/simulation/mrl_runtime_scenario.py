@@ -339,7 +339,7 @@ def create_simulation() -> Scenario:
         )
 
     def attempt_duplicate_completion(context: object) -> None:
-        invoke_use_case(context, "complete_responsibility")
+        correlation_id = invoke_use_case(context, "complete_responsibility")
         try:
             state.complete(
                 "mimi-vaccine-1",
@@ -365,7 +365,7 @@ def create_simulation() -> Scenario:
                 "responsibility",
                 source="manage-responsibility",
                 actor="owner",
-                correlation_id="mimi-vaccine-1",
+                correlation_id=correlation_id,
                 payload={
                     "operation": "complete_responsibility",
                     "reason": str(error),
