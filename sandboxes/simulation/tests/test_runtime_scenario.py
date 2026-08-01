@@ -61,7 +61,10 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         if item.type == "query" and item.name == "cat-profile"
     )
     assert profile_review.source == "review-profile"
+    assert profile_review.correlation_id == "use-case:review_cat_profile"
     assert profile_review.payload["name"] == "Mimi"
+    assert profile_review.payload["birth_date"] == "2021-05-01"
+    assert profile_review.payload["adoption_date"] == "2021-07-10"
     assert profile_review.payload["photo_ref"] == "mimi-profile-updated.jpg"
     delivered_notification = next(
         item

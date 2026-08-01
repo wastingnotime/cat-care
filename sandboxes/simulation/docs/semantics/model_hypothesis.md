@@ -201,6 +201,8 @@ derived from due date, current time, and a configured threshold.
    observations.
 91. Cat-profile review is a distinct read use case from profile editing and
    queries the current validated profile projection.
+92. Profile review exposes all validated profile metadata through a correlated
+   read interaction.
 
 ## Open questions
 
