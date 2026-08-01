@@ -115,6 +115,8 @@ derived from due date, current time, and a configured threshold.
    projection so downstream status updates are observable, not implicit.
 48. Status-update events carry responsibility identity and description so the
    projection handoff remains explainable in isolation.
+49. The review-to-status relationship is rendered as a dynamic query beam rather
+   than a permanent structural beam, preserving the order of the read interaction.
 
 ## Open questions
 

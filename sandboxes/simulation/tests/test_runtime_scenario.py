@@ -131,3 +131,7 @@ def test_observatory_graph_exposes_application_use_cases():
         "deliver-notification",
         "manage-data",
     }
+    assert not any(
+        edge.from_node == "review-status" and edge.to_node == "status"
+        for edge in scenario.observatory_edges
+    )

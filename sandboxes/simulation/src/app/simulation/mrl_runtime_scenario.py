@@ -379,7 +379,6 @@ def create_simulation() -> Scenario:
             ObservatoryEdge("manage-data", "data-lifecycle", "manages"),
             ObservatoryEdge("record-care", "care-event", "records"),
             ObservatoryEdge("record-care", "note", "records"),
-            ObservatoryEdge("review-status", "status", "derives"),
             ObservatoryEdge("owner", "deliver-notification", "invokes"),
             ObservatoryEdge("responsibility", "status", "derives"),
         ],
