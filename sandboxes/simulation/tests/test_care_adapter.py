@@ -1,5 +1,7 @@
 from datetime import date, datetime, timedelta, timezone
 
+import pytest
+
 from app.interfaces.care_adapter import CareAdapter
 from app.simulation.domain import CatCareState, NotificationOutcome, Responsibility
 
@@ -136,7 +138,13 @@ def test_adapter_exposes_notification_deferral_export_and_delete_contracts():
 def test_adapter_exposes_newest_first_notification_history():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
     adapter = CareAdapter(state)
-    adapter.record_notification("r1", NOW, NotificationOutcome.FAILED)
-    adapter.record_notification("r1", NOW + timedelta(hours=1), NotificationOutcome.DELIVERED)
+    adapter.record_notification("r1", NOW, "failed")
+    adapter.record_notification("r1", NOW + timedelta(hours=1), "delivered")
     notifications = adapter.get_notifications()
     assert [item["details"]["outcome"] for item in notifications] == ["delivered", "failed"]
+
+
+def test_adapter_rejects_unknown_notification_outcome():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
+    with pytest.raises(ValueError, match="unsupported"):
+        CareAdapter(state).record_notification("r1", NOW, "unknown")

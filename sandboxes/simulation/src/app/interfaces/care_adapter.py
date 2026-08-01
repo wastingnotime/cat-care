@@ -167,10 +167,15 @@ class CareAdapter:
         self,
         responsibility_id: str,
         attempted_at: datetime,
-        outcome: NotificationOutcome,
+        outcome: str | NotificationOutcome,
         *,
         current_time: datetime | None = None,
     ) -> dict[str, object]:
+        if isinstance(outcome, str):
+            try:
+                outcome = NotificationOutcome(outcome)
+            except ValueError as error:
+                raise ValueError("unsupported notification outcome") from error
         return self._event_record(
             self.state.record_notification(
                 responsibility_id,

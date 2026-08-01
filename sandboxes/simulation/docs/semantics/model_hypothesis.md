@@ -80,6 +80,8 @@ derived from due date, current time, and a configured threshold.
    record.
 31. Technology adapters expose notification history newest first without
    requiring clients to filter the full timeline.
+32. Technology notification commands accept serialized outcome values and
+   validate them at the adapter boundary.
 
 ## Open questions
 

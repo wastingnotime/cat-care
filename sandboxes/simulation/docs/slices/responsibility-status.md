@@ -67,6 +67,8 @@ sentence and a stable status kind for future adapters.
   linkage separately from note recording.
 - Care-event type and description cannot be blank.
 - The adapter exposes newest-first notification history as a focused read.
+- Notification commands accept serialized `delivered`/`failed` values at the
+  adapter boundary.
 
 ## Scenario
 

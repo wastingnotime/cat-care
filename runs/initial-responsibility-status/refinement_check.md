@@ -223,6 +223,11 @@ remain meaningful and reviewable.
 The adapter now exposes focused newest-first notification history, preserving
 delivery outcomes without requiring clients to filter all timeline records.
 
+## Notification-boundary refinement
+
+Adapter notification commands now accept serialized outcomes and reject unknown
+values before invoking the domain.
+
 ## Responsibility-order refinement
 
 Equal due dates now use responsibility ID as an explicit tie-breaker, making the
