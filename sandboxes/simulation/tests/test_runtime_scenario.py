@@ -75,6 +75,13 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         for item in result.observations.observations
         if item.type == "command" and item.name == "data-lifecycle"
     } >= {"export_data", "delete_data"}
+    responsibility_commands = [
+        item
+        for item in result.observations.observations
+        if item.type == "command" and item.name == "responsibility"
+    ]
+    assert responsibility_commands
+    assert all(item.correlation_id.startswith("use-case:") for item in responsibility_commands)
     declared_use_case_ids = {
         node.id for node in create_simulation().observatory_nodes if node.kind == "use_case"
     }

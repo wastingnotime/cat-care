@@ -61,12 +61,20 @@ def create_simulation() -> Scenario:
     last_nearest_responsibility_id: str | None = None
 
     def invoke_use_case(context: object, name: str, *, actor: str = "owner") -> None:
-        context.emit("use_case_invoked", name, source="Application", actor=actor)
+        correlation_id = f"use-case:{name}"
+        context.emit(
+            "use_case_invoked",
+            name,
+            source="Application",
+            actor=actor,
+            correlation_id=correlation_id,
+        )
         context.emit(
             "command",
             USE_CASE_NODE_IDS[name],
             source="owner",
             actor=actor,
+            correlation_id=correlation_id,
             payload={"use_case": name},
         )
         target = USE_CASE_COMMAND_TARGETS.get(name)
@@ -76,6 +84,7 @@ def create_simulation() -> Scenario:
                 target,
                 source=USE_CASE_NODE_IDS[name],
                 actor=actor,
+                correlation_id=correlation_id,
                 payload={"use_case": name},
             )
 

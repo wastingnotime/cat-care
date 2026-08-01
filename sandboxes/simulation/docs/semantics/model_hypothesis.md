@@ -105,6 +105,8 @@ derived from due date, current time, and a configured threshold.
    imply a responsibility state transition.
 43. Export and deletion target a distinct data-lifecycle aggregate so data
    portability and terminal deletion remain visible as separate operations.
+44. Owner use-case invocations and their downstream commands share a correlation
+   ID so observatory beam animation preserves the interaction handoff order.
 
 ## Open questions
 
