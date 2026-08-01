@@ -137,6 +137,8 @@ derived from due date, current time, and a configured threshold.
    forcing clients to infer it from later completion events.
 59. Direct care observations have typed records separate from notes and
    notifications while remaining represented in the unified timeline.
+60. The adapter exposes typed direct-care history independently with newest-first
+   ordering and responsibility linkage.
 
 ## Open questions
 

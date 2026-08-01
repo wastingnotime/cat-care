@@ -251,6 +251,21 @@ class CareAdapter:
             for note in sorted(self.state.notes, key=lambda item: item.occurred_at, reverse=True)
         ]
 
+    def get_care_events(self) -> list[dict[str, object]]:
+        if self.state.deleted:
+            raise ValueError("cat data has been deleted")
+        return [
+            {
+                "type": care.event_type,
+                "occurred_at": care.occurred_at.isoformat(),
+                "description": care.description,
+                "responsibility_id": care.responsibility_id,
+                "action_key": None,
+                "details": {},
+            }
+            for care in sorted(self.state.direct_care, key=lambda item: item.occurred_at, reverse=True)
+        ]
+
     def _notification_record(self, notification: object) -> dict[str, object]:
         responsibility = next(
             item

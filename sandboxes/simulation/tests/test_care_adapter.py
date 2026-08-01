@@ -177,6 +177,21 @@ def test_adapter_exposes_newest_first_note_history():
     assert all(item["responsibility_id"] is None for item in notes)
 
 
+def test_adapter_exposes_newest_first_direct_care_history():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
+    adapter = CareAdapter(state)
+    adapter.record_care_event("weight_measured", "4.1 kg", NOW, current_time=NOW, responsibility_id="r1")
+    adapter.record_care_event(
+        "weight_measured",
+        "4.2 kg",
+        NOW + timedelta(hours=1),
+        current_time=NOW + timedelta(hours=1),
+        responsibility_id="r1",
+    )
+    events = adapter.get_care_events()
+    assert [item["description"] for item in events] == ["4.2 kg", "4.1 kg"]
+
+
 def test_adapter_rejects_unknown_notification_outcome():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
     with pytest.raises(ValueError, match="unsupported"):
