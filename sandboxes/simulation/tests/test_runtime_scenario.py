@@ -63,6 +63,13 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         and item.payload["use_case"] == "edit_cat_profile"
         for item in result.observations.observations
     )
+    assert any(
+        item.type == "command"
+        and item.name == "notification"
+        and item.source == "deliver-notification"
+        and item.payload["use_case"] == "record_notification"
+        for item in result.observations.observations
+    )
     declared_use_case_ids = {
         node.id for node in create_simulation().observatory_nodes if node.kind == "use_case"
     }
