@@ -193,6 +193,11 @@ protection visible to technology clients.
 The adapter now exposes cat name, optional dates, and photo reference as plain
 profile data for future web surfaces.
 
+## Profile-projection refinement
+
+Profile reads now reuse the domain's canonical export projection rather than
+duplicating date and photo serialization in the adapter.
+
 ## Responsibility-order refinement
 
 Equal due dates now use responsibility ID as an explicit tie-breaker, making the

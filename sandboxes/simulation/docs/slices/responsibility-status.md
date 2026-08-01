@@ -60,7 +60,7 @@ sentence and a stable status kind for future adapters.
   previous/new value details.
 - Adapter event records include action keys when present.
 - The adapter exposes optional cat profile metadata without exposing domain
-  objects.
+  objects, reusing the canonical export projection.
 
 ## Scenario
 

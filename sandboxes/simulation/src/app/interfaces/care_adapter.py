@@ -23,12 +23,7 @@ class CareAdapter:
     def get_cat_profile(self) -> dict[str, object]:
         if self.state.deleted:
             raise ValueError("cat data has been deleted")
-        return {
-            "name": self.state.cat_name,
-            "birth_date": self.state.birth_date.isoformat() if self.state.birth_date else None,
-            "adoption_date": self.state.adoption_date.isoformat() if self.state.adoption_date else None,
-            "photo_ref": self.state.photo_ref,
-        }
+        return self.state.export_data()["cat"]
 
     def get_responsibilities(
         self,
