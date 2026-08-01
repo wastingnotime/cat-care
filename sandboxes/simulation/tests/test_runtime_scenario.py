@@ -25,6 +25,7 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         and item.source == "review-status"
         and item.payload["kind"] == "overdue"
         and item.payload["nearest_responsibility_id"] == "mimi-vaccine-1"
+        and item.correlation_id == "use-case:review_care_status"
         for item in result.observations.observations
     )
     assert any(

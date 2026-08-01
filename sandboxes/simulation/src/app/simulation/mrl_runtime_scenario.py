@@ -61,7 +61,7 @@ def create_simulation() -> Scenario:
     last_status_kind: str | None = None
     last_nearest_responsibility_id: str | None = None
 
-    def invoke_use_case(context: object, name: str, *, actor: str = "owner") -> None:
+    def invoke_use_case(context: object, name: str, *, actor: str = "owner") -> str:
         correlation_id = f"use-case:{name}"
         context.emit(
             "use_case_invoked",
@@ -88,6 +88,7 @@ def create_simulation() -> Scenario:
                 correlation_id=correlation_id,
                 payload={"use_case": name},
             )
+        return correlation_id
 
     def emit_status_projection_event(context: object, event: object) -> None:
         context.emit(
@@ -105,7 +106,7 @@ def create_simulation() -> Scenario:
 
     def observe_status(context: object) -> None:
         nonlocal last_nearest_responsibility_id, last_status_kind
-        invoke_use_case(context, "review_care_status")
+        correlation_id = invoke_use_case(context, "review_care_status")
         snapshot = state.status_snapshot(context.clock.now(), threshold)
         context.emit(
             "semantic_observation",
@@ -124,6 +125,7 @@ def create_simulation() -> Scenario:
             "status",
             source="review-status",
             actor="owner",
+            correlation_id=correlation_id,
             payload={
                 "kind": snapshot.kind,
                 "sentence": snapshot.sentence,

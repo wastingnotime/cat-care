@@ -117,6 +117,8 @@ derived from due date, current time, and a configured threshold.
    projection handoff remains explainable in isolation.
 49. The review-to-status relationship is rendered as a dynamic query beam rather
    than a permanent structural beam, preserving the order of the read interaction.
+50. The status query shares the review interaction correlation so its beam starts
+   only after the owner-to-use-case handoff completes.
 
 ## Open questions
 
