@@ -133,6 +133,8 @@ derived from due date, current time, and a configured threshold.
    and due time rather than leaving recurrence implicit in mutable state.
 57. The adapter preserves recurrence continuation details in its completion event
    response for technology clients.
+58. Responsibility list views expose recurrence policy explicitly rather than
+   forcing clients to infer it from later completion events.
 
 ## Open questions
 

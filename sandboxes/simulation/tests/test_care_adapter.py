@@ -66,6 +66,16 @@ def test_adapter_exposes_sorted_responsibility_views_with_derived_states():
     views = CareAdapter(state).get_responsibilities(NOW, timedelta(days=2))
     assert [view["id"] for view in views] == ["urgent", "later", "unknown"]
     assert [view["state"] for view in views] == ["overdue", "planned", "unknown"]
+    assert all(view["recurrence_interval_days"] is None for view in views)
+
+
+def test_adapter_exposes_responsibility_recurrence_policy():
+    state = CatCareState(
+        "Mimi",
+        [Responsibility("r1", "treatment", NOW, "treatment", recurrence=RecurrencePolicy(30))],
+    )
+    view = CareAdapter(state).get_responsibilities(NOW, timedelta(days=2))[0]
+    assert view["recurrence_interval_days"] == 30
 
 
 def test_adapter_uses_id_as_tie_breaker_for_equal_due_dates():
