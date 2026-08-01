@@ -71,11 +71,13 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     )
     assert triage_assessed.payload["urgency"] == "needs_attention"
     assert triage_assessed.payload["review_status"] == "pending"
+    assert triage_assessed.payload["uncertainty"] == "No examination or vital signs are available."
     triage_reviewed = next(
         item for item in result.observations.observations if item.name == "triage_reviewed"
     )
     assert triage_reviewed.payload["decision"] == "modified"
     assert triage_reviewed.payload["final_urgency"] == "urgent"
+    assert triage_reviewed.payload["rationale"] == "Escalate after reviewing the history."
     delivered_notification = next(
         item
         for item in result.observations.observations

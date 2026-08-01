@@ -29,6 +29,8 @@ medication recommendations.
 - Note references remain stable across domain, adapter, and export surfaces.
 - The deterministic scenario demonstrates pending AI assessment followed by
   veterinarian modification.
+- Runtime observations preserve AI uncertainty and veterinarian rationale for
+  auditability.
 
 ## Out of scope
 

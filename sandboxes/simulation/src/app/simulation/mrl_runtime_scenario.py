@@ -297,6 +297,8 @@ def create_simulation() -> Scenario:
                 "review_status": assessment.review_status.value,
                 "provider": assessment.provider,
                 "model_version": assessment.model_version,
+                "rationale": assessment.rationale,
+                "uncertainty": assessment.uncertainty,
             },
         )
 
@@ -322,6 +324,7 @@ def create_simulation() -> Scenario:
                 "decision": review.decision.value,
                 "final_urgency": review.final_urgency.value,
                 "veterinarian_id": review.veterinarian_id,
+                "rationale": review.rationale,
             },
         )
     def edit_profile(context: object) -> None:
