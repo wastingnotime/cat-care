@@ -54,6 +54,19 @@ def test_adapter_edits_cat_profile_with_history_details():
     assert state.cat_name == "Mimi renamed"
 
 
+def test_adapter_rejects_future_cat_profile_edit():
+    state = CatCareState("Mimi")
+    with pytest.raises(ValueError, match="future"):
+        CareAdapter(state).edit_cat_profile(
+            "Mimi later",
+            None,
+            None,
+            None,
+            NOW + timedelta(hours=1),
+            current_time=NOW,
+        )
+
+
 def test_adapter_exposes_sorted_responsibility_views_with_derived_states():
     state = CatCareState(
         "Mimi",
@@ -202,6 +215,24 @@ def test_adapter_exposes_notification_deferral_export_and_delete_contracts():
     assert deleted["direct_care_removed"] == 0
     assert adapter.export_data()["deleted"] is True
     assert adapter.export_data()["deleted_at"] == NOW.isoformat()
+
+
+def test_adapter_deletion_receipt_counts_all_typed_records():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "care")])
+    adapter = CareAdapter(state)
+    adapter.record_notification("r1", NOW, "failed")
+    adapter.record_note("eating less", NOW, current_time=NOW)
+    adapter.record_care_event("weight_measured", "4.2 kg", NOW, current_time=NOW, responsibility_id="r1")
+    deleted = adapter.delete_data(NOW, current_time=NOW)
+    assert deleted["notifications_removed"] == 1
+    assert deleted["notes_removed"] == 1
+    assert deleted["direct_care_removed"] == 1
+    with pytest.raises(ValueError, match="deleted"):
+        adapter.get_notifications()
+    with pytest.raises(ValueError, match="deleted"):
+        adapter.get_notes()
+    with pytest.raises(ValueError, match="deleted"):
+        adapter.get_care_events()
 
 
 def test_adapter_exposes_newest_first_notification_history():
