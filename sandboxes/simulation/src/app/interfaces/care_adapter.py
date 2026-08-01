@@ -232,6 +232,8 @@ class CareAdapter:
             "notifications_removed": receipt.notifications_removed,
             "notes_removed": receipt.notes_removed,
             "direct_care_removed": receipt.direct_care_removed,
+            "triage_assessments_removed": receipt.triage_assessments_removed,
+            "veterinarian_reviews_removed": receipt.veterinarian_reviews_removed,
         }
 
     def get_timeline(self) -> list[dict[str, object]]:

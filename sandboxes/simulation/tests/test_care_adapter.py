@@ -213,6 +213,8 @@ def test_adapter_exposes_notification_deferral_export_and_delete_contracts():
     assert deleted["notifications_removed"] == 1
     assert deleted["notes_removed"] == 0
     assert deleted["direct_care_removed"] == 0
+    assert deleted["triage_assessments_removed"] == 0
+    assert deleted["veterinarian_reviews_removed"] == 0
     assert adapter.export_data()["deleted"] is True
     assert adapter.export_data()["deleted_at"] == NOW.isoformat()
 
@@ -227,6 +229,8 @@ def test_adapter_deletion_receipt_counts_all_typed_records():
     assert deleted["notifications_removed"] == 1
     assert deleted["notes_removed"] == 1
     assert deleted["direct_care_removed"] == 1
+    assert deleted["triage_assessments_removed"] == 0
+    assert deleted["veterinarian_reviews_removed"] == 0
     with pytest.raises(ValueError, match="deleted"):
         adapter.get_notifications()
     with pytest.raises(ValueError, match="deleted"):

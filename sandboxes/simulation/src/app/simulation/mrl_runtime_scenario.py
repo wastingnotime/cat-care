@@ -605,6 +605,8 @@ def create_simulation() -> Scenario:
                 "notifications_removed": receipt.notifications_removed,
                 "notes_removed": receipt.notes_removed,
                 "direct_care_removed": receipt.direct_care_removed,
+                "triage_assessments_removed": receipt.triage_assessments_removed,
+                "veterinarian_reviews_removed": receipt.veterinarian_reviews_removed,
                 "orphaned_records": 0,
             },
         )

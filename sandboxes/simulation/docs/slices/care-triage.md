@@ -31,6 +31,7 @@ medication recommendations.
   veterinarian modification.
 - Runtime observations preserve AI uncertainty and veterinarian rationale for
   auditability.
+- Deletion receipts report removed assessments and veterinarian reviews.
 
 ## Out of scope
 

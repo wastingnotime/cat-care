@@ -254,6 +254,8 @@ class DeletionReceipt:
     notifications_removed: int
     notes_removed: int
     direct_care_removed: int
+    triage_assessments_removed: int
+    veterinarian_reviews_removed: int
 
 
 @dataclass
@@ -809,6 +811,8 @@ class CatCareState:
             len(self.notifications),
             len(self.notes),
             len(self.direct_care),
+            len(self.triage_assessments),
+            len(self.veterinarian_reviews),
         )
         self.responsibilities.clear()
         self.notifications.clear()

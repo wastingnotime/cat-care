@@ -273,6 +273,8 @@ def test_deleting_cat_removes_owned_records_and_leaves_no_orphans():
     assert receipt.notifications_removed == 0
     assert receipt.notes_removed == 1
     assert receipt.direct_care_removed == 0
+    assert receipt.triage_assessments_removed == 0
+    assert receipt.veterinarian_reviews_removed == 0
     assert state.export_data() == {
         "cat": {"name": None, "birth_date": None, "adoption_date": None, "photo_ref": None},
         "deleted": True,

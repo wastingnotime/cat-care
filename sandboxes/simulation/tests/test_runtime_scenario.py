@@ -97,6 +97,8 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert deletion.payload["notifications_removed"] == 2
     assert deletion.payload["notes_removed"] == 1
     assert deletion.payload["direct_care_removed"] == 1
+    assert deletion.payload["triage_assessments_removed"] == 1
+    assert deletion.payload["veterinarian_reviews_removed"] == 1
     notification = next(
         item for item in result.observations.observations if item.name == "notification_recorded"
     )
