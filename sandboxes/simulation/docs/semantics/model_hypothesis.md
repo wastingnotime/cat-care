@@ -113,6 +113,8 @@ derived from due date, current time, and a configured threshold.
    direct care-event records.
 47. Responsibility state changes emit an explicit event to the calm-status
    projection so downstream status updates are observable, not implicit.
+48. Status-update events carry responsibility identity and description so the
+   projection handoff remains explainable in isolation.
 
 ## Open questions
 

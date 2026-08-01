@@ -96,7 +96,11 @@ def create_simulation() -> Scenario:
             source="responsibility",
             actor="owner",
             correlation_id=event.responsibility_id,
-            payload={"domain_event": event.event_type},
+            payload={
+                "domain_event": event.event_type,
+                "responsibility_id": event.responsibility_id,
+                "description": event.description,
+            },
         )
 
     def observe_status(context: object) -> None:

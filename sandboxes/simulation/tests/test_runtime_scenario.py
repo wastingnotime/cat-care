@@ -32,6 +32,8 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         and item.name == "status"
         and item.source == "responsibility"
         and item.payload["domain_event"] == "responsibility_completed"
+        and item.payload["responsibility_id"] == "mimi-vaccine-1"
+        and item.payload["description"] == "vaccine"
         for item in result.observations.observations
     )
     transitions = [
