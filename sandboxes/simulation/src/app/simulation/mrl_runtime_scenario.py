@@ -192,7 +192,14 @@ def create_simulation() -> Scenario:
             Responsibility("mimi-food-1", "buy food", INITIAL_TIME + timedelta(days=7), category="supplies"),
             context.clock.now(),
         )
-        context.emit("domain_event", event.event_type, source="Responsibility", actor="owner", correlation_id=event.responsibility_id, payload={"description": event.description})
+        context.emit(
+            "domain_event",
+            event.event_type,
+            source="Responsibility",
+            actor="owner",
+            correlation_id=event.responsibility_id,
+            payload={"description": event.description, "action_key": event.action_key},
+        )
 
     def edit_food_responsibility(context: object) -> None:
         invoke_use_case(context, "edit_responsibility")
@@ -203,7 +210,19 @@ def create_simulation() -> Scenario:
             due_at=INITIAL_TIME + timedelta(days=6),
             category="supplies",
         )
-        context.emit("domain_event", event.event_type, source="Responsibility", actor="owner", correlation_id=event.responsibility_id, payload={"description": event.description, "history_preserved": True, "details": dict(event.details)})
+        context.emit(
+            "domain_event",
+            event.event_type,
+            source="Responsibility",
+            actor="owner",
+            correlation_id=event.responsibility_id,
+            payload={
+                "description": event.description,
+                "history_preserved": True,
+                "details": dict(event.details),
+                "action_key": event.action_key,
+            },
+        )
 
     def complete_vaccine(context: object) -> None:
         invoke_use_case(context, "complete_responsibility")
@@ -262,7 +281,11 @@ def create_simulation() -> Scenario:
             source="Responsibility",
             actor="owner",
             correlation_id=event.responsibility_id,
-            payload={"details": dict(event.details), "owner_decision": True},
+            payload={
+                "details": dict(event.details),
+                "owner_decision": True,
+                "action_key": event.action_key,
+            },
         )
         emit_status_projection_event(context, event)
 

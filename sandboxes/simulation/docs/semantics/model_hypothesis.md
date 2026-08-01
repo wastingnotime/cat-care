@@ -173,6 +173,8 @@ derived from due date, current time, and a configured threshold.
    key alongside the care event identity.
 77. Responsibility completion and cancellation observations expose action-key
    identity consistently across the lifecycle.
+78. Responsibility creation, editing, and deferral preserve action-key identity
+   in domain events and runtime observations.
 
 ## Open questions
 

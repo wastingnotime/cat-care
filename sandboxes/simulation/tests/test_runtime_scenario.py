@@ -45,6 +45,10 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         item for item in result.observations.observations if item.name == "responsibility_cancelled"
     )
     assert cancellation.payload["action_key"] is None
+    deferral = next(
+        item for item in result.observations.observations if item.name == "responsibility_deferred"
+    )
+    assert deferral.payload["action_key"] == "mimi-vaccine-2026"
     assert "use_case_invoked" in [item.type for item in result.observations.observations]
     assert any(
         item.type == "query"

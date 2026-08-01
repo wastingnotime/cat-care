@@ -284,7 +284,13 @@ class CatCareState:
         if any(item.id == responsibility.id for item in self.responsibilities):
             raise ValueError(f"responsibility {responsibility.id} already exists")
         self.responsibilities.append(responsibility)
-        event = CareEvent("responsibility_created", now, responsibility.title, responsibility.id)
+        event = CareEvent(
+            "responsibility_created",
+            now,
+            responsibility.title,
+            responsibility.id,
+            responsibility.action_key,
+        )
         self.events.append(event)
         return event
 
@@ -352,6 +358,7 @@ class CatCareState:
             now,
             responsibility.title,
             responsibility.id,
+            responsibility.action_key,
             details=(
                 ("previous_due_at", previous_due_at.isoformat() if previous_due_at else "unknown"),
                 ("new_due_at", new_due_at.isoformat()),
@@ -390,6 +397,7 @@ class CatCareState:
             now,
             title,
             responsibility.id,
+            responsibility.action_key,
             details=(
                 ("previous_title", previous_title),
                 ("new_title", title),
