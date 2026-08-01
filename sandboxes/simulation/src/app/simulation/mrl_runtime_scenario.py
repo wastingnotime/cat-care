@@ -189,7 +189,13 @@ def create_simulation() -> Scenario:
     def add_food_responsibility(context: object) -> None:
         invoke_use_case(context, "create_responsibility")
         event = state.add_responsibility(
-            Responsibility("mimi-food-1", "buy food", INITIAL_TIME + timedelta(days=7), category="supplies"),
+            Responsibility(
+                "mimi-food-1",
+                "buy food",
+                INITIAL_TIME + timedelta(days=7),
+                category="supplies",
+                action_key="mimi-food-2026",
+            ),
             context.clock.now(),
         )
         context.emit(
