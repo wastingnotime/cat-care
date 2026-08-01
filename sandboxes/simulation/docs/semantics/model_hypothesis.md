@@ -211,6 +211,8 @@ derived from due date, current time, and a configured threshold.
    adapter validates before applying a state transition.
 96. Notification provider identity and provider message identity are persisted
    with the typed notification record, not retained only in an adapter response.
+97. Integration adapters are explicit observatory nodes between application use
+   cases and domain boundaries, with correlated handoff evidence.
 
 ## Open questions
 

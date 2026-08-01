@@ -275,3 +275,42 @@ def test_observatory_graph_exposes_application_use_cases():
     )
     status = next(node for node in scenario.observatory_nodes if node.id == "status")
     assert status.layer == "projections"
+
+
+def test_observatory_graph_exposes_integration_adapters_in_their_own_rank():
+    scenario = create_simulation()
+    adapters = {node.id: node for node in scenario.observatory_nodes if node.kind == "adapter"}
+    assert set(adapters) == {
+        "profile-adapter",
+        "notification-adapter",
+        "triage-adapter",
+        "recurrence-adapter",
+    }
+    assert {node.layer for node in adapters.values()} == {"adapters"}
+    assert {
+        (edge.from_node, edge.to_node)
+        for edge in scenario.observatory_edges
+        if edge.label == "translates-to"
+    } == {
+        ("profile-adapter", "cat-profile"),
+        ("notification-adapter", "notification"),
+        ("triage-adapter", "triage-assessment"),
+        ("recurrence-adapter", "responsibility"),
+    }
+
+
+def test_runtime_adapter_handoffs_preserve_use_case_correlation():
+    result = SimulationRunner().run(create_simulation())
+    adapter_commands = [
+        item
+        for item in result.observations.observations
+        if item.type == "command" and item.payload.get("boundary") == "integration_adapter"
+    ]
+    assert adapter_commands
+    assert {item.name for item in adapter_commands} >= {
+        "profile-adapter",
+        "notification-adapter",
+        "triage-adapter",
+        "recurrence-adapter",
+    }
+    assert all(item.correlation_id.startswith("use-case:") for item in adapter_commands)

@@ -54,6 +54,17 @@ USE_CASE_COMMAND_TARGETS = {
     "delete_data": "data-lifecycle",
 }
 
+USE_CASE_ADAPTER_TARGETS = {
+    "review_cat_profile": "profile-adapter",
+    "edit_cat_profile": "profile-adapter",
+    "review_notification_history": "notification-adapter",
+    "record_notification": "notification-adapter",
+    "request_triage": "triage-adapter",
+    "review_triage": "triage-adapter",
+    "create_responsibility": "recurrence-adapter",
+    "complete_responsibility": "recurrence-adapter",
+}
+
 
 class OwnerBehavior:
     def on_start(self, context: object) -> None:
@@ -114,6 +125,16 @@ def create_simulation() -> Scenario:
                 actor=actor,
                 correlation_id=correlation_id,
                 payload={"use_case": name},
+            )
+        adapter_target = USE_CASE_ADAPTER_TARGETS.get(name)
+        if adapter_target is not None:
+            context.emit(
+                "command",
+                adapter_target,
+                source=USE_CASE_NODE_IDS[name],
+                actor=actor,
+                correlation_id=correlation_id,
+                payload={"use_case": name, "boundary": "integration_adapter"},
             )
         return correlation_id
 
@@ -667,6 +688,10 @@ def create_simulation() -> Scenario:
             ObservatoryNode("record-care", "Record care history", "use_case", "use_cases"),
             ObservatoryNode("deliver-notification", "Record notification", "use_case", "use_cases"),
             ObservatoryNode("manage-data", "Manage owner data", "use_case", "use_cases"),
+            ObservatoryNode("profile-adapter", "Cat profile adapter", "adapter", "adapters"),
+            ObservatoryNode("notification-adapter", "Notification adapter", "adapter", "adapters"),
+            ObservatoryNode("triage-adapter", "Triage provider adapter", "adapter", "adapters"),
+            ObservatoryNode("recurrence-adapter", "Recurrence adapter", "adapter", "adapters"),
             ObservatoryNode("cat-profile", "Cat profile", "aggregate", "domain"),
             ObservatoryNode("triage-assessment", "Triage assessment", "entity", "domain"),
             ObservatoryNode("notification", "Notification", "aggregate", "domain"),
@@ -697,6 +722,10 @@ def create_simulation() -> Scenario:
             ObservatoryEdge("record-care", "responsibility", "records"),
             ObservatoryEdge("deliver-notification", "notification", "records"),
             ObservatoryEdge("manage-data", "data-lifecycle", "manages"),
+            ObservatoryEdge("profile-adapter", "cat-profile", "translates-to"),
+            ObservatoryEdge("notification-adapter", "notification", "translates-to"),
+            ObservatoryEdge("triage-adapter", "triage-assessment", "translates-to"),
+            ObservatoryEdge("recurrence-adapter", "responsibility", "translates-to"),
             ObservatoryEdge("record-care", "care-event", "records"),
             ObservatoryEdge("record-care", "note", "records"),
             ObservatoryEdge("owner", "deliver-notification", "invokes"),
