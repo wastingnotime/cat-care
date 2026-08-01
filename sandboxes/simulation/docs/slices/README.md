@@ -5,3 +5,7 @@ use-case contract, rules, ports, deterministic scenario, done criteria, and
 out-of-scope boundaries. Candidate slices may change as the shared simulation
 reveals better boundaries.
 
+Current slices:
+
+- `responsibility-status`: calm responsibility status and care history
+- `care-triage`: provisional AI urgency assessment with veterinarian review

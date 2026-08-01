@@ -203,6 +203,8 @@ derived from due date, current time, and a configured threshold.
    queries the current validated profile projection.
 92. Profile review exposes all validated profile metadata through a correlated
    read interaction.
+93. AI triage is a provisional urgency assessment, not a diagnosis, and requires
+   an explicit veterinarian review transition before it becomes authoritative.
 
 ## Open questions
 
