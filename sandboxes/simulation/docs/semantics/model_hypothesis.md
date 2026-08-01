@@ -95,6 +95,8 @@ derived from due date, current time, and a configured threshold.
    status projection and can be observed as a use-case-to-projection beam.
 38. A status projection query carries its nearest responsibility context so the
    read result remains explainable when inspected independently of the timeline.
+39. Responsibility-changing use cases expose an explicit command path to the
+   responsibility aggregate, making write intent and domain handling inspectable.
 
 ## Open questions
 

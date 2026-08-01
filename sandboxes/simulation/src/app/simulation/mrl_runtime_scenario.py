@@ -26,6 +26,16 @@ USE_CASE_NODE_IDS = {
     "delete_data": "manage-data",
 }
 
+USE_CASE_COMMAND_TARGETS = {
+    "create_responsibility": "responsibility",
+    "edit_responsibility": "responsibility",
+    "complete_responsibility": "responsibility",
+    "record_notification": "responsibility",
+    "defer_responsibility": "responsibility",
+    "cancel_responsibility": "responsibility",
+    "record_care_event": "responsibility",
+}
+
 
 class OwnerBehavior:
     def on_start(self, context: object) -> None:
@@ -56,6 +66,15 @@ def create_simulation() -> Scenario:
             actor=actor,
             payload={"use_case": name},
         )
+        target = USE_CASE_COMMAND_TARGETS.get(name)
+        if target is not None:
+            context.emit(
+                "command",
+                target,
+                source=USE_CASE_NODE_IDS[name],
+                actor=actor,
+                payload={"use_case": name},
+            )
 
     def observe_status(context: object) -> None:
         nonlocal last_nearest_responsibility_id, last_status_kind

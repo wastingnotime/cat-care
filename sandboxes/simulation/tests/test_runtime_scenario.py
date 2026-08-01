@@ -45,13 +45,21 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         and item.source == "owner"
         for item in result.observations.observations
     )
+    assert any(
+        item.type == "command"
+        and item.name == "responsibility"
+        and item.source == "manage-responsibility"
+        and item.payload["use_case"] == "complete_responsibility"
+        for item in result.observations.observations
+    )
     declared_use_case_ids = {
         node.id for node in create_simulation().observatory_nodes if node.kind == "use_case"
     }
-    command_targets = {
+    use_case_command_targets = {
         item.name for item in result.observations.observations if item.type == "command"
+        and item.source == "owner"
     }
-    assert command_targets <= declared_use_case_ids
+    assert use_case_command_targets <= declared_use_case_ids
     assert set(USE_CASE_NODE_IDS.values()) <= declared_use_case_ids
     assert any(item.name == "timeline_is_newest_first" and item.payload["passed"] for item in result.observations.observations)
     assert any(item.name == "completed_responsibility_is_not_overdue" and item.payload["passed"] for item in result.observations.observations)
