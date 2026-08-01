@@ -41,6 +41,7 @@ class NotificationRecord:
     responsibility_id: str
     attempted_at: datetime
     outcome: NotificationOutcome
+    action_key: str | None = None
 
     def __post_init__(self) -> None:
         _require_timezone_aware(self.attempted_at, "notification time")
@@ -304,7 +305,12 @@ class CatCareState:
         if current_time is not None and attempted_at > current_time:
             raise ValueError("a notification cannot be recorded in the future")
         responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
-        notification = NotificationRecord(responsibility_id, attempted_at, outcome)
+        notification = NotificationRecord(
+            responsibility_id,
+            attempted_at,
+            outcome,
+            responsibility.action_key,
+        )
         self.notifications.append(notification)
         event = CareEvent(
             "notification_recorded",
@@ -538,6 +544,7 @@ class CatCareState:
                     "responsibility_id": notification.responsibility_id,
                     "attempted_at": notification.attempted_at.isoformat(),
                     "outcome": notification.outcome.value,
+                    "action_key": notification.action_key,
                 }
                 for notification in sorted(self.notifications, key=lambda item: item.attempted_at)
             ],

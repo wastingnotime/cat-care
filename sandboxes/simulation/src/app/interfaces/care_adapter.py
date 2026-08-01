@@ -294,7 +294,7 @@ class CareAdapter:
             "occurred_at": notification.attempted_at.isoformat(),
             "description": f"notification for {responsibility.title}",
             "responsibility_id": notification.responsibility_id,
-            "action_key": responsibility.action_key,
+            "action_key": notification.action_key,
             "details": {"outcome": notification.outcome.value},
         }
 

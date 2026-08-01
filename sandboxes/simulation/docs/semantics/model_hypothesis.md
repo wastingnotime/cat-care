@@ -165,6 +165,8 @@ derived from due date, current time, and a configured threshold.
    when one exists.
 73. Direct-care action keys are stored on the typed record itself, keeping export
    and adapter projections independent of later responsibility lookup.
+74. Notification action keys are stored on typed notification records for the
+   same projection independence.
 
 ## Open questions
 

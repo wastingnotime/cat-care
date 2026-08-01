@@ -213,6 +213,16 @@ def test_adapter_exposes_newest_first_notification_history():
     assert all(item["type"] == "notification_recorded" for item in notifications)
 
 
+def test_notification_history_preserves_action_key():
+    state = CatCareState(
+        "Mimi",
+        [Responsibility("r1", "vaccine", NOW, "preventive care", action_key="vaccine-2026")],
+    )
+    adapter = CareAdapter(state)
+    adapter.record_notification("r1", NOW, "failed")
+    assert adapter.get_notifications()[0]["action_key"] == "vaccine-2026"
+
+
 def test_adapter_exposes_newest_first_note_history():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
     adapter = CareAdapter(state)
