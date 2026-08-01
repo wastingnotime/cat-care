@@ -317,6 +317,8 @@ def test_adapter_exposes_provisional_triage_and_veterinarian_review():
     )
     assert review["decision"] == "accepted"
     assert review["final_urgency"] == "needs_attention"
+    assert adapter.get_triage_assessments()[0]["review_status"] == "accepted"
+    assert adapter.get_veterinarian_reviews()[0]["veterinarian_id"] == "vet-123"
 
 
 def test_adapter_rejects_unknown_triage_urgency():

@@ -310,6 +310,26 @@ class CareAdapter:
             "rationale": review.rationale,
         }
 
+    def get_triage_assessments(self) -> list[dict[str, object]]:
+        if self.state.deleted:
+            raise ValueError("cat data has been deleted")
+        return [self._triage_record(assessment) for assessment in self.state.triage_assessments]
+
+    def get_veterinarian_reviews(self) -> list[dict[str, object]]:
+        if self.state.deleted:
+            raise ValueError("cat data has been deleted")
+        return [
+            {
+                "assessment_id": review.assessment_id,
+                "reviewed_at": review.reviewed_at.isoformat(),
+                "veterinarian_id": review.veterinarian_id,
+                "decision": review.decision.value,
+                "final_urgency": review.final_urgency.value if review.final_urgency else None,
+                "rationale": review.rationale,
+            }
+            for review in self.state.veterinarian_reviews
+        ]
+
     @staticmethod
     def _triage_record(assessment: object) -> dict[str, object]:
         return {

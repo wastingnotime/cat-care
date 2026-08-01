@@ -205,6 +205,8 @@ derived from due date, current time, and a configured threshold.
    read interaction.
 93. AI triage is a provisional urgency assessment, not a diagnosis, and requires
    an explicit veterinarian review transition before it becomes authoritative.
+94. Triage adapters expose provisional assessments and veterinarian reviews as
+   separate read collections.
 
 ## Open questions
 
