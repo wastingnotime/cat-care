@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import calendar
 import json
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
@@ -156,14 +157,26 @@ class CareEvent:
 
 @dataclass(frozen=True)
 class RecurrencePolicy:
-    interval_days: int
+    interval_days: int | None = None
+    calendar_months: int | None = None
 
     def __post_init__(self) -> None:
-        if self.interval_days <= 0:
+        if (self.interval_days is None) == (self.calendar_months is None):
+            raise ValueError("recurrence must define exactly one interval rule")
+        if self.interval_days is not None and self.interval_days <= 0:
             raise ValueError("recurrence interval must be positive")
+        if self.calendar_months is not None and self.calendar_months <= 0:
+            raise ValueError("calendar recurrence must be positive")
 
     def next_due_at(self, due_at: datetime) -> datetime:
-        return due_at + timedelta(days=self.interval_days)
+        _require_timezone_aware(due_at, "recurrence due time")
+        if self.interval_days is not None:
+            return due_at + timedelta(days=self.interval_days)
+        month_index = due_at.month - 1 + self.calendar_months
+        year = due_at.year + month_index // 12
+        month = month_index % 12 + 1
+        day = min(due_at.day, calendar.monthrange(year, month)[1])
+        return due_at.replace(year=year, month=month, day=day)
 
 
 @dataclass
@@ -724,6 +737,9 @@ class CatCareState:
                     "completed_at": item.completed_at.isoformat() if item.completed_at else None,
                     "cancelled_at": item.cancelled_at.isoformat() if item.cancelled_at else None,
                     "recurrence_interval_days": item.recurrence.interval_days if item.recurrence else None,
+                    "recurrence_calendar_months": (
+                        item.recurrence.calendar_months if item.recurrence else None
+                    ),
                     "action_key": item.action_key,
                 }
                 for item in self.responsibilities

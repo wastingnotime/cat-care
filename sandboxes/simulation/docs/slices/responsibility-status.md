@@ -1,5 +1,9 @@
 # Responsibility status
 
+Recurrence supports both explicit day intervals and explicit calendar-month
+rules. Calendar rules preserve the scheduled time and clamp dates to the last
+valid day of shorter months.
+
 ## Contract
 
 Given one cat, responsibilities, and a deterministic current time, derive a

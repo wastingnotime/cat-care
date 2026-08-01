@@ -391,3 +391,16 @@ def test_triage_rejects_unknown_notes_and_future_review_times():
             assessment.id, NOW + timedelta(hours=1), "vet-123",
             TriageReviewStatus.ACCEPTED, None, "Reviewed.", current_time=NOW,
         )
+
+
+def test_calendar_recurrence_preserves_time_and_clamps_short_months():
+    policy = RecurrencePolicy(calendar_months=1)
+    due_at = datetime(2026, 1, 31, 9, tzinfo=timezone.utc)
+    assert policy.next_due_at(due_at) == datetime(2026, 2, 28, 9, tzinfo=timezone.utc)
+
+
+def test_recurrence_policy_requires_one_explicit_rule():
+    with pytest.raises(ValueError, match="exactly one"):
+        RecurrencePolicy()
+    with pytest.raises(ValueError, match="exactly one"):
+        RecurrencePolicy(30, 1)

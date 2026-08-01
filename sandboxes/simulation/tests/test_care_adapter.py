@@ -400,3 +400,18 @@ def test_adapter_rejects_unknown_triage_urgency():
             ["note-1"], "diagnosis", "x", "y", NOW,
             "triage-service", "model-2026-01", current_time=NOW,
         )
+
+
+def test_adapter_exposes_calendar_recurrence_without_inference():
+    adapter = CareAdapter(CatCareState("Mimi"))
+    adapter.create_responsibility(
+        "r-monthly",
+        "monthly weigh-in",
+        "monitoring",
+        NOW,
+        NOW,
+        recurrence_calendar_months=1,
+    )
+    assert adapter.get_responsibilities(NOW, timedelta(days=1))[0][
+        "recurrence_calendar_months"
+    ] == 1

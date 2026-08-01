@@ -107,6 +107,9 @@ class CareAdapter:
                 "recurrence_interval_days": (
                     item.recurrence.interval_days if item.recurrence else None
                 ),
+                "recurrence_calendar_months": (
+                    item.recurrence.calendar_months if item.recurrence else None
+                ),
                 "action_key": item.action_key,
             }
             for item in items
@@ -121,6 +124,7 @@ class CareAdapter:
         now: datetime,
         *,
         recurrence_interval_days: int | None = None,
+        recurrence_calendar_months: int | None = None,
         action_key: str | None = None,
     ) -> dict[str, object]:
         responsibility = Responsibility(
@@ -131,7 +135,11 @@ class CareAdapter:
             recurrence=(
                 RecurrencePolicy(recurrence_interval_days)
                 if recurrence_interval_days is not None
-                else None
+                else (
+                    RecurrencePolicy(calendar_months=recurrence_calendar_months)
+                    if recurrence_calendar_months is not None
+                    else None
+                )
             ),
             action_key=action_key,
         )
