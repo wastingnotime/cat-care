@@ -66,6 +66,16 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert profile_review.payload["birth_date"] == "2021-05-01"
     assert profile_review.payload["adoption_date"] == "2021-07-10"
     assert profile_review.payload["photo_ref"] == "mimi-profile-updated.jpg"
+    triage_assessed = next(
+        item for item in result.observations.observations if item.name == "triage_assessed"
+    )
+    assert triage_assessed.payload["urgency"] == "needs_attention"
+    assert triage_assessed.payload["review_status"] == "pending"
+    triage_reviewed = next(
+        item for item in result.observations.observations if item.name == "triage_reviewed"
+    )
+    assert triage_reviewed.payload["decision"] == "modified"
+    assert triage_reviewed.payload["final_urgency"] == "urgent"
     delivered_notification = next(
         item
         for item in result.observations.observations
@@ -247,6 +257,8 @@ def test_observatory_graph_exposes_application_use_cases():
         "review-care",
         "review-notes",
         "review-profile",
+        "triage-care",
+        "review-triage",
         "manage-responsibility",
         "manage-cat-profile",
         "record-care",

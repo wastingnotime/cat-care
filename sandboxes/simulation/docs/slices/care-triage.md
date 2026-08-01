@@ -27,6 +27,8 @@ medication recommendations.
 - Unknown notes and future assessment/review timestamps are rejected.
 - Terminal deletion removes assessments and reviews.
 - Note references remain stable across domain, adapter, and export surfaces.
+- The deterministic scenario demonstrates pending AI assessment followed by
+  veterinarian modification.
 
 ## Out of scope
 

@@ -6,7 +6,14 @@ from mrl_simulation_runtime.actors import Actor
 from mrl_simulation_runtime.invariants import Invariant
 from mrl_simulation_runtime.scenario import InitialScheduledAction, ObservatoryEdge, ObservatoryNode, Scenario
 
-from app.simulation.domain import CatCareState, NotificationOutcome, RecurrencePolicy, Responsibility
+from app.simulation.domain import (
+    CatCareState,
+    NotificationOutcome,
+    RecurrencePolicy,
+    Responsibility,
+    TriageReviewStatus,
+    TriageUrgency,
+)
 
 
 INITIAL_TIME = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -18,6 +25,8 @@ USE_CASE_NODE_IDS = {
     "review_care_events": "review-care",
     "review_notes": "review-notes",
     "review_cat_profile": "review-profile",
+    "request_triage": "triage-care",
+    "review_triage": "review-triage",
     "edit_cat_profile": "manage-cat-profile",
     "create_responsibility": "manage-responsibility",
     "edit_responsibility": "manage-responsibility",
@@ -261,6 +270,58 @@ def create_simulation() -> Scenario:
                 "birth_date": state.birth_date.isoformat() if state.birth_date else None,
                 "adoption_date": state.adoption_date.isoformat() if state.adoption_date else None,
                 "photo_ref": state.photo_ref,
+            },
+        )
+
+    def request_triage(context: object) -> None:
+        invoke_use_case(context, "request_triage", actor="system")
+        assessment = state.request_triage(
+            ["note-1"],
+            TriageUrgency.NEEDS_ATTENTION,
+            "Reduced appetite needs prompt attention.",
+            "No examination or vital signs are available.",
+            context.clock.now(),
+            "triage-service",
+            "model-2026-01",
+            current_time=context.clock.now(),
+        )
+        context.emit(
+            "domain_event",
+            "triage_assessed",
+            source="TriageAssessment",
+            actor="system",
+            correlation_id=assessment.id,
+            payload={
+                "assessment_id": assessment.id,
+                "urgency": assessment.urgency.value,
+                "review_status": assessment.review_status.value,
+                "provider": assessment.provider,
+                "model_version": assessment.model_version,
+            },
+        )
+
+    def review_triage(context: object) -> None:
+        invoke_use_case(context, "review_triage", actor="vet-123")
+        review = state.review_triage(
+            "triage-1",
+            context.clock.now(),
+            "vet-123",
+            TriageReviewStatus.MODIFIED,
+            TriageUrgency.URGENT,
+            "Escalate after reviewing the history.",
+            current_time=context.clock.now(),
+        )
+        context.emit(
+            "domain_event",
+            "triage_reviewed",
+            source="TriageAssessment",
+            actor="vet-123",
+            correlation_id=review.assessment_id,
+            payload={
+                "assessment_id": review.assessment_id,
+                "decision": review.decision.value,
+                "final_urgency": review.final_urgency.value,
+                "veterinarian_id": review.veterinarian_id,
             },
         )
     def edit_profile(context: object) -> None:
@@ -571,6 +632,8 @@ def create_simulation() -> Scenario:
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=2), review_notification_history, "review_notification_history", "Notification"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4), review_care_events, "review_care_events", "CareEvent"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=2), review_notes, "review_notes", "Note"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=1, minutes=30), request_triage, "request_triage", "TriageAssessment"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=2, minutes=30), review_triage, "review_triage", "TriageAssessment"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), defer_vaccine, "defer_vaccine", "Responsibility", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=2), complete_vaccine, "complete_vaccine", "Responsibility", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=3), record_weight_event, "record_weight_event", "CareEvent", "mimi-vaccine-1"),
@@ -592,12 +655,15 @@ def create_simulation() -> Scenario:
             ObservatoryNode("review-care", "Review care events", "use_case", "use_cases"),
             ObservatoryNode("review-notes", "Review notes", "use_case", "use_cases"),
             ObservatoryNode("review-profile", "Review cat profile", "use_case", "use_cases"),
+            ObservatoryNode("triage-care", "Request care triage", "use_case", "use_cases"),
+            ObservatoryNode("review-triage", "Review care triage", "use_case", "use_cases"),
             ObservatoryNode("manage-responsibility", "Manage responsibility", "use_case", "use_cases"),
             ObservatoryNode("manage-cat-profile", "Edit cat profile", "use_case", "use_cases"),
             ObservatoryNode("record-care", "Record care history", "use_case", "use_cases"),
             ObservatoryNode("deliver-notification", "Record notification", "use_case", "use_cases"),
             ObservatoryNode("manage-data", "Manage owner data", "use_case", "use_cases"),
             ObservatoryNode("cat-profile", "Cat profile", "aggregate", "domain"),
+            ObservatoryNode("triage-assessment", "Triage assessment", "entity", "domain"),
             ObservatoryNode("notification", "Notification", "aggregate", "domain"),
             ObservatoryNode("data-lifecycle", "Data lifecycle", "aggregate", "domain"),
             ObservatoryNode("care-event", "Care event", "entity", "domain"),
@@ -613,6 +679,10 @@ def create_simulation() -> Scenario:
             ObservatoryEdge("owner", "review-care", "invokes"),
             ObservatoryEdge("owner", "review-notes", "invokes"),
             ObservatoryEdge("owner", "review-profile", "invokes"),
+            ObservatoryEdge("owner", "triage-care", "invokes"),
+            ObservatoryEdge("owner", "review-triage", "invokes"),
+            ObservatoryEdge("triage-care", "triage-assessment", "creates"),
+            ObservatoryEdge("review-triage", "triage-assessment", "reviews"),
             ObservatoryEdge("owner", "manage-responsibility", "invokes"),
             ObservatoryEdge("owner", "manage-cat-profile", "invokes"),
             ObservatoryEdge("owner", "record-care", "invokes"),
