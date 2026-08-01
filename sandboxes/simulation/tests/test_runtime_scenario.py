@@ -1,6 +1,10 @@
 from mrl_simulation_runtime.runner import SimulationRunner
 
-from app.simulation.mrl_runtime_scenario import USE_CASE_NODE_IDS, create_simulation
+from app.simulation.mrl_runtime_scenario import (
+    USE_CASE_COMMAND_TARGETS,
+    USE_CASE_NODE_IDS,
+    create_simulation,
+)
 
 
 def test_first_slice_produces_status_transition_and_invariant_evidence():
@@ -61,6 +65,8 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     }
     assert use_case_command_targets <= declared_use_case_ids
     assert set(USE_CASE_NODE_IDS.values()) <= declared_use_case_ids
+    declared_node_ids = {node.id for node in create_simulation().observatory_nodes}
+    assert set(USE_CASE_COMMAND_TARGETS.values()) <= declared_node_ids
     assert any(item.name == "timeline_is_newest_first" and item.payload["passed"] for item in result.observations.observations)
     assert any(item.name == "completed_responsibility_is_not_overdue" and item.payload["passed"] for item in result.observations.observations)
 

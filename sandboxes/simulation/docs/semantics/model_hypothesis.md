@@ -97,6 +97,8 @@ derived from due date, current time, and a configured threshold.
    read result remains explainable when inspected independently of the timeline.
 39. Responsibility-changing use cases expose an explicit command path to the
    responsibility aggregate, making write intent and domain handling inspectable.
+40. Use-case command targets are restricted to declared graph nodes so structural
+   relationships and runtime command beams cannot drift apart.
 
 ## Open questions
 
