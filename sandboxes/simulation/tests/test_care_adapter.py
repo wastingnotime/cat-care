@@ -145,6 +145,14 @@ def test_adapter_exposes_newest_first_timeline_records():
     }
 
 
+def test_adapter_timeline_summary_is_stable_when_empty():
+    assert CareAdapter(CatCareState("Mimi")).get_timeline_summary() == {
+        "event_count": 0,
+        "newest_event_type": None,
+        "newest_event_at": None,
+    }
+
+
 def test_adapter_exposes_notification_deferral_export_and_delete_contracts():
     state = CatCareState(
         "Mimi",

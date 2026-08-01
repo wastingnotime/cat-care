@@ -145,6 +145,8 @@ derived from due date, current time, and a configured threshold.
    explainable without requiring a second timeline reconstruction.
 63. The adapter exposes the same compact timeline summary as the runtime history
    read path without duplicating timeline ordering rules.
+64. An empty timeline summary remains structurally stable with zero count and
+   null newest-event fields.
 
 ## Open questions
 
