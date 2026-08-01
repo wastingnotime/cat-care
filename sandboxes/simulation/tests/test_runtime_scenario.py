@@ -20,6 +20,7 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         and item.name == "status"
         and item.source == "review-status"
         and item.payload["kind"] == "overdue"
+        and item.payload["nearest_responsibility_id"] == "mimi-vaccine-1"
         for item in result.observations.observations
     )
     transitions = [

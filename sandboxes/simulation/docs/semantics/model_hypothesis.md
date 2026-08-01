@@ -93,6 +93,8 @@ derived from due date, current time, and a configured threshold.
    sentence needed to explain the change without reconstructing prior snapshots.
 37. The status read path is explicit: reviewing care status queries the calm
    status projection and can be observed as a use-case-to-projection beam.
+38. A status projection query carries its nearest responsibility context so the
+   read result remains explainable when inspected independently of the timeline.
 
 ## Open questions
 

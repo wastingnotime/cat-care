@@ -78,7 +78,11 @@ def create_simulation() -> Scenario:
             "status",
             source="review-status",
             actor="owner",
-            payload={"kind": snapshot.kind, "sentence": snapshot.sentence},
+            payload={
+                "kind": snapshot.kind,
+                "sentence": snapshot.sentence,
+                "nearest_responsibility_id": snapshot.nearest_responsibility_id,
+            },
         )
         if last_status_kind is not None and last_status_kind != snapshot.kind:
             context.emit(
