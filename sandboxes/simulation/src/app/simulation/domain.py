@@ -385,18 +385,31 @@ class CatCareState:
         ):
             raise ValueError(f"care action {responsibility.action_key} was already completed")
         event = responsibility.complete(now, current_time=current_time)
-        self.events.append(event)
         if responsibility.recurrence is not None and responsibility.due_at is not None:
+            next_responsibility_id = f"{responsibility.id}-next"
+            next_due_at = responsibility.recurrence.next_due_at(responsibility.due_at)
             self.responsibilities.append(
                 Responsibility(
-                    id=f"{responsibility.id}-next",
+                    id=next_responsibility_id,
                     title=responsibility.title,
-                    due_at=responsibility.recurrence.next_due_at(responsibility.due_at),
+                    due_at=next_due_at,
                     category=responsibility.category,
                     recurrence=responsibility.recurrence,
                     action_key=responsibility.action_key,
                 )
             )
+            event = CareEvent(
+                event.event_type,
+                event.occurred_at,
+                event.description,
+                event.responsibility_id,
+                event.action_key,
+                details=(
+                    ("next_responsibility_id", next_responsibility_id),
+                    ("next_due_at", next_due_at.isoformat()),
+                ),
+            )
+        self.events.append(event)
         return event
 
     def cancel(

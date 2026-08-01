@@ -67,6 +67,10 @@ def test_completion_records_event_and_recurring_next_occurrence():
     )
     event = state.complete("r1", NOW)
     assert event.event_type == "responsibility_completed"
+    assert dict(event.details) == {
+        "next_responsibility_id": "r1-next",
+        "next_due_at": (NOW + timedelta(days=30)).isoformat(),
+    }
     assert state.responsibilities[0].state == ResponsibilityState.COMPLETED
     assert state.responsibilities[1].due_at == NOW + timedelta(days=30)
     assert state.responsibilities[1].recurrence == RecurrencePolicy(30)

@@ -129,6 +129,8 @@ derived from due date, current time, and a configured threshold.
    while their timeline event preserves chronological history.
 55. The adapter exposes typed note history independently from care-event history,
    preserving newest-first ordering and note-specific meaning.
+56. Recurring completion events explicitly identify the generated next occurrence
+   and due time rather than leaving recurrence implicit in mutable state.
 
 ## Open questions
 
