@@ -82,6 +82,8 @@ derived from due date, current time, and a configured threshold.
    requiring clients to filter the full timeline.
 32. Technology notification commands accept serialized outcome values and
    validate them at the adapter boundary.
+33. The runtime observatory exposes application use cases as explicit nodes and
+   records their invocation separately from domain events.
 
 ## Open questions
 

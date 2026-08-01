@@ -30,7 +30,11 @@ def create_simulation() -> Scenario:
     )
     threshold = timedelta(days=2)
 
+    def invoke_use_case(context: object, name: str, *, actor: str = "owner") -> None:
+        context.emit("use_case_invoked", name, source="Application", actor=actor)
+
     def observe_status(context: object) -> None:
+        invoke_use_case(context, "review_care_status")
         snapshot = state.status_snapshot(context.clock.now(), threshold)
         context.emit(
             "semantic_observation",
@@ -46,6 +50,7 @@ def create_simulation() -> Scenario:
         )
 
     def edit_profile(context: object) -> None:
+        invoke_use_case(context, "edit_cat_profile")
         event = state.edit_cat_profile(
             context.clock.now(),
             name="Mimi",
@@ -57,6 +62,7 @@ def create_simulation() -> Scenario:
         context.emit("domain_event", event.event_type, source="CatProfile", actor="owner", payload={"details": dict(event.details)})
 
     def add_food_responsibility(context: object) -> None:
+        invoke_use_case(context, "create_responsibility")
         event = state.add_responsibility(
             Responsibility("mimi-food-1", "buy food", INITIAL_TIME + timedelta(days=7), category="supplies"),
             context.clock.now(),
@@ -64,6 +70,7 @@ def create_simulation() -> Scenario:
         context.emit("domain_event", event.event_type, source="Responsibility", actor="owner", correlation_id=event.responsibility_id, payload={"description": event.description})
 
     def edit_food_responsibility(context: object) -> None:
+        invoke_use_case(context, "edit_responsibility")
         event = state.edit_responsibility(
             "mimi-food-1",
             context.clock.now(),
@@ -74,6 +81,7 @@ def create_simulation() -> Scenario:
         context.emit("domain_event", event.event_type, source="Responsibility", actor="owner", correlation_id=event.responsibility_id, payload={"description": event.description, "history_preserved": True, "details": dict(event.details)})
 
     def complete_vaccine(context: object) -> None:
+        invoke_use_case(context, "complete_responsibility")
         event = state.complete(
             "mimi-vaccine-1",
             context.clock.now(),
@@ -90,6 +98,7 @@ def create_simulation() -> Scenario:
         observe_status(context)
 
     def record_failed_notification(context: object) -> None:
+        invoke_use_case(context, "record_notification", actor="system")
         event = state.record_notification(
             "mimi-vaccine-1",
             context.clock.now(),
@@ -106,6 +115,7 @@ def create_simulation() -> Scenario:
         )
 
     def defer_vaccine(context: object) -> None:
+        invoke_use_case(context, "defer_responsibility")
         event = state.defer_responsibility(
             "mimi-vaccine-1",
             context.clock.now(),
@@ -122,6 +132,7 @@ def create_simulation() -> Scenario:
         )
 
     def cancel_appointment(context: object) -> None:
+        invoke_use_case(context, "cancel_responsibility")
         event = state.cancel(
             "mimi-appointment-1",
             context.clock.now(),
@@ -137,6 +148,7 @@ def create_simulation() -> Scenario:
         )
 
     def record_weight_event(context: object) -> None:
+        invoke_use_case(context, "record_care_event")
         event = state.record_care_event(
             "weight_measured",
             "4.2 kg",
@@ -154,6 +166,7 @@ def create_simulation() -> Scenario:
         )
 
     def record_note(context: object) -> None:
+        invoke_use_case(context, "record_note")
         event = state.record_note(
             "eating less",
             context.clock.now(),
@@ -175,6 +188,7 @@ def create_simulation() -> Scenario:
         )
 
     def export_data(context: object) -> None:
+        invoke_use_case(context, "export_data")
         exported = state.export_data()
         context.emit(
             "semantic_observation",
@@ -189,6 +203,7 @@ def create_simulation() -> Scenario:
         )
 
     def delete_data(context: object) -> None:
+        invoke_use_case(context, "delete_data")
         receipt = state.delete_cat(context.clock.now(), current_time=context.clock.now())
         context.emit(
             "semantic_observation",
@@ -236,11 +251,27 @@ def create_simulation() -> Scenario:
         ],
         observatory_nodes=[
             ObservatoryNode("owner", "Owner", "actor", "domain"),
+            ObservatoryNode("review-status", "Review care status", "use_case", "use_cases"),
+            ObservatoryNode("manage-responsibility", "Manage responsibility", "use_case", "use_cases"),
+            ObservatoryNode("manage-cat-profile", "Edit cat profile", "use_case", "use_cases"),
+            ObservatoryNode("record-care", "Record care history", "use_case", "use_cases"),
+            ObservatoryNode("deliver-notification", "Record notification", "use_case", "use_cases"),
+            ObservatoryNode("manage-data", "Manage owner data", "use_case", "use_cases"),
             ObservatoryNode("responsibility", "Responsibility", "aggregate", "domain"),
             ObservatoryNode("status", "Calm status", "projection", "domain"),
         ],
         observatory_edges=[
-            ObservatoryEdge("owner", "responsibility", "manages"),
+            ObservatoryEdge("owner", "review-status", "invokes"),
+            ObservatoryEdge("owner", "manage-responsibility", "invokes"),
+            ObservatoryEdge("owner", "manage-cat-profile", "invokes"),
+            ObservatoryEdge("owner", "record-care", "invokes"),
+            ObservatoryEdge("owner", "manage-data", "invokes"),
+            ObservatoryEdge("manage-responsibility", "responsibility", "commands"),
+            ObservatoryEdge("manage-cat-profile", "responsibility", "updates"),
+            ObservatoryEdge("record-care", "responsibility", "records"),
+            ObservatoryEdge("deliver-notification", "responsibility", "notifies"),
+            ObservatoryEdge("review-status", "status", "derives"),
+            ObservatoryEdge("owner", "deliver-notification", "invokes"),
             ObservatoryEdge("responsibility", "status", "derives"),
         ],
     )

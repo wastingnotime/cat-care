@@ -228,6 +228,12 @@ delivery outcomes without requiring clients to filter all timeline records.
 Adapter notification commands now accept serialized outcomes and reject unknown
 values before invoking the domain.
 
+## Use-case observatory refinement
+
+The runtime adapter now exposes explicit application use-case nodes and emits
+`use_case_invoked` observations before domain events, making the application
+layer visible in supervision.
+
 ## Responsibility-order refinement
 
 Equal due dates now use responsibility ID as an explicit tie-breaker, making the

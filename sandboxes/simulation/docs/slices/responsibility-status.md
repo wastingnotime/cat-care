@@ -69,6 +69,8 @@ sentence and a stable status kind for future adapters.
 - The adapter exposes newest-first notification history as a focused read.
 - Notification commands accept serialized `delivered`/`failed` values at the
   adapter boundary.
+- The runtime graph exposes explicit use-case nodes for status, responsibility,
+  profile, care history, notification, and data lifecycle behavior.
 
 ## Scenario
 
