@@ -396,6 +396,10 @@ class CatCareState:
         responsibility_id: str | None = None,
     ) -> CareEvent:
         self._ensure_active()
+        if not event_type.strip():
+            raise ValueError("care event type cannot be empty")
+        if not description.strip():
+            raise ValueError("care event description cannot be empty")
         _require_timezone_aware(occurred_at, "care event time")
         if current_time is not None:
             _require_timezone_aware(current_time, "current time")

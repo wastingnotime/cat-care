@@ -213,6 +213,11 @@ profile.
 The adapter now exposes direct care-event recording for measurements, exams,
 and similar history entries, with optional responsibility linkage.
 
+## Care-event quality refinement
+
+Blank care-event types and descriptions are now rejected so timeline records
+remain meaningful and reviewable.
+
 ## Responsibility-order refinement
 
 Equal due dates now use responsibility ID as an explicit tie-breaker, making the

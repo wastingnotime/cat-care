@@ -172,6 +172,14 @@ def test_care_event_requires_existing_link_and_cannot_be_future_dated():
         state.record_care_event("exam_performed", "exam", NOW + timedelta(days=1), current_time=NOW)
 
 
+def test_care_event_type_and_description_cannot_be_empty():
+    state = CatCareState("Mimi")
+    with pytest.raises(ValueError, match="type"):
+        state.record_care_event(" ", "exam", NOW)
+    with pytest.raises(ValueError, match="description"):
+        state.record_note(" ", NOW)
+
+
 def test_failed_notification_does_not_change_owner_responsibility_state():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
     event = state.record_notification("r1", NOW, NotificationOutcome.FAILED)

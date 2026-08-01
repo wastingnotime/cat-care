@@ -76,6 +76,8 @@ derived from due date, current time, and a configured threshold.
    adapter contract; edits cannot be recorded in the future.
 29. Technology adapters expose direct care-event recording separately from
    lightweight notes.
+30. Care-event type and description are required for a meaningful timeline
+   record.
 
 ## Open questions
 
