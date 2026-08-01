@@ -17,6 +17,12 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert "use_case_invoked" in [item.type for item in result.observations.observations]
     use_cases = {item.name for item in result.observations.observations if item.type == "use_case_invoked"}
     assert {"review_care_status", "create_responsibility", "complete_responsibility"}.issubset(use_cases)
+    assert any(
+        item.type == "command"
+        and item.name == "manage-responsibility"
+        and item.source == "Owner"
+        for item in result.observations.observations
+    )
     assert any(item.name == "timeline_is_newest_first" and item.payload["passed"] for item in result.observations.observations)
     assert any(item.name == "completed_responsibility_is_not_overdue" and item.payload["passed"] for item in result.observations.observations)
 

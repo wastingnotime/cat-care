@@ -32,6 +32,27 @@ def create_simulation() -> Scenario:
 
     def invoke_use_case(context: object, name: str, *, actor: str = "owner") -> None:
         context.emit("use_case_invoked", name, source="Application", actor=actor)
+        use_case_nodes = {
+            "review_care_status": "review-status",
+            "edit_cat_profile": "manage-cat-profile",
+            "create_responsibility": "manage-responsibility",
+            "edit_responsibility": "manage-responsibility",
+            "complete_responsibility": "manage-responsibility",
+            "record_notification": "deliver-notification",
+            "defer_responsibility": "manage-responsibility",
+            "cancel_responsibility": "manage-responsibility",
+            "record_care_event": "record-care",
+            "record_note": "record-care",
+            "export_data": "manage-data",
+            "delete_data": "manage-data",
+        }
+        context.emit(
+            "command",
+            use_case_nodes[name],
+            source="Owner",
+            actor=actor,
+            payload={"use_case": name},
+        )
 
     def observe_status(context: object) -> None:
         invoke_use_case(context, "review_care_status")
