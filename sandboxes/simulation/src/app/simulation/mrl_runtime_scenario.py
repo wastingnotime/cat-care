@@ -62,7 +62,13 @@ def create_simulation() -> Scenario:
                 recurrence=RecurrencePolicy(30),
                 action_key="mimi-vaccine-2026",
             ),
-            Responsibility("mimi-appointment-1", "vet appointment", INITIAL_TIME + timedelta(days=5), category="veterinary"),
+            Responsibility(
+                "mimi-appointment-1",
+                "vet appointment",
+                INITIAL_TIME + timedelta(days=5),
+                category="veterinary",
+                action_key="mimi-appointment-2026",
+            ),
         ],
     )
     threshold = timedelta(days=2)

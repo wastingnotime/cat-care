@@ -165,7 +165,13 @@ class Responsibility:
         self.cancelled_at = now
         if now is None:
             return None
-        return CareEvent("responsibility_cancelled", now, self.title, self.id)
+        return CareEvent(
+            "responsibility_cancelled",
+            now,
+            self.title,
+            self.id,
+            self.action_key,
+        )
 
 
 @dataclass(frozen=True)

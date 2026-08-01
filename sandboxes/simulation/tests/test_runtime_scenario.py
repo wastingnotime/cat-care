@@ -44,7 +44,7 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     cancellation = next(
         item for item in result.observations.observations if item.name == "responsibility_cancelled"
     )
-    assert cancellation.payload["action_key"] is None
+    assert cancellation.payload["action_key"] == "mimi-appointment-2026"
     deferral = next(
         item for item in result.observations.observations if item.name == "responsibility_deferred"
     )
