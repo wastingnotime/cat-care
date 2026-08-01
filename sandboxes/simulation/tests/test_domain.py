@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from app.simulation.domain import CatCareState, DirectCareRecord, NoteRecord, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState
+from app.simulation.domain import CatCareState, DirectCareRecord, NoteRecord, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState, TriageReviewStatus, TriageUrgency
 
 
 NOW = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -258,8 +258,8 @@ def test_export_contains_current_state_and_chronological_event_history():
     assert exported["responsibilities"][0]["id"] == "r1"
     assert [event["type"] for event in exported["events"]] == ["weight_measured", "note_recorded"]
     note_time = NOW + timedelta(hours=1)
-    assert exported["notes"] == [{"description": "eating less", "occurred_at": note_time.isoformat()}]
-    assert state.notes == [NoteRecord("eating less", note_time)]
+    assert exported["notes"] == [{"id": "note-1", "description": "eating less", "occurred_at": note_time.isoformat()}]
+    assert state.notes == [NoteRecord("eating less", note_time, "note-1")]
     assert state.direct_care == [DirectCareRecord("weight_measured", "4.2 kg", NOW, "r1", None)]
     assert json.loads(state.export_json()) == exported
 
@@ -282,6 +282,8 @@ def test_deleting_cat_removes_owned_records_and_leaves_no_orphans():
         "notifications": [],
         "notes": [],
         "direct_care": [],
+        "triage_assessments": [],
+        "veterinarian_reviews": [],
         "events": [],
     }
     with pytest.raises(ValueError, match="deleted"):
@@ -343,3 +345,47 @@ def test_cat_profile_edit_is_traceable_and_validated():
 def test_cat_deletion_cannot_be_future_dated():
     with pytest.raises(ValueError, match="future"):
         CatCareState("Mimi").delete_cat(NOW + timedelta(days=1), current_time=NOW)
+
+
+def test_ai_triage_is_provisional_until_veterinarian_review():
+    state = CatCareState("Mimi")
+    state.record_note("eating less", NOW)
+    assessment = state.request_triage(
+        ["note-1"], TriageUrgency.NEEDS_ATTENTION,
+        "Reduced appetite may need prompt attention.",
+        "No examination or vital signs available.", NOW,
+        "triage-service", "model-2026-01", current_time=NOW,
+    )
+    assert assessment.review_status == TriageReviewStatus.PENDING
+    assert assessment.final_urgency is None
+    review = state.review_triage(
+        assessment.id, NOW + timedelta(hours=1), "vet-123",
+        TriageReviewStatus.MODIFIED, TriageUrgency.URGENT,
+        "Escalate after reviewing the history.",
+        current_time=NOW + timedelta(hours=1),
+    )
+    assert review.decision == TriageReviewStatus.MODIFIED
+    assert assessment.review_status == TriageReviewStatus.MODIFIED
+    assert assessment.final_urgency == TriageUrgency.URGENT
+    assert state.export_data()["triage_assessments"][0]["final_urgency"] == "urgent"
+
+
+def test_triage_rejects_unknown_notes_and_future_review_times():
+    state = CatCareState("Mimi")
+    with pytest.raises(ValueError, match="unknown note"):
+        state.request_triage(
+            ["note-404"], TriageUrgency.MONITOR, "Monitor.",
+            "Limited history.", NOW, "triage-service", "model-2026-01",
+            current_time=NOW,
+        )
+    state.record_note("sneezing", NOW)
+    assessment = state.request_triage(
+        ["note-1"], TriageUrgency.MONITOR, "Monitor.",
+        "Limited history.", NOW, "triage-service", "model-2026-01",
+        current_time=NOW,
+    )
+    with pytest.raises(ValueError, match="future"):
+        state.review_triage(
+            assessment.id, NOW + timedelta(hours=1), "vet-123",
+            TriageReviewStatus.ACCEPTED, None, "Reviewed.", current_time=NOW,
+        )

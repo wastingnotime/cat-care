@@ -263,6 +263,7 @@ def test_adapter_exposes_newest_first_note_history():
     notes = adapter.get_notes()
     assert [item["description"] for item in notes] == ["newer", "older"]
     assert all(item["responsibility_id"] is None for item in notes)
+    assert notes[0]["id"] == "note-2"
 
 
 def test_adapter_exposes_newest_first_direct_care_history():

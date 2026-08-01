@@ -36,6 +36,20 @@ class NotificationOutcome(str, Enum):
     FAILED = "failed"
 
 
+class TriageUrgency(str, Enum):
+    URGENT = "urgent"
+    NEEDS_ATTENTION = "needs_attention"
+    MONITOR = "monitor"
+    INSUFFICIENT_INFORMATION = "insufficient_information"
+
+
+class TriageReviewStatus(str, Enum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    MODIFIED = "modified"
+    REJECTED = "rejected"
+
+
 @dataclass(frozen=True)
 class NotificationRecord:
     responsibility_id: str
@@ -53,11 +67,62 @@ class NotificationRecord:
 class NoteRecord:
     description: str
     occurred_at: datetime
+    id: str | None = None
 
     def __post_init__(self) -> None:
         if not self.description.strip():
             raise ValueError("note description cannot be empty")
         _require_timezone_aware(self.occurred_at, "note time")
+
+
+@dataclass
+class TriageAssessment:
+    id: str
+    note_ids: tuple[str, ...]
+    urgency: TriageUrgency
+    rationale: str
+    uncertainty: str
+    assessed_at: datetime
+    provider: str
+    model_version: str
+    review_status: TriageReviewStatus = TriageReviewStatus.PENDING
+    final_urgency: TriageUrgency | None = None
+
+    def __post_init__(self) -> None:
+        if not self.note_ids:
+            raise ValueError("triage assessment requires at least one note")
+        if not self.rationale.strip():
+            raise ValueError("triage rationale cannot be empty")
+        if not self.uncertainty.strip():
+            raise ValueError("triage uncertainty cannot be empty")
+        if not self.provider.strip():
+            raise ValueError("triage provider cannot be empty")
+        if not self.model_version.strip():
+            raise ValueError("triage model version cannot be empty")
+        if not isinstance(self.urgency, TriageUrgency):
+            raise ValueError("triage urgency must be explicit")
+        _require_timezone_aware(self.assessed_at, "triage assessment time")
+
+
+@dataclass(frozen=True)
+class VeterinarianReview:
+    assessment_id: str
+    reviewed_at: datetime
+    veterinarian_id: str
+    decision: TriageReviewStatus
+    final_urgency: TriageUrgency | None
+    rationale: str
+
+    def __post_init__(self) -> None:
+        if not self.veterinarian_id.strip():
+            raise ValueError("veterinarian identity cannot be empty")
+        if self.decision == TriageReviewStatus.PENDING:
+            raise ValueError("veterinarian review decision cannot be pending")
+        if not self.rationale.strip():
+            raise ValueError("veterinarian review rationale cannot be empty")
+        if self.decision == TriageReviewStatus.MODIFIED and self.final_urgency is None:
+            raise ValueError("modified triage review requires final urgency")
+        _require_timezone_aware(self.reviewed_at, "veterinarian review time")
 
 
 @dataclass(frozen=True)
@@ -199,6 +264,8 @@ class CatCareState:
     notifications: list[NotificationRecord] = field(default_factory=list)
     notes: list[NoteRecord] = field(default_factory=list)
     direct_care: list[DirectCareRecord] = field(default_factory=list)
+    triage_assessments: list[TriageAssessment] = field(default_factory=list)
+    veterinarian_reviews: list[VeterinarianReview] = field(default_factory=list)
     future_information_known: bool = True
     deleted: bool = False
     deleted_at: datetime | None = None
@@ -509,10 +576,108 @@ class CatCareState:
         return event
 
     def record_note(self, description: str, now: datetime, *, current_time: datetime | None = None) -> CareEvent:
-        note = NoteRecord(description, now)
+        note = NoteRecord(description, now, f"note-{len(self.notes) + 1}")
         event = self.record_care_event("note_recorded", description, now, current_time=current_time)
         self.notes.append(note)
         return event
+
+    def request_triage(
+        self,
+        note_ids: tuple[str, ...] | list[str],
+        urgency: TriageUrgency,
+        rationale: str,
+        uncertainty: str,
+        assessed_at: datetime,
+        provider: str,
+        model_version: str,
+        *,
+        current_time: datetime | None = None,
+    ) -> TriageAssessment:
+        self._ensure_active()
+        _require_timezone_aware(assessed_at, "triage assessment time")
+        if current_time is not None:
+            _require_timezone_aware(current_time, "current time")
+            if assessed_at > current_time:
+                raise ValueError("a triage assessment cannot be recorded in the future")
+        normalized_note_ids = tuple(note_ids)
+        known_note_ids = {note.id for note in self.notes}
+        if any(note_id not in known_note_ids for note_id in normalized_note_ids):
+            raise ValueError("triage assessment references an unknown note")
+        assessment = TriageAssessment(
+            f"triage-{len(self.triage_assessments) + 1}",
+            normalized_note_ids,
+            urgency,
+            rationale,
+            uncertainty,
+            assessed_at,
+            provider,
+            model_version,
+        )
+        self.triage_assessments.append(assessment)
+        self.events.append(
+            CareEvent(
+                "triage_assessed",
+                assessed_at,
+                f"AI triage assessment {assessment.id}",
+                details=(
+                    ("urgency", urgency.value),
+                    ("review_status", assessment.review_status.value),
+                    ("provider", provider),
+                    ("model_version", model_version),
+                ),
+            )
+        )
+        return assessment
+
+    def review_triage(
+        self,
+        assessment_id: str,
+        reviewed_at: datetime,
+        veterinarian_id: str,
+        decision: TriageReviewStatus,
+        final_urgency: TriageUrgency | None,
+        rationale: str,
+        *,
+        current_time: datetime | None = None,
+    ) -> VeterinarianReview:
+        self._ensure_active()
+        _require_timezone_aware(reviewed_at, "veterinarian review time")
+        if current_time is not None:
+            _require_timezone_aware(current_time, "current time")
+            if reviewed_at > current_time:
+                raise ValueError("a veterinarian review cannot be recorded in the future")
+        assessment = next(
+            (item for item in self.triage_assessments if item.id == assessment_id),
+            None,
+        )
+        if assessment is None:
+            raise ValueError(f"triage assessment {assessment_id} does not exist")
+        if assessment.review_status != TriageReviewStatus.PENDING:
+            raise ValueError(f"triage assessment {assessment_id} has already been reviewed")
+        review = VeterinarianReview(
+            assessment_id,
+            reviewed_at,
+            veterinarian_id,
+            decision,
+            final_urgency,
+            rationale,
+        )
+        assessment.review_status = decision
+        assessment.final_urgency = final_urgency or assessment.urgency
+        self.veterinarian_reviews.append(review)
+        self.events.append(
+            CareEvent(
+                "triage_reviewed",
+                reviewed_at,
+                f"Veterinarian reviewed {assessment_id}",
+                details=(
+                    ("decision", decision.value),
+                    ("final_urgency", assessment.final_urgency.value),
+                    ("veterinarian_id", veterinarian_id),
+                ),
+            )
+        )
+        return review
 
     def timeline(self) -> list[CareEvent]:
         return sorted(self.events, key=lambda event: event.occurred_at, reverse=True)
@@ -528,6 +693,8 @@ class CatCareState:
                 "notifications": [],
                 "notes": [],
                 "direct_care": [],
+                "triage_assessments": [],
+                "veterinarian_reviews": [],
                 "events": [],
             }
         return {
@@ -565,6 +732,7 @@ class CatCareState:
             ],
             "notes": [
                 {
+                    "id": note.id,
                     "description": note.description,
                     "occurred_at": note.occurred_at.isoformat(),
                 }
@@ -579,6 +747,32 @@ class CatCareState:
                     "action_key": care.action_key,
                 }
                 for care in sorted(self.direct_care, key=lambda item: item.occurred_at)
+            ],
+            "triage_assessments": [
+                {
+                    "id": assessment.id,
+                    "note_ids": list(assessment.note_ids),
+                    "urgency": assessment.urgency.value,
+                    "rationale": assessment.rationale,
+                    "uncertainty": assessment.uncertainty,
+                    "assessed_at": assessment.assessed_at.isoformat(),
+                    "provider": assessment.provider,
+                    "model_version": assessment.model_version,
+                    "review_status": assessment.review_status.value,
+                    "final_urgency": assessment.final_urgency.value if assessment.final_urgency else None,
+                }
+                for assessment in self.triage_assessments
+            ],
+            "veterinarian_reviews": [
+                {
+                    "assessment_id": review.assessment_id,
+                    "reviewed_at": review.reviewed_at.isoformat(),
+                    "veterinarian_id": review.veterinarian_id,
+                    "decision": review.decision.value,
+                    "final_urgency": review.final_urgency.value if review.final_urgency else None,
+                    "rationale": review.rationale,
+                }
+                for review in self.veterinarian_reviews
             ],
             "events": [
                 {
@@ -615,6 +809,8 @@ class CatCareState:
         self.notifications.clear()
         self.notes.clear()
         self.direct_care.clear()
+        self.triage_assessments.clear()
+        self.veterinarian_reviews.clear()
         self.events.clear()
         self.cat_name = ""
         self.birth_date = None

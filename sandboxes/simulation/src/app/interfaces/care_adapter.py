@@ -258,6 +258,7 @@ class CareAdapter:
             raise ValueError("cat data has been deleted")
         return [
             {
+                "id": note.id,
                 "type": "note_recorded",
                 "occurred_at": note.occurred_at.isoformat(),
                 "description": note.description,
