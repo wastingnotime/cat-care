@@ -366,7 +366,7 @@ def create_simulation() -> Scenario:
             ObservatoryNode("care-event", "Care event", "entity", "domain"),
             ObservatoryNode("note", "Note", "entity", "domain"),
             ObservatoryNode("responsibility", "Responsibility", "aggregate", "domain"),
-            ObservatoryNode("status", "Calm status", "projection", "domain"),
+            ObservatoryNode("status", "Calm status", "projection", "projections"),
         ],
         observatory_edges=[
             ObservatoryEdge("owner", "review-status", "invokes"),

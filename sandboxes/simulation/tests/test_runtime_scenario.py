@@ -136,3 +136,5 @@ def test_observatory_graph_exposes_application_use_cases():
         edge.from_node == "review-status" and edge.to_node == "status"
         for edge in scenario.observatory_edges
     )
+    status = next(node for node in scenario.observatory_nodes if node.id == "status")
+    assert status.layer == "projections"

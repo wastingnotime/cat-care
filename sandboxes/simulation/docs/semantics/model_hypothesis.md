@@ -119,6 +119,8 @@ derived from due date, current time, and a configured threshold.
    than a permanent structural beam, preserving the order of the read interaction.
 50. The status query shares the review interaction correlation so its beam starts
    only after the owner-to-use-case handoff completes.
+51. Calm status is placed in the observatory's projection rank, separate from
+   application use cases, so read models remain visually distinct from commands.
 
 ## Open questions
 
