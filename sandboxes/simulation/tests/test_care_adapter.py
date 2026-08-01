@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta, timezone
 import pytest
 
 from app.interfaces.care_adapter import CareAdapter
-from app.simulation.domain import CatCareState, NotificationOutcome, Responsibility
+from app.simulation.domain import CatCareState, NotificationOutcome, RecurrencePolicy, Responsibility
 
 
 NOW = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -107,6 +107,18 @@ def test_adapter_commands_return_event_records_and_use_domain_transitions():
     assert care_event["type"] == "weight_measured"
     assert care_event["responsibility_id"] == "r1"
     assert len(state.events) == 5
+
+
+def test_adapter_completion_exposes_next_recurrence_details():
+    state = CatCareState(
+        "Mimi",
+        [Responsibility("r1", "treatment", NOW, "treatment", recurrence=RecurrencePolicy(30))],
+    )
+    completed = CareAdapter(state).complete_responsibility("r1", NOW, current_time=NOW)
+    assert completed["details"] == {
+        "next_responsibility_id": "r1-next",
+        "next_due_at": (NOW + timedelta(days=30)).isoformat(),
+    }
 
 
 def test_adapter_exposes_newest_first_timeline_records():

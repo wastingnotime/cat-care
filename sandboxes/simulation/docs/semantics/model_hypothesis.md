@@ -131,6 +131,8 @@ derived from due date, current time, and a configured threshold.
    preserving newest-first ordering and note-specific meaning.
 56. Recurring completion events explicitly identify the generated next occurrence
    and due time rather than leaving recurrence implicit in mutable state.
+57. The adapter preserves recurrence continuation details in its completion event
+   response for technology clients.
 
 ## Open questions
 
