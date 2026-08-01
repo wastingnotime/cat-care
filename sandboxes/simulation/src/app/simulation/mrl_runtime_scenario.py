@@ -89,6 +89,16 @@ def create_simulation() -> Scenario:
                 payload={"use_case": name},
             )
 
+    def emit_status_projection_event(context: object, event: object) -> None:
+        context.emit(
+            "event",
+            "status",
+            source="responsibility",
+            actor="owner",
+            correlation_id=event.responsibility_id,
+            payload={"domain_event": event.event_type},
+        )
+
     def observe_status(context: object) -> None:
         nonlocal last_nearest_responsibility_id, last_status_kind
         invoke_use_case(context, "review_care_status")
@@ -179,6 +189,7 @@ def create_simulation() -> Scenario:
             correlation_id=event.responsibility_id,
             payload={"description": event.description},
         )
+        emit_status_projection_event(context, event)
         observe_status(context)
 
     def record_failed_notification(context: object) -> None:
@@ -214,6 +225,7 @@ def create_simulation() -> Scenario:
             correlation_id=event.responsibility_id,
             payload={"details": dict(event.details), "owner_decision": True},
         )
+        emit_status_projection_event(context, event)
 
     def cancel_appointment(context: object) -> None:
         invoke_use_case(context, "cancel_responsibility")
@@ -230,6 +242,7 @@ def create_simulation() -> Scenario:
             correlation_id=event.responsibility_id,
             payload={"description": event.description, "history_preserved": True},
         )
+        emit_status_projection_event(context, event)
 
     def record_weight_event(context: object) -> None:
         invoke_use_case(context, "record_care_event")

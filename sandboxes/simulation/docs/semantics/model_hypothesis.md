@@ -111,6 +111,8 @@ derived from due date, current time, and a configured threshold.
    link enriches the event without making the event a responsibility mutation.
 46. Lightweight notes target a separate note entity and remain distinct from
    direct care-event records.
+47. Responsibility state changes emit an explicit event to the calm-status
+   projection so downstream status updates are observable, not implicit.
 
 ## Open questions
 
