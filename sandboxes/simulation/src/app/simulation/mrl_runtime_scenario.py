@@ -49,7 +49,7 @@ def create_simulation() -> Scenario:
         context.emit(
             "command",
             use_case_nodes[name],
-            source="Owner",
+            source="owner",
             actor=actor,
             payload={"use_case": name},
         )

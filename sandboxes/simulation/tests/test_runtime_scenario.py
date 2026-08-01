@@ -20,7 +20,7 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert any(
         item.type == "command"
         and item.name == "manage-responsibility"
-        and item.source == "Owner"
+        and item.source == "owner"
         for item in result.observations.observations
     )
     assert any(item.name == "timeline_is_newest_first" and item.payload["passed"] for item in result.observations.observations)
