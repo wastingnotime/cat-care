@@ -2,7 +2,14 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta
 
-from app.simulation.domain import CatCareState, NotificationOutcome, RecurrencePolicy, Responsibility
+from app.simulation.domain import (
+    CatCareState,
+    NotificationOutcome,
+    RecurrencePolicy,
+    Responsibility,
+    TriageReviewStatus,
+    TriageUrgency,
+)
 
 
 class CareAdapter:
@@ -239,6 +246,83 @@ class CareAdapter:
             "event_count": len(timeline),
             "newest_event_type": newest.event_type if newest else None,
             "newest_event_at": newest.occurred_at.isoformat() if newest else None,
+        }
+
+    def request_triage(
+        self,
+        note_ids: list[str],
+        urgency: str,
+        rationale: str,
+        uncertainty: str,
+        assessed_at: datetime,
+        provider: str,
+        model_version: str,
+        *,
+        current_time: datetime | None = None,
+    ) -> dict[str, object]:
+        try:
+            parsed_urgency = TriageUrgency(urgency)
+        except ValueError as error:
+            raise ValueError("unsupported triage urgency") from error
+        assessment = self.state.request_triage(
+            note_ids,
+            parsed_urgency,
+            rationale,
+            uncertainty,
+            assessed_at,
+            provider,
+            model_version,
+            current_time=current_time,
+        )
+        return self._triage_record(assessment)
+
+    def review_triage(
+        self,
+        assessment_id: str,
+        reviewed_at: datetime,
+        veterinarian_id: str,
+        decision: str,
+        final_urgency: str | None,
+        rationale: str,
+        *,
+        current_time: datetime | None = None,
+    ) -> dict[str, object]:
+        try:
+            parsed_decision = TriageReviewStatus(decision)
+        except ValueError as error:
+            raise ValueError("unsupported triage review decision") from error
+        parsed_urgency = TriageUrgency(final_urgency) if final_urgency else None
+        review = self.state.review_triage(
+            assessment_id,
+            reviewed_at,
+            veterinarian_id,
+            parsed_decision,
+            parsed_urgency,
+            rationale,
+            current_time=current_time,
+        )
+        return {
+            "assessment_id": review.assessment_id,
+            "reviewed_at": review.reviewed_at.isoformat(),
+            "veterinarian_id": review.veterinarian_id,
+            "decision": review.decision.value,
+            "final_urgency": review.final_urgency.value if review.final_urgency else None,
+            "rationale": review.rationale,
+        }
+
+    @staticmethod
+    def _triage_record(assessment: object) -> dict[str, object]:
+        return {
+            "id": assessment.id,
+            "note_ids": list(assessment.note_ids),
+            "urgency": assessment.urgency.value,
+            "rationale": assessment.rationale,
+            "uncertainty": assessment.uncertainty,
+            "assessed_at": assessment.assessed_at.isoformat(),
+            "provider": assessment.provider,
+            "model_version": assessment.model_version,
+            "review_status": assessment.review_status.value,
+            "final_urgency": assessment.final_urgency.value if assessment.final_urgency else None,
         }
 
     def get_notifications(self) -> list[dict[str, object]]:

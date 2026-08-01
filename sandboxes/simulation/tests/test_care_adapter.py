@@ -289,3 +289,42 @@ def test_adapter_rejects_unknown_notification_outcome():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
     with pytest.raises(ValueError, match="unsupported"):
         CareAdapter(state).record_notification("r1", NOW, "unknown")
+
+
+def test_adapter_exposes_provisional_triage_and_veterinarian_review():
+    state = CatCareState("Mimi")
+    adapter = CareAdapter(state)
+    adapter.record_note("eating less", NOW, current_time=NOW)
+    assessment = adapter.request_triage(
+        ["note-1"],
+        "needs_attention",
+        "Reduced appetite needs attention.",
+        "No examination available.",
+        NOW,
+        "triage-service",
+        "model-2026-01",
+        current_time=NOW,
+    )
+    assert assessment["review_status"] == "pending"
+    review = adapter.review_triage(
+        assessment["id"],
+        NOW + timedelta(hours=1),
+        "vet-123",
+        "accepted",
+        None,
+        "Reviewed and accepted.",
+        current_time=NOW + timedelta(hours=1),
+    )
+    assert review["decision"] == "accepted"
+    assert review["final_urgency"] == "needs_attention"
+
+
+def test_adapter_rejects_unknown_triage_urgency():
+    state = CatCareState("Mimi")
+    adapter = CareAdapter(state)
+    adapter.record_note("sneezing", NOW, current_time=NOW)
+    with pytest.raises(ValueError, match="unsupported"):
+        adapter.request_triage(
+            ["note-1"], "diagnosis", "x", "y", NOW,
+            "triage-service", "model-2026-01", current_time=NOW,
+        )

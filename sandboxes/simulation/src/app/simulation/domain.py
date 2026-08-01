@@ -654,16 +654,21 @@ class CatCareState:
             raise ValueError(f"triage assessment {assessment_id} does not exist")
         if assessment.review_status != TriageReviewStatus.PENDING:
             raise ValueError(f"triage assessment {assessment_id} has already been reviewed")
+        effective_urgency = (
+            assessment.urgency
+            if decision == TriageReviewStatus.ACCEPTED and final_urgency is None
+            else final_urgency
+        )
         review = VeterinarianReview(
             assessment_id,
             reviewed_at,
             veterinarian_id,
             decision,
-            final_urgency,
+            effective_urgency,
             rationale,
         )
         assessment.review_status = decision
-        assessment.final_urgency = final_urgency or assessment.urgency
+        assessment.final_urgency = effective_urgency or assessment.urgency
         self.veterinarian_reviews.append(review)
         self.events.append(
             CareEvent(
