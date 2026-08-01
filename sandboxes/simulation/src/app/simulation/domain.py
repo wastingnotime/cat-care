@@ -60,6 +60,21 @@ class NoteRecord:
 
 
 @dataclass(frozen=True)
+class DirectCareRecord:
+    event_type: str
+    description: str
+    occurred_at: datetime
+    responsibility_id: str | None = None
+
+    def __post_init__(self) -> None:
+        if not self.event_type.strip():
+            raise ValueError("care event type cannot be empty")
+        if not self.description.strip():
+            raise ValueError("care event description cannot be empty")
+        _require_timezone_aware(self.occurred_at, "care event time")
+
+
+@dataclass(frozen=True)
 class CareEvent:
     event_type: str
     occurred_at: datetime
@@ -168,6 +183,7 @@ class CatCareState:
     events: list[CareEvent] = field(default_factory=list)
     notifications: list[NotificationRecord] = field(default_factory=list)
     notes: list[NoteRecord] = field(default_factory=list)
+    direct_care: list[DirectCareRecord] = field(default_factory=list)
     future_information_known: bool = True
     deleted: bool = False
     birth_date: date | None = None
@@ -450,6 +466,10 @@ class CatCareState:
         ):
             raise ValueError(f"responsibility {responsibility_id} does not exist")
         event = CareEvent(event_type, occurred_at, description, responsibility_id)
+        if event_type != "note_recorded":
+            self.direct_care.append(
+                DirectCareRecord(event_type, description, occurred_at, responsibility_id)
+            )
         self.events.append(event)
         return event
 
@@ -471,6 +491,7 @@ class CatCareState:
                 "responsibilities": [],
                 "notifications": [],
                 "notes": [],
+                "direct_care": [],
                 "events": [],
             }
         return {
@@ -510,6 +531,15 @@ class CatCareState:
                 }
                 for note in sorted(self.notes, key=lambda item: item.occurred_at)
             ],
+            "direct_care": [
+                {
+                    "type": care.event_type,
+                    "description": care.description,
+                    "occurred_at": care.occurred_at.isoformat(),
+                    "responsibility_id": care.responsibility_id,
+                }
+                for care in sorted(self.direct_care, key=lambda item: item.occurred_at)
+            ],
             "events": [
                 {
                     "type": event.event_type,
@@ -537,6 +567,7 @@ class CatCareState:
         self.responsibilities.clear()
         self.notifications.clear()
         self.notes.clear()
+        self.direct_care.clear()
         self.events.clear()
         self.cat_name = ""
         self.birth_date = None

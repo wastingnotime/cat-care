@@ -135,6 +135,8 @@ derived from due date, current time, and a configured threshold.
    response for technology clients.
 58. Responsibility list views expose recurrence policy explicitly rather than
    forcing clients to infer it from later completion events.
+59. Direct care observations have typed records separate from notes and
+   notifications while remaining represented in the unified timeline.
 
 ## Open questions
 

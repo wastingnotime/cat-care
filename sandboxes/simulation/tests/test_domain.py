@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from app.simulation.domain import CatCareState, NoteRecord, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState
+from app.simulation.domain import CatCareState, DirectCareRecord, NoteRecord, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState
 
 
 NOW = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -245,6 +245,7 @@ def test_domain_rejects_naive_timestamps():
 def test_export_contains_current_state_and_chronological_event_history():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")], future_information_known=False)
     state.record_note("eating less", NOW + timedelta(hours=1))
+    state.record_care_event("weight_measured", "4.2 kg", NOW, responsibility_id="r1")
     exported = state.export_data()
     assert exported["cat"] == {
         "name": "Mimi",
@@ -254,10 +255,11 @@ def test_export_contains_current_state_and_chronological_event_history():
     }
     assert exported["future_information_known"] is False
     assert exported["responsibilities"][0]["id"] == "r1"
-    assert exported["events"][0]["type"] == "note_recorded"
+    assert [event["type"] for event in exported["events"]] == ["weight_measured", "note_recorded"]
     note_time = NOW + timedelta(hours=1)
     assert exported["notes"] == [{"description": "eating less", "occurred_at": note_time.isoformat()}]
     assert state.notes == [NoteRecord("eating less", note_time)]
+    assert state.direct_care == [DirectCareRecord("weight_measured", "4.2 kg", NOW, "r1")]
     assert json.loads(state.export_json()) == exported
 
 
@@ -274,6 +276,7 @@ def test_deleting_cat_removes_owned_records_and_leaves_no_orphans():
         "responsibilities": [],
         "notifications": [],
         "notes": [],
+        "direct_care": [],
         "events": [],
     }
     with pytest.raises(ValueError, match="deleted"):
