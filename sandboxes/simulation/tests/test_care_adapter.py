@@ -37,6 +37,21 @@ def test_adapter_exposes_cat_profile_as_plain_data():
     }
 
 
+def test_adapter_edits_cat_profile_with_history_details():
+    state = CatCareState("Mimi")
+    event = CareAdapter(state).edit_cat_profile(
+        "Mimi renamed",
+        date(2021, 5, 1),
+        date(2021, 7, 10),
+        "mimi-profile.jpg",
+        NOW,
+        current_time=NOW,
+    )
+    assert event["type"] == "cat_profile_edited"
+    assert event["details"]["previous_name"] == "Mimi"
+    assert state.cat_name == "Mimi renamed"
+
+
 def test_adapter_exposes_sorted_responsibility_views_with_derived_states():
     state = CatCareState(
         "Mimi",

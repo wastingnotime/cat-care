@@ -45,6 +45,17 @@ def create_simulation() -> Scenario:
             },
         )
 
+    def edit_profile(context: object) -> None:
+        event = state.edit_cat_profile(
+            context.clock.now(),
+            name="Mimi",
+            birth_date=date(2021, 5, 1),
+            adoption_date=date(2021, 7, 10),
+            photo_ref="mimi-profile-updated.jpg",
+            current_time=context.clock.now(),
+        )
+        context.emit("domain_event", event.event_type, source="CatProfile", actor="owner", payload={"details": dict(event.details)})
+
     def add_food_responsibility(context: object) -> None:
         event = state.add_responsibility(
             Responsibility("mimi-food-1", "buy food", INITIAL_TIME + timedelta(days=7), category="supplies"),
@@ -207,6 +218,7 @@ def create_simulation() -> Scenario:
             InitialScheduledAction(INITIAL_TIME, observe_status, "observe_initial_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(hours=2), add_food_responsibility, "add_food_responsibility", "Responsibility"),
             InitialScheduledAction(INITIAL_TIME + timedelta(hours=4), edit_food_responsibility, "edit_food_responsibility", "Responsibility", "mimi-food-1"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(hours=5), edit_profile, "edit_profile", "CatProfile"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=1), observe_status, "observe_due_soon_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), observe_status, "observe_overdue_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), record_failed_notification, "record_failed_notification", "Notification", "mimi-vaccine-1"),

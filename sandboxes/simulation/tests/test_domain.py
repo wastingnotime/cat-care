@@ -281,6 +281,29 @@ def test_cat_profile_fields_are_optional_and_exported():
         CatCareState("Mimi", birth_date=date(2021, 7, 10), adoption_date=date(2021, 5, 1))
 
 
+def test_cat_profile_edit_is_traceable_and_validated():
+    state = CatCareState("Mimi")
+    event = state.edit_cat_profile(
+        NOW,
+        name="Mimi renamed",
+        birth_date=date(2021, 5, 1),
+        adoption_date=date(2021, 7, 10),
+        photo_ref="mimi-profile.jpg",
+        current_time=NOW,
+    )
+    assert event.event_type == "cat_profile_edited"
+    assert dict(event.details)["previous_name"] == "Mimi"
+    with pytest.raises(ValueError, match="before birth"):
+        state.edit_cat_profile(
+            NOW,
+            name="Mimi",
+            birth_date=date(2021, 7, 10),
+            adoption_date=date(2021, 5, 1),
+            photo_ref=None,
+            current_time=NOW,
+        )
+
+
 def test_cat_deletion_cannot_be_future_dated():
     with pytest.raises(ValueError, match="future"):
         CatCareState("Mimi").delete_cat(NOW + timedelta(days=1), current_time=NOW)

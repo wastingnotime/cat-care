@@ -11,6 +11,20 @@ def _require_timezone_aware(value: datetime, field_name: str) -> None:
         raise ValueError(f"{field_name} must be timezone-aware")
 
 
+def _validate_cat_profile(
+    name: str,
+    birth_date: date | None,
+    adoption_date: date | None,
+    photo_ref: str | None,
+) -> None:
+    if not name.strip():
+        raise ValueError("cat name cannot be empty")
+    if birth_date is not None and adoption_date is not None and adoption_date < birth_date:
+        raise ValueError("adoption date cannot be before birth date")
+    if photo_ref is not None and not photo_ref.strip():
+        raise ValueError("photo reference cannot be empty")
+
+
 class ResponsibilityState(str, Enum):
     PLANNED = "planned"
     COMPLETED = "completed"
@@ -136,12 +150,7 @@ class CatCareState:
     photo_ref: str | None = None
 
     def __post_init__(self) -> None:
-        if not self.cat_name.strip():
-            raise ValueError("cat name cannot be empty")
-        if self.birth_date is not None and self.adoption_date is not None and self.adoption_date < self.birth_date:
-            raise ValueError("adoption date cannot be before birth date")
-        if self.photo_ref is not None and not self.photo_ref.strip():
-            raise ValueError("photo reference cannot be empty")
+        _validate_cat_profile(self.cat_name, self.birth_date, self.adoption_date, self.photo_ref)
 
     def _ensure_active(self) -> None:
         if self.deleted:
@@ -174,6 +183,49 @@ class CatCareState:
         if not self.future_information_known:
             return StatusSnapshot("unknown", "Some future care information is unknown.")
         return StatusSnapshot("clear", "Nothing important is pending.")
+
+    def edit_cat_profile(
+        self,
+        now: datetime,
+        *,
+        name: str,
+        birth_date: date | None,
+        adoption_date: date | None,
+        photo_ref: str | None,
+        current_time: datetime | None = None,
+    ) -> CareEvent:
+        self._ensure_active()
+        _require_timezone_aware(now, "profile edit time")
+        if current_time is not None:
+            _require_timezone_aware(current_time, "current time")
+        if current_time is not None and now > current_time:
+            raise ValueError("profile edit cannot be recorded in the future")
+        _validate_cat_profile(name, birth_date, adoption_date, photo_ref)
+        previous = {
+            "name": self.cat_name,
+            "birth_date": self.birth_date.isoformat() if self.birth_date else "unknown",
+            "adoption_date": self.adoption_date.isoformat() if self.adoption_date else "unknown",
+            "photo_ref": self.photo_ref or "unknown",
+        }
+        self.cat_name = name
+        self.birth_date = birth_date
+        self.adoption_date = adoption_date
+        self.photo_ref = photo_ref
+        new = {
+            "name": name,
+            "birth_date": birth_date.isoformat() if birth_date else "unknown",
+            "adoption_date": adoption_date.isoformat() if adoption_date else "unknown",
+            "photo_ref": photo_ref or "unknown",
+        }
+        event = CareEvent(
+            "cat_profile_edited",
+            now,
+            name,
+            details=tuple((f"previous_{key}", value) for key, value in previous.items())
+            + tuple((f"new_{key}", value) for key, value in new.items()),
+        )
+        self.events.append(event)
+        return event
 
     def add_responsibility(self, responsibility: Responsibility, now: datetime) -> CareEvent:
         self._ensure_active()

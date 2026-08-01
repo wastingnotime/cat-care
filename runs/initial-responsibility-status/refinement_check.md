@@ -198,6 +198,11 @@ profile data for future web surfaces.
 Profile reads now reuse the domain's canonical export projection rather than
 duplicating date and photo serialization in the adapter.
 
+## Profile-edit build
+
+Cat profile edits are now validated against known date relationships and recorded
+with previous/new details through the domain and adapter contracts.
+
 ## Responsibility-order refinement
 
 Equal due dates now use responsibility ID as an explicit tie-breaker, making the

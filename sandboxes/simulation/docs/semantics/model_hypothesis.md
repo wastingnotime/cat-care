@@ -72,6 +72,8 @@ derived from due date, current time, and a configured threshold.
    protection.
 27. Technology adapters expose optional cat profile metadata as plain data
    using the canonical domain export projection.
+28. Cat profile edits are validated, traceable, and exposed through the thin
+   adapter contract.
 
 ## Open questions
 

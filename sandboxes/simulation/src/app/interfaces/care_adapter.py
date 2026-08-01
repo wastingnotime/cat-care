@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from app.simulation.domain import CatCareState, NotificationOutcome, RecurrencePolicy, Responsibility
 
@@ -24,6 +24,27 @@ class CareAdapter:
         if self.state.deleted:
             raise ValueError("cat data has been deleted")
         return self.state.export_data()["cat"]
+
+    def edit_cat_profile(
+        self,
+        name: str,
+        birth_date: date | None,
+        adoption_date: date | None,
+        photo_ref: str | None,
+        now: datetime,
+        *,
+        current_time: datetime | None = None,
+    ) -> dict[str, object]:
+        return self._event_record(
+            self.state.edit_cat_profile(
+                now,
+                name=name,
+                birth_date=birth_date,
+                adoption_date=adoption_date,
+                photo_ref=photo_ref,
+                current_time=current_time,
+            )
+        )
 
     def get_responsibilities(
         self,
