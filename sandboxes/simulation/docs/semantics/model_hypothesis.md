@@ -157,6 +157,8 @@ derived from due date, current time, and a configured threshold.
    deletion evidence complete after the unified timeline is cleared.
 69. The runtime data-deletion observation preserves those typed collection counts
    so terminal cleanup is inspectable in the simulation itself.
+70. Data-deletion observations include the deletion instant alongside collection
+   counts, making terminal cleanup independently auditable.
 
 ## Open questions
 

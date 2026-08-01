@@ -338,6 +338,7 @@ def create_simulation() -> Scenario:
             source="DataLifecycle",
             actor="owner",
             payload={
+                "deleted_at": receipt.deleted_at.isoformat(),
                 "responsibilities_removed": receipt.responsibilities_removed,
                 "events_removed": receipt.events_removed,
                 "notifications_removed": receipt.notifications_removed,

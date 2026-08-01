@@ -28,6 +28,7 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     deletion = next(
         item for item in result.observations.observations if item.name == "data_deleted"
     )
+    assert deletion.payload["deleted_at"] == "2026-01-05T12:00:00+00:00"
     assert deletion.payload["notifications_removed"] == 1
     assert deletion.payload["notes_removed"] == 1
     assert deletion.payload["direct_care_removed"] == 1
