@@ -178,6 +178,9 @@ class DeletionReceipt:
     deleted_at: datetime
     responsibilities_removed: int
     events_removed: int
+    notifications_removed: int
+    notes_removed: int
+    direct_care_removed: int
 
 
 @dataclass
@@ -568,7 +571,14 @@ class CatCareState:
             _require_timezone_aware(current_time, "current time")
         if current_time is not None and deleted_at > current_time:
             raise ValueError("deletion cannot be recorded in the future")
-        receipt = DeletionReceipt(deleted_at, len(self.responsibilities), len(self.events))
+        receipt = DeletionReceipt(
+            deleted_at,
+            len(self.responsibilities),
+            len(self.events),
+            len(self.notifications),
+            len(self.notes),
+            len(self.direct_care),
+        )
         self.responsibilities.clear()
         self.notifications.clear()
         self.notes.clear()

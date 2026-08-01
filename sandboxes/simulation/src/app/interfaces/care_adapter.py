@@ -222,6 +222,9 @@ class CareAdapter:
             "deleted_at": receipt.deleted_at.isoformat(),
             "responsibilities_removed": receipt.responsibilities_removed,
             "events_removed": receipt.events_removed,
+            "notifications_removed": receipt.notifications_removed,
+            "notes_removed": receipt.notes_removed,
+            "direct_care_removed": receipt.direct_care_removed,
         }
 
     def get_timeline(self) -> list[dict[str, object]]:

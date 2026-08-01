@@ -196,6 +196,9 @@ def test_adapter_exposes_notification_deferral_export_and_delete_contracts():
     assert deferred["type"] == "responsibility_deferred"
     assert exported["responsibilities"][0]["category"] == "preventive care"
     assert deleted["responsibilities_removed"] == 1
+    assert deleted["notifications_removed"] == 1
+    assert deleted["notes_removed"] == 0
+    assert deleted["direct_care_removed"] == 0
     assert adapter.export_data()["deleted"] is True
 
 

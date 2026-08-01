@@ -153,6 +153,8 @@ derived from due date, current time, and a configured threshold.
    is completed, keeping state and its evidence together.
 67. Cancellation is retained as responsibility evidence through a timezone-aware
    cancellation timestamp, not only a terminal state label.
+68. Terminal deletion receipts count each typed owned collection removed, keeping
+   deletion evidence complete after the unified timeline is cleared.
 
 ## Open questions
 
