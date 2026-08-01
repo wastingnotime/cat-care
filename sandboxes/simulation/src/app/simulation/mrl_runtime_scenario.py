@@ -356,6 +356,8 @@ def create_simulation() -> Scenario:
                 payload={
                     "reason": str(error),
                     "action_key": "mimi-vaccine-2026",
+                    "attempted_at": context.clock.now().isoformat(),
+                    "responsibility_state": state.responsibilities[0].state.value,
                 },
             )
     def record_note(context: object) -> None:

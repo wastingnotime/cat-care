@@ -177,6 +177,8 @@ derived from due date, current time, and a configured threshold.
    in domain events and runtime observations.
 79. A duplicate completion attempt is rejected as an explicit command outcome,
    preserving the original completed state and action identity.
+80. Rejected command observations include attempted time and preserved state so
+   protection decisions remain independently auditable.
 
 ## Open questions
 
