@@ -68,6 +68,8 @@ derived from due date, current time, and a configured threshold.
    and deterministic due-date ordering, including an ID tie-breaker.
 25. Technology adapters expose planned-responsibility edits with complete
    history details.
+26. Adapter event records preserve action keys used for duplicate-care
+   protection.
 
 ## Open questions
 

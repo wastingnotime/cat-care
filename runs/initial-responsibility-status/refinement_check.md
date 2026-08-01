@@ -183,6 +183,11 @@ and domain-derived state, keeping urgency calculation out of future clients.
 The adapter now exposes planned-responsibility edits using plain fields and
 returns the domain's previous/new value details for history-aware clients.
 
+## Adapter-event refinement
+
+Adapter event records now preserve action keys, keeping duplicate-care
+protection visible to technology clients.
+
 ## Responsibility-order refinement
 
 Equal due dates now use responsibility ID as an explicit tie-breaker, making the

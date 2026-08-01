@@ -178,5 +178,6 @@ class CareAdapter:
             "occurred_at": event.occurred_at.isoformat(),
             "description": event.description,
             "responsibility_id": event.responsibility_id,
+            "action_key": event.action_key,
             "details": dict(event.details),
         }

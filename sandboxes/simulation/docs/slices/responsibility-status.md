@@ -58,6 +58,7 @@ sentence and a stable status kind for future adapters.
   Equal due dates are ordered by responsibility ID.
 - The adapter exposes plain-field edits for planned responsibilities and returns
   previous/new value details.
+- Adapter event records include action keys when present.
 
 ## Scenario
 

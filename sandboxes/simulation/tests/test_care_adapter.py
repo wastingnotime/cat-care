@@ -52,7 +52,7 @@ def test_adapter_commands_return_event_records_and_use_domain_transitions():
     state = CatCareState("Mimi")
     adapter = CareAdapter(state)
     created = adapter.create_responsibility(
-        "r1", "vaccine", "preventive care", NOW, NOW
+        "r1", "vaccine", "preventive care", NOW, NOW, action_key="vaccine-2026"
     )
     edited = adapter.edit_responsibility(
         "r1", "annual vaccine", "preventive care", NOW, NOW
@@ -63,6 +63,7 @@ def test_adapter_commands_return_event_records_and_use_domain_transitions():
     assert edited["type"] == "responsibility_edited"
     assert edited["details"]["previous_title"] == "vaccine"
     assert completed["type"] == "responsibility_completed"
+    assert completed["action_key"] == "vaccine-2026"
     assert note["type"] == "note_recorded"
     assert len(state.events) == 4
 
