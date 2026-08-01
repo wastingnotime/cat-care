@@ -12,6 +12,13 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     names = [item.name for item in result.observations.observations]
     assert "care_status_derived" in names
     assert "responsibility_completed" in names
+    completed_event = next(
+        item for item in result.observations.observations if item.name == "responsibility_completed"
+    )
+    assert completed_event.payload["details"] == {
+        "next_responsibility_id": "mimi-vaccine-1-next",
+        "next_due_at": "2026-02-10T09:00:00+00:00",
+    }
     assert "notification_recorded" in names
     assert "responsibility_deferred" in names
     assert "responsibility_cancelled" in names

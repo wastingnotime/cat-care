@@ -6,7 +6,7 @@ from mrl_simulation_runtime.actors import Actor
 from mrl_simulation_runtime.invariants import Invariant
 from mrl_simulation_runtime.scenario import InitialScheduledAction, ObservatoryEdge, ObservatoryNode, Scenario
 
-from app.simulation.domain import CatCareState, NotificationOutcome, Responsibility
+from app.simulation.domain import CatCareState, NotificationOutcome, RecurrencePolicy, Responsibility
 
 
 INITIAL_TIME = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -53,7 +53,13 @@ def create_simulation() -> Scenario:
         adoption_date=date(2021, 7, 10),
         photo_ref="mimi-profile.jpg",
         responsibilities=[
-            Responsibility("mimi-vaccine-1", "vaccine", INITIAL_TIME + timedelta(days=3), category="preventive care"),
+            Responsibility(
+                "mimi-vaccine-1",
+                "vaccine",
+                INITIAL_TIME + timedelta(days=3),
+                category="preventive care",
+                recurrence=RecurrencePolicy(30),
+            ),
             Responsibility("mimi-appointment-1", "vet appointment", INITIAL_TIME + timedelta(days=5), category="veterinary"),
         ],
     )
@@ -193,7 +199,7 @@ def create_simulation() -> Scenario:
             source="Responsibility",
             actor="owner",
             correlation_id=event.responsibility_id,
-            payload={"description": event.description},
+            payload={"description": event.description, "details": dict(event.details)},
         )
         emit_status_projection_event(context, event)
         observe_status(context)
