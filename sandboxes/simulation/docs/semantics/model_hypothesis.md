@@ -99,6 +99,8 @@ derived from due date, current time, and a configured threshold.
    responsibility aggregate, making write intent and domain handling inspectable.
 40. Use-case command targets are restricted to declared graph nodes so structural
    relationships and runtime command beams cannot drift apart.
+41. Cat profile editing targets a distinct cat-profile aggregate rather than
+   being modeled as a responsibility mutation.
 
 ## Open questions
 

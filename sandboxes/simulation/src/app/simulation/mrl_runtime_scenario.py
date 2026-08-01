@@ -27,6 +27,7 @@ USE_CASE_NODE_IDS = {
 }
 
 USE_CASE_COMMAND_TARGETS = {
+    "edit_cat_profile": "cat-profile",
     "create_responsibility": "responsibility",
     "edit_responsibility": "responsibility",
     "complete_responsibility": "responsibility",
@@ -328,6 +329,7 @@ def create_simulation() -> Scenario:
             ObservatoryNode("record-care", "Record care history", "use_case", "use_cases"),
             ObservatoryNode("deliver-notification", "Record notification", "use_case", "use_cases"),
             ObservatoryNode("manage-data", "Manage owner data", "use_case", "use_cases"),
+            ObservatoryNode("cat-profile", "Cat profile", "aggregate", "domain"),
             ObservatoryNode("responsibility", "Responsibility", "aggregate", "domain"),
             ObservatoryNode("status", "Calm status", "projection", "domain"),
         ],
@@ -338,7 +340,7 @@ def create_simulation() -> Scenario:
             ObservatoryEdge("owner", "record-care", "invokes"),
             ObservatoryEdge("owner", "manage-data", "invokes"),
             ObservatoryEdge("manage-responsibility", "responsibility", "commands"),
-            ObservatoryEdge("manage-cat-profile", "responsibility", "updates"),
+            ObservatoryEdge("manage-cat-profile", "cat-profile", "updates"),
             ObservatoryEdge("record-care", "responsibility", "records"),
             ObservatoryEdge("deliver-notification", "responsibility", "notifies"),
             ObservatoryEdge("review-status", "status", "derives"),
