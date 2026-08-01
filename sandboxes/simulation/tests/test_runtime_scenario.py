@@ -32,6 +32,10 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert deletion.payload["notifications_removed"] == 1
     assert deletion.payload["notes_removed"] == 1
     assert deletion.payload["direct_care_removed"] == 1
+    notification = next(
+        item for item in result.observations.observations if item.name == "notification_recorded"
+    )
+    assert notification.payload["action_key"] == "mimi-vaccine-2026"
     assert "use_case_invoked" in [item.type for item in result.observations.observations]
     assert any(
         item.type == "query"

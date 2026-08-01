@@ -76,8 +76,8 @@ sentence and a stable status kind for future adapters.
 
 Mimi has a vaccine planned for 2026-01-04. The simulation observes its planned,
 due-soon, and overdue states, then completes it and records the care event.
-The vaccine recurs every 30 days; completion records the next occurrence in the
-timeline and export.
+The vaccine recurs every 30 days and uses an explicit action key; completion
+records the next occurrence in the timeline and export.
 
 ## Done criteria
 

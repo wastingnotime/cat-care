@@ -60,6 +60,7 @@ def create_simulation() -> Scenario:
                 INITIAL_TIME + timedelta(days=3),
                 category="preventive care",
                 recurrence=RecurrencePolicy(30),
+                action_key="mimi-vaccine-2026",
             ),
             Responsibility("mimi-appointment-1", "vet appointment", INITIAL_TIME + timedelta(days=5), category="veterinary"),
         ],
