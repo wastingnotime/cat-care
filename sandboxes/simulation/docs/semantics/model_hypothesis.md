@@ -171,6 +171,8 @@ derived from due date, current time, and a configured threshold.
    record and runtime observation.
 76. Linked direct-care runtime observations preserve the responsibility action
    key alongside the care event identity.
+77. Responsibility completion and cancellation observations expose action-key
+   identity consistently across the lifecycle.
 
 ## Open questions
 

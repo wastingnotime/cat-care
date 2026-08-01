@@ -218,7 +218,11 @@ def create_simulation() -> Scenario:
             source="Responsibility",
             actor="owner",
             correlation_id=event.responsibility_id,
-            payload={"description": event.description, "details": dict(event.details)},
+            payload={
+                "description": event.description,
+                "details": dict(event.details),
+                "action_key": event.action_key,
+            },
         )
         emit_status_projection_event(context, event)
         observe_status(context)
@@ -275,7 +279,11 @@ def create_simulation() -> Scenario:
             source="Responsibility",
             actor="owner",
             correlation_id=event.responsibility_id,
-            payload={"description": event.description, "history_preserved": True},
+            payload={
+                "description": event.description,
+                "history_preserved": True,
+                "action_key": event.action_key,
+            },
         )
         emit_status_projection_event(context, event)
 
