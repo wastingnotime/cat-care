@@ -76,6 +76,16 @@ def test_adapter_exposes_responsibility_recurrence_policy():
     )
     view = CareAdapter(state).get_responsibilities(NOW, timedelta(days=2))[0]
     assert view["recurrence_interval_days"] == 30
+    assert view["action_key"] is None
+
+
+def test_adapter_exposes_responsibility_action_key():
+    state = CatCareState(
+        "Mimi",
+        [Responsibility("r1", "vaccine", NOW, "preventive care", action_key="vaccine-2026")],
+    )
+    view = CareAdapter(state).get_responsibilities(NOW, timedelta(days=2))[0]
+    assert view["action_key"] == "vaccine-2026"
 
 
 def test_adapter_uses_id_as_tie_breaker_for_equal_due_dates():

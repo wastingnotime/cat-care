@@ -147,6 +147,8 @@ derived from due date, current time, and a configured threshold.
    read path without duplicating timeline ordering rules.
 64. An empty timeline summary remains structurally stable with zero count and
    null newest-event fields.
+65. Responsibility list views expose action keys so duplicate-care protection is
+   visible at the adapter boundary.
 
 ## Open questions
 

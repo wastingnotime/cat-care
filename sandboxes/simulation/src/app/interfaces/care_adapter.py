@@ -67,6 +67,7 @@ class CareAdapter:
                 "recurrence_interval_days": (
                     item.recurrence.interval_days if item.recurrence else None
                 ),
+                "action_key": item.action_key,
             }
             for item in items
         ]
