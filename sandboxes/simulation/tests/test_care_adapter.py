@@ -3,7 +3,14 @@ from datetime import date, datetime, timedelta, timezone
 import pytest
 
 from app.interfaces.care_adapter import CareAdapter
-from app.simulation.domain import CatCareState, NotificationOutcome, RecurrencePolicy, Responsibility
+from app.interfaces.integration_ports import CatProfileData, NotificationDelivery, TriageSuggestion
+from app.simulation.domain import (
+    CatCareState,
+    NotificationOutcome,
+    RecurrencePolicy,
+    Responsibility,
+    TriageUrgency,
+)
 
 
 NOW = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -217,6 +224,65 @@ def test_adapter_exposes_notification_deferral_export_and_delete_contracts():
     assert deleted["veterinarian_reviews_removed"] == 0
     assert adapter.export_data()["deleted"] is True
     assert adapter.export_data()["deleted_at"] == NOW.isoformat()
+
+
+def test_adapter_uses_profile_store_without_giving_it_domain_state():
+    class Store:
+        def __init__(self):
+            self.saved = None
+
+        def load(self):
+            return CatProfileData("Nina", None, None, "nina.jpg")
+
+        def save(self, profile, changed_at):
+            self.saved = (profile, changed_at)
+
+    store = Store()
+    adapter = CareAdapter(CatCareState("Mimi"))
+    loaded = adapter.load_cat_profile(store, NOW)
+    saved = adapter.save_cat_profile(store, NOW)
+    assert loaded["type"] == "cat_profile_edited"
+    assert saved["profile"]["name"] == "Nina"
+    assert store.saved[0].name == "Nina"
+
+
+def test_adapter_delivers_notification_through_gateway_and_records_outcome():
+    class Gateway:
+        def deliver(self, responsibility_id, title, due_at):
+            return NotificationDelivery(NotificationOutcome.DELIVERED, "mail", "msg-1")
+
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "care")])
+    record = CareAdapter(state).deliver_notification(Gateway(), "r1", NOW, current_time=NOW)
+    assert record["type"] == "notification_recorded"
+    assert record["details"] == {
+        "outcome": "delivered",
+        "provider": "mail",
+        "provider_message_id": "msg-1",
+    }
+
+
+def test_adapter_translates_triage_provider_suggestion_into_domain_assessment():
+    state = CatCareState("Mimi")
+    adapter = CareAdapter(state)
+    adapter.record_note("eating less", NOW, current_time=NOW)
+
+    class Provider:
+        def assess(self, note_ids, note_text):
+            assert note_ids == ("note-1",)
+            assert note_text == ("eating less",)
+            return TriageSuggestion(
+                TriageUrgency.NEEDS_ATTENTION,
+                "Needs prompt attention.",
+                "No examination is available.",
+                "triage-service",
+                "model-1",
+            )
+
+    assessment = adapter.request_triage_from_provider(
+        Provider(), ["note-1"], NOW, current_time=NOW
+    )
+    assert assessment["urgency"] == "needs_attention"
+    assert assessment["provider"] == "triage-service"
 
 
 def test_adapter_deletion_receipt_counts_all_typed_records():

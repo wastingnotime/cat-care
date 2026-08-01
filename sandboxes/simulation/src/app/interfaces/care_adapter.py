@@ -2,6 +2,12 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta
 
+from app.interfaces.integration_ports import (
+    CatProfileData,
+    CatProfileStore,
+    NotificationGateway,
+    TriageProvider,
+)
 from app.simulation.domain import (
     CatCareState,
     NotificationOutcome,
@@ -31,6 +37,31 @@ class CareAdapter:
         if self.state.deleted:
             raise ValueError("cat data has been deleted")
         return self.state.export_data()["cat"]
+
+    def load_cat_profile(self, store: CatProfileStore, now: datetime) -> dict[str, object]:
+        profile = store.load()
+        event = self.state.edit_cat_profile(
+            now,
+            name=profile.name,
+            birth_date=profile.birth_date,
+            adoption_date=profile.adoption_date,
+            photo_ref=profile.photo_ref,
+            current_time=now,
+        )
+        return self._event_record(event)
+
+    def save_cat_profile(self, store: CatProfileStore, now: datetime) -> dict[str, object]:
+        profile = self.state.export_data()["cat"]
+        store.save(
+            CatProfileData(
+                profile["name"],
+                date.fromisoformat(profile["birth_date"]) if profile["birth_date"] else None,
+                date.fromisoformat(profile["adoption_date"]) if profile["adoption_date"] else None,
+                profile["photo_ref"],
+            ),
+            now,
+        )
+        return {"saved_at": now.isoformat(), "profile": profile}
 
     def edit_cat_profile(
         self,
@@ -198,6 +229,32 @@ class CareAdapter:
             )
         )
 
+    def deliver_notification(
+        self,
+        gateway: NotificationGateway,
+        responsibility_id: str,
+        attempted_at: datetime,
+        *,
+        current_time: datetime | None = None,
+    ) -> dict[str, object]:
+        responsibility = next(
+            item for item in self.state.responsibilities if item.id == responsibility_id
+        )
+        delivery = gateway.deliver(responsibility.id, responsibility.title, responsibility.due_at)
+        record = self.record_notification(
+            responsibility_id,
+            attempted_at,
+            delivery.outcome,
+            current_time=current_time,
+        )
+        record["details"].update(
+            {
+                "provider": delivery.provider,
+                "provider_message_id": delivery.provider_message_id,
+            }
+        )
+        return record
+
     def defer_responsibility(
         self,
         responsibility_id: str,
@@ -277,6 +334,31 @@ class CareAdapter:
             current_time=current_time,
         )
         return self._triage_record(assessment)
+
+    def request_triage_from_provider(
+        self,
+        provider: TriageProvider,
+        note_ids: list[str],
+        assessed_at: datetime,
+        *,
+        current_time: datetime | None = None,
+    ) -> dict[str, object]:
+        notes = {note.id: note.description for note in self.state.notes}
+        try:
+            note_text = tuple(notes[note_id] for note_id in note_ids)
+        except KeyError as error:
+            raise ValueError("triage assessment references an unknown note") from error
+        suggestion = provider.assess(tuple(note_ids), note_text)
+        return self.request_triage(
+            note_ids,
+            suggestion.urgency.value,
+            suggestion.rationale,
+            suggestion.uncertainty,
+            assessed_at,
+            suggestion.provider,
+            suggestion.model_version,
+            current_time=current_time,
+        )
 
     def review_triage(
         self,
