@@ -25,6 +25,12 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert "note_recorded" in names
     assert "data_exported" in names
     assert "data_deleted" in names
+    deletion = next(
+        item for item in result.observations.observations if item.name == "data_deleted"
+    )
+    assert deletion.payload["notifications_removed"] == 1
+    assert deletion.payload["notes_removed"] == 1
+    assert deletion.payload["direct_care_removed"] == 1
     assert "use_case_invoked" in [item.type for item in result.observations.observations]
     assert any(
         item.type == "query"

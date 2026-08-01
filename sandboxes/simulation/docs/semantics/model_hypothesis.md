@@ -155,6 +155,8 @@ derived from due date, current time, and a configured threshold.
    cancellation timestamp, not only a terminal state label.
 68. Terminal deletion receipts count each typed owned collection removed, keeping
    deletion evidence complete after the unified timeline is cleared.
+69. The runtime data-deletion observation preserves those typed collection counts
+   so terminal cleanup is inspectable in the simulation itself.
 
 ## Open questions
 

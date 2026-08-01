@@ -340,6 +340,9 @@ def create_simulation() -> Scenario:
             payload={
                 "responsibilities_removed": receipt.responsibilities_removed,
                 "events_removed": receipt.events_removed,
+                "notifications_removed": receipt.notifications_removed,
+                "notes_removed": receipt.notes_removed,
+                "direct_care_removed": receipt.direct_care_removed,
                 "orphaned_records": 0,
             },
         )
