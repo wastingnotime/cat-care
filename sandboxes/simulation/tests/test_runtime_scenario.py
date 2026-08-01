@@ -36,6 +36,10 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         item for item in result.observations.observations if item.name == "notification_recorded"
     )
     assert notification.payload["action_key"] == "mimi-vaccine-2026"
+    care_event = next(
+        item for item in result.observations.observations if item.name == "weight_measured"
+    )
+    assert care_event.payload["action_key"] == "mimi-vaccine-2026"
     assert "use_case_invoked" in [item.type for item in result.observations.observations]
     assert any(
         item.type == "query"

@@ -169,6 +169,8 @@ derived from due date, current time, and a configured threshold.
    same projection independence.
 75. Notification timeline events preserve the same action key as their typed
    record and runtime observation.
+76. Linked direct-care runtime observations preserve the responsibility action
+   key alongside the care event identity.
 
 ## Open questions
 

@@ -294,7 +294,11 @@ def create_simulation() -> Scenario:
             source="CareEvent",
             actor="owner",
             correlation_id=event.responsibility_id,
-            payload={"description": event.description, "responsibility_id": event.responsibility_id},
+            payload={
+                "description": event.description,
+                "responsibility_id": event.responsibility_id,
+                "action_key": event.action_key,
+            },
         )
 
     def record_note(context: object) -> None:
