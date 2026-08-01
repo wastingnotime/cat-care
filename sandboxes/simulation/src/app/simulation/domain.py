@@ -317,6 +317,7 @@ class CatCareState:
             attempted_at,
             f"notification for {responsibility.title}",
             responsibility_id,
+            responsibility.action_key,
             details=(("outcome", outcome.value),),
         )
         self.events.append(event)

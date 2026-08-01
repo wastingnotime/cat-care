@@ -190,6 +190,7 @@ def test_failed_notification_does_not_change_owner_responsibility_state():
     assert event.details == (("outcome", "failed"),)
     assert state.responsibilities[0].state == ResponsibilityState.PLANNED
     assert state.notifications == [NotificationRecord("r1", NOW, NotificationOutcome.FAILED, None)]
+    assert event.action_key is None
     assert state.responsibilities[0].derived_state(NOW + timedelta(days=1), THRESHOLD) == "overdue"
 
 

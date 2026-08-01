@@ -167,6 +167,8 @@ derived from due date, current time, and a configured threshold.
    and adapter projections independent of later responsibility lookup.
 74. Notification action keys are stored on typed notification records for the
    same projection independence.
+75. Notification timeline events preserve the same action key as their typed
+   record and runtime observation.
 
 ## Open questions
 

@@ -236,7 +236,11 @@ def create_simulation() -> Scenario:
             source="Notification",
             actor="system",
             correlation_id=event.responsibility_id,
-            payload={"outcome": NotificationOutcome.FAILED.value, "responsibility_state": state.responsibilities[0].derived_state(context.clock.now(), threshold)},
+            payload={
+                "outcome": NotificationOutcome.FAILED.value,
+                "responsibility_state": state.responsibilities[0].derived_state(context.clock.now(), threshold),
+                "action_key": event.action_key,
+            },
         )
 
     def defer_vaccine(context: object) -> None:
