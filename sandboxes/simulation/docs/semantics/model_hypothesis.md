@@ -183,6 +183,8 @@ derived from due date, current time, and a configured threshold.
    observatory while retaining the detailed operation-level rejection record.
 82. Rejection beams share the originating use-case correlation so they appear only
    after the command handoff they reject.
+83. Duplicate-care rejection evidence derives action identity from responsibility
+   state rather than duplicating scenario literals.
 
 ## Open questions
 

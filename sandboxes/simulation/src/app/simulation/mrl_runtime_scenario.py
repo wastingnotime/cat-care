@@ -346,6 +346,11 @@ def create_simulation() -> Scenario:
 
     def attempt_duplicate_completion(context: object) -> None:
         correlation_id = invoke_use_case(context, "complete_responsibility")
+        action_key = next(
+            item.action_key
+            for item in state.responsibilities
+            if item.id == "mimi-vaccine-1"
+        )
         try:
             state.complete(
                 "mimi-vaccine-1",
@@ -361,7 +366,7 @@ def create_simulation() -> Scenario:
                 correlation_id="mimi-vaccine-1",
                 payload={
                     "reason": str(error),
-                    "action_key": "mimi-vaccine-2026",
+                    "action_key": action_key,
                     "attempted_at": context.clock.now().isoformat(),
                     "responsibility_state": state.responsibilities[0].state.value,
                 },
@@ -375,7 +380,7 @@ def create_simulation() -> Scenario:
                 payload={
                     "operation": "complete_responsibility",
                     "reason": str(error),
-                    "action_key": "mimi-vaccine-2026",
+                    "action_key": action_key,
                 },
             )
     def record_note(context: object) -> None:

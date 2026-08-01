@@ -65,6 +65,7 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert "already completed" in rejection.payload["reason"]
     assert rejection.payload["attempted_at"] == "2026-01-04T13:00:00+00:00"
     assert rejection.payload["responsibility_state"] == "completed"
+    assert rejection.payload["action_key"] == "mimi-vaccine-2026"
     assert any(
         item.type == "command_rejected"
         and item.name == "responsibility"
