@@ -65,6 +65,12 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert "already completed" in rejection.payload["reason"]
     assert rejection.payload["attempted_at"] == "2026-01-04T13:00:00+00:00"
     assert rejection.payload["responsibility_state"] == "completed"
+    assert any(
+        item.type == "command_rejected"
+        and item.name == "responsibility"
+        and item.source == "manage-responsibility"
+        for item in result.observations.observations
+    )
     assert "use_case_invoked" in [item.type for item in result.observations.observations]
     assert any(
         item.type == "query"

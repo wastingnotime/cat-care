@@ -179,6 +179,8 @@ derived from due date, current time, and a configured threshold.
    preserving the original completed state and action identity.
 80. Rejected command observations include attempted time and preserved state so
    protection decisions remain independently auditable.
+81. Duplicate-care rejection has a visible use-case-to-responsibility beam in the
+   observatory while retaining the detailed operation-level rejection record.
 
 ## Open questions
 

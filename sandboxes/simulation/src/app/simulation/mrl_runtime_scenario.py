@@ -360,6 +360,18 @@ def create_simulation() -> Scenario:
                     "responsibility_state": state.responsibilities[0].state.value,
                 },
             )
+            context.emit(
+                "command_rejected",
+                "responsibility",
+                source="manage-responsibility",
+                actor="owner",
+                correlation_id="mimi-vaccine-1",
+                payload={
+                    "operation": "complete_responsibility",
+                    "reason": str(error),
+                    "action_key": "mimi-vaccine-2026",
+                },
+            )
     def record_note(context: object) -> None:
         invoke_use_case(context, "record_note")
         event = state.record_note(
