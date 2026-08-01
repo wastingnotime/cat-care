@@ -121,6 +121,8 @@ derived from due date, current time, and a configured threshold.
    only after the owner-to-use-case handoff completes.
 51. Calm status is placed in the observatory's projection rank, separate from
    application use cases, so read models remain visually distinct from commands.
+52. Notification attempts have a typed domain record and remain separately
+   exportable while their timeline event preserves the unified history view.
 
 ## Open questions
 

@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from app.simulation.domain import CatCareState, NotificationOutcome, RecurrencePolicy, Responsibility, ResponsibilityState
+from app.simulation.domain import CatCareState, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState
 
 
 NOW = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -185,6 +185,7 @@ def test_failed_notification_does_not_change_owner_responsibility_state():
     event = state.record_notification("r1", NOW, NotificationOutcome.FAILED)
     assert event.details == (("outcome", "failed"),)
     assert state.responsibilities[0].state == ResponsibilityState.PLANNED
+    assert state.notifications == [NotificationRecord("r1", NOW, NotificationOutcome.FAILED)]
     assert state.responsibilities[0].derived_state(NOW + timedelta(days=1), THRESHOLD) == "overdue"
 
 
@@ -264,6 +265,7 @@ def test_deleting_cat_removes_owned_records_and_leaves_no_orphans():
         "deleted": True,
         "future_information_known": None,
         "responsibilities": [],
+        "notifications": [],
         "events": [],
     }
     with pytest.raises(ValueError, match="deleted"):

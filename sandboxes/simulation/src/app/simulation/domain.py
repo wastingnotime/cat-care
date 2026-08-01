@@ -37,6 +37,18 @@ class NotificationOutcome(str, Enum):
 
 
 @dataclass(frozen=True)
+class NotificationRecord:
+    responsibility_id: str
+    attempted_at: datetime
+    outcome: NotificationOutcome
+
+    def __post_init__(self) -> None:
+        _require_timezone_aware(self.attempted_at, "notification time")
+        if not isinstance(self.outcome, NotificationOutcome):
+            raise ValueError("notification outcome must be explicit")
+
+
+@dataclass(frozen=True)
 class CareEvent:
     event_type: str
     occurred_at: datetime
@@ -143,6 +155,7 @@ class CatCareState:
     cat_name: str
     responsibilities: list[Responsibility] = field(default_factory=list)
     events: list[CareEvent] = field(default_factory=list)
+    notifications: list[NotificationRecord] = field(default_factory=list)
     future_information_known: bool = True
     deleted: bool = False
     birth_date: date | None = None
@@ -254,6 +267,8 @@ class CatCareState:
         if current_time is not None and attempted_at > current_time:
             raise ValueError("a notification cannot be recorded in the future")
         responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
+        notification = NotificationRecord(responsibility_id, attempted_at, outcome)
+        self.notifications.append(notification)
         event = CareEvent(
             "notification_recorded",
             attempted_at,
@@ -426,6 +441,7 @@ class CatCareState:
                 "deleted": True,
                 "future_information_known": None,
                 "responsibilities": [],
+                "notifications": [],
                 "events": [],
             }
         return {
@@ -449,6 +465,14 @@ class CatCareState:
                     "action_key": item.action_key,
                 }
                 for item in self.responsibilities
+            ],
+            "notifications": [
+                {
+                    "responsibility_id": notification.responsibility_id,
+                    "attempted_at": notification.attempted_at.isoformat(),
+                    "outcome": notification.outcome.value,
+                }
+                for notification in sorted(self.notifications, key=lambda item: item.attempted_at)
             ],
             "events": [
                 {
@@ -475,6 +499,7 @@ class CatCareState:
             raise ValueError("deletion cannot be recorded in the future")
         receipt = DeletionReceipt(deleted_at, len(self.responsibilities), len(self.events))
         self.responsibilities.clear()
+        self.notifications.clear()
         self.events.clear()
         self.cat_name = ""
         self.birth_date = None
