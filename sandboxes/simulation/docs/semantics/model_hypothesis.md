@@ -159,6 +159,8 @@ derived from due date, current time, and a configured threshold.
    so terminal cleanup is inspectable in the simulation itself.
 70. Data-deletion observations include the deletion instant alongside collection
    counts, making terminal cleanup independently auditable.
+71. A post-deletion export retains the deletion timestamp even though owned
+   records and profile data are removed.
 
 ## Open questions
 

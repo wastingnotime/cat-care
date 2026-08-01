@@ -193,6 +193,7 @@ class CatCareState:
     direct_care: list[DirectCareRecord] = field(default_factory=list)
     future_information_known: bool = True
     deleted: bool = False
+    deleted_at: datetime | None = None
     birth_date: date | None = None
     adoption_date: date | None = None
     photo_ref: str | None = None
@@ -494,6 +495,7 @@ class CatCareState:
             return {
                 "cat": {"name": None, "birth_date": None, "adoption_date": None, "photo_ref": None},
                 "deleted": True,
+                "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None,
                 "future_information_known": None,
                 "responsibilities": [],
                 "notifications": [],
@@ -509,6 +511,7 @@ class CatCareState:
                 "photo_ref": self.photo_ref,
             },
             "deleted": False,
+            "deleted_at": None,
             "future_information_known": self.future_information_known,
             "responsibilities": [
                 {
@@ -590,4 +593,5 @@ class CatCareState:
         self.photo_ref = None
         self.future_information_known = True
         self.deleted = True
+        self.deleted_at = deleted_at
         return receipt

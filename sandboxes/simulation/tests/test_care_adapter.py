@@ -200,6 +200,7 @@ def test_adapter_exposes_notification_deferral_export_and_delete_contracts():
     assert deleted["notes_removed"] == 0
     assert deleted["direct_care_removed"] == 0
     assert adapter.export_data()["deleted"] is True
+    assert adapter.export_data()["deleted_at"] == NOW.isoformat()
 
 
 def test_adapter_exposes_newest_first_notification_history():

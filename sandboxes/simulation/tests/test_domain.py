@@ -275,6 +275,7 @@ def test_deleting_cat_removes_owned_records_and_leaves_no_orphans():
     assert state.export_data() == {
         "cat": {"name": None, "birth_date": None, "adoption_date": None, "photo_ref": None},
         "deleted": True,
+        "deleted_at": NOW.isoformat(),
         "future_information_known": None,
         "responsibilities": [],
         "notifications": [],
