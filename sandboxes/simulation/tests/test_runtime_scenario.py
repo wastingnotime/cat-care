@@ -56,6 +56,13 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert note_review.payload["note_count"] == 1
     assert note_review.payload["newest_description"] == "eating less"
     assert note_review.payload["is_diagnosis"] is False
+    profile_review = next(
+        item for item in result.observations.observations
+        if item.type == "query" and item.name == "cat-profile"
+    )
+    assert profile_review.source == "review-profile"
+    assert profile_review.payload["name"] == "Mimi"
+    assert profile_review.payload["photo_ref"] == "mimi-profile-updated.jpg"
     delivered_notification = next(
         item
         for item in result.observations.observations
@@ -236,6 +243,7 @@ def test_observatory_graph_exposes_application_use_cases():
         "review-notifications",
         "review-care",
         "review-notes",
+        "review-profile",
         "manage-responsibility",
         "manage-cat-profile",
         "record-care",

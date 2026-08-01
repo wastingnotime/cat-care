@@ -199,6 +199,8 @@ derived from due date, current time, and a configured threshold.
    preserves lightweight-note semantics.
 90. Note review explicitly carries the non-diagnosis boundary into runtime
    observations.
+91. Cat-profile review is a distinct read use case from profile editing and
+   queries the current validated profile projection.
 
 ## Open questions
 
