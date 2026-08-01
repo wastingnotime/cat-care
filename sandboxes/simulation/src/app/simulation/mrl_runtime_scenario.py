@@ -338,6 +338,26 @@ def create_simulation() -> Scenario:
             },
         )
 
+    def attempt_duplicate_completion(context: object) -> None:
+        invoke_use_case(context, "complete_responsibility")
+        try:
+            state.complete(
+                "mimi-vaccine-1",
+                context.clock.now(),
+                current_time=context.clock.now(),
+            )
+        except ValueError as error:
+            context.emit(
+                "command_rejected",
+                "complete_responsibility",
+                source="responsibility",
+                actor="owner",
+                correlation_id="mimi-vaccine-1",
+                payload={
+                    "reason": str(error),
+                    "action_key": "mimi-vaccine-2026",
+                },
+            )
     def record_note(context: object) -> None:
         invoke_use_case(context, "record_note")
         event = state.record_note(
@@ -418,6 +438,7 @@ def create_simulation() -> Scenario:
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), defer_vaccine, "defer_vaccine", "Responsibility", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=2), complete_vaccine, "complete_vaccine", "Responsibility", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=3), record_weight_event, "record_weight_event", "CareEvent", "mimi-vaccine-1"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=4), attempt_duplicate_completion, "attempt_duplicate_completion", "Responsibility", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4), cancel_appointment, "cancel_appointment", "Responsibility", "mimi-appointment-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=1), record_note, "record_note", "Note"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=2), export_data, "export_data", "DataExport"),

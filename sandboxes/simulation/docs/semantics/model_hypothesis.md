@@ -175,6 +175,8 @@ derived from due date, current time, and a configured threshold.
    identity consistently across the lifecycle.
 78. Responsibility creation, editing, and deferral preserve action-key identity
    in domain events and runtime observations.
+79. A duplicate completion attempt is rejected as an explicit command outcome,
+   preserving the original completed state and action identity.
 
 ## Open questions
 
