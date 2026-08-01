@@ -35,6 +35,7 @@ USE_CASE_COMMAND_TARGETS = {
     "defer_responsibility": "responsibility",
     "cancel_responsibility": "responsibility",
     "record_care_event": "care-event",
+    "record_note": "note",
     "export_data": "data-lifecycle",
     "delete_data": "data-lifecycle",
 }
@@ -344,6 +345,7 @@ def create_simulation() -> Scenario:
             ObservatoryNode("notification", "Notification", "aggregate", "domain"),
             ObservatoryNode("data-lifecycle", "Data lifecycle", "aggregate", "domain"),
             ObservatoryNode("care-event", "Care event", "entity", "domain"),
+            ObservatoryNode("note", "Note", "entity", "domain"),
             ObservatoryNode("responsibility", "Responsibility", "aggregate", "domain"),
             ObservatoryNode("status", "Calm status", "projection", "domain"),
         ],
@@ -359,6 +361,7 @@ def create_simulation() -> Scenario:
             ObservatoryEdge("deliver-notification", "notification", "records"),
             ObservatoryEdge("manage-data", "data-lifecycle", "manages"),
             ObservatoryEdge("record-care", "care-event", "records"),
+            ObservatoryEdge("record-care", "note", "records"),
             ObservatoryEdge("review-status", "status", "derives"),
             ObservatoryEdge("owner", "deliver-notification", "invokes"),
             ObservatoryEdge("responsibility", "status", "derives"),

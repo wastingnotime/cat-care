@@ -109,6 +109,8 @@ derived from due date, current time, and a configured threshold.
    ID so observatory beam animation preserves the interaction handoff order.
 45. Direct care history targets a dedicated care-event entity; a responsibility
    link enriches the event without making the event a responsibility mutation.
+46. Lightweight notes target a separate note entity and remain distinct from
+   direct care-event records.
 
 ## Open questions
 
