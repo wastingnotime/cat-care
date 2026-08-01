@@ -78,6 +78,8 @@ derived from due date, current time, and a configured threshold.
    lightweight notes.
 30. Care-event type and description are required for a meaningful timeline
    record.
+31. Technology adapters expose notification history newest first without
+   requiring clients to filter the full timeline.
 
 ## Open questions
 

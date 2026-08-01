@@ -131,3 +131,12 @@ def test_adapter_exposes_notification_deferral_export_and_delete_contracts():
     assert exported["responsibilities"][0]["category"] == "preventive care"
     assert deleted["responsibilities_removed"] == 1
     assert adapter.export_data()["deleted"] is True
+
+
+def test_adapter_exposes_newest_first_notification_history():
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
+    adapter = CareAdapter(state)
+    adapter.record_notification("r1", NOW, NotificationOutcome.FAILED)
+    adapter.record_notification("r1", NOW + timedelta(hours=1), NotificationOutcome.DELIVERED)
+    notifications = adapter.get_notifications()
+    assert [item["details"]["outcome"] for item in notifications] == ["delivered", "failed"]

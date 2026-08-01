@@ -66,6 +66,7 @@ sentence and a stable status kind for future adapters.
 - The adapter exposes direct care-event recording with optional responsibility
   linkage separately from note recording.
 - Care-event type and description cannot be blank.
+- The adapter exposes newest-first notification history as a focused read.
 
 ## Scenario
 

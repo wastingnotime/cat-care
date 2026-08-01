@@ -216,6 +216,15 @@ class CareAdapter:
     def get_timeline(self) -> list[dict[str, object]]:
         return [self._event_record(event) for event in self.state.timeline()]
 
+    def get_notifications(self) -> list[dict[str, object]]:
+        if self.state.deleted:
+            raise ValueError("cat data has been deleted")
+        return [
+            self._event_record(event)
+            for event in self.state.timeline()
+            if event.event_type == "notification_recorded"
+        ]
+
     @staticmethod
     def _event_record(event: object) -> dict[str, object]:
         return {

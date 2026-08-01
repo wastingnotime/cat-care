@@ -218,6 +218,11 @@ and similar history entries, with optional responsibility linkage.
 Blank care-event types and descriptions are now rejected so timeline records
 remain meaningful and reviewable.
 
+## Notification-history build
+
+The adapter now exposes focused newest-first notification history, preserving
+delivery outcomes without requiring clients to filter all timeline records.
+
 ## Responsibility-order refinement
 
 Equal due dates now use responsibility ID as an explicit tie-breaker, making the
