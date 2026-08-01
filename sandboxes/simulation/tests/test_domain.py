@@ -302,6 +302,16 @@ def test_cat_profile_edit_is_traceable_and_validated():
             photo_ref=None,
             current_time=NOW,
         )
+    with pytest.raises(ValueError, match="future"):
+        state.edit_cat_profile(
+            NOW + timedelta(days=1),
+            name="Future Mimi",
+            birth_date=date(2021, 5, 1),
+            adoption_date=date(2021, 7, 10),
+            photo_ref=None,
+            current_time=NOW,
+        )
+    assert state.cat_name == "Mimi renamed"
 
 
 def test_cat_deletion_cannot_be_future_dated():

@@ -203,6 +203,11 @@ duplicating date and photo serialization in the adapter.
 Cat profile edits are now validated against known date relationships and recorded
 with previous/new details through the domain and adapter contracts.
 
+## Profile-edit time refinement
+
+Future profile edits are now covered and rejected without mutating the existing
+profile.
+
 ## Responsibility-order refinement
 
 Equal due dates now use responsibility ID as an explicit tie-breaker, making the

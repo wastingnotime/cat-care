@@ -61,7 +61,8 @@ sentence and a stable status kind for future adapters.
 - Adapter event records include action keys when present.
 - The adapter exposes optional cat profile metadata without exposing domain
   objects, reusing the canonical export projection.
-- The adapter exposes validated cat-profile edits with previous/new details.
+- The adapter exposes validated, past/present cat-profile edits with
+  previous/new details.
 
 ## Scenario
 
