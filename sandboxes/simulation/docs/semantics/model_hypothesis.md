@@ -187,6 +187,8 @@ derived from due date, current time, and a configured threshold.
    state rather than duplicating scenario literals.
 84. Delivered and failed notification outcomes both preserve their linked action
    identity in runtime observations.
+85. Notification history review is a distinct read use case from notification
+   delivery and queries the notification record collection explicitly.
 
 ## Open questions
 

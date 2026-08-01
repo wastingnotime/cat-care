@@ -26,6 +26,14 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         for item in result.observations.observations
         if item.name == "notification_recorded"
     } == {"failed", "delivered"}
+    notification_review = next(
+        item
+        for item in result.observations.observations
+        if item.type == "query" and item.name == "notification"
+    )
+    assert notification_review.source == "review-notifications"
+    assert notification_review.payload["notification_count"] == 2
+    assert set(notification_review.payload["outcomes"]) == {"failed", "delivered"}
     delivered_notification = next(
         item
         for item in result.observations.observations
@@ -203,6 +211,7 @@ def test_observatory_graph_exposes_application_use_cases():
     assert use_case_ids == {
         "review-status",
         "review-history",
+        "review-notifications",
         "manage-responsibility",
         "manage-cat-profile",
         "record-care",
