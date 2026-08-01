@@ -87,6 +87,8 @@ derived from due date, current time, and a configured threshold.
 34. Every use-case invocation resolves to a declared observatory node so its
    owner-to-use-case beam remains renderable and cannot silently fall back to a
    hidden observation node.
+35. Status observations preserve changes in the derived status kind as explicit
+   transition evidence, rather than requiring consumers to diff snapshots.
 
 ## Open questions
 

@@ -15,6 +15,14 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert "data_exported" in names
     assert "data_deleted" in names
     assert "use_case_invoked" in [item.type for item in result.observations.observations]
+    transitions = [
+        item.payload
+        for item in result.observations.observations
+        if item.name == "care_status_transition"
+    ]
+    assert {("planned", "due_soon"), ("due_soon", "overdue")} <= {
+        (item["from"], item["to"]) for item in transitions
+    }
     use_cases = {item.name for item in result.observations.observations if item.type == "use_case_invoked"}
     assert {"review_care_status", "create_responsibility", "complete_responsibility"}.issubset(use_cases)
     assert any(
