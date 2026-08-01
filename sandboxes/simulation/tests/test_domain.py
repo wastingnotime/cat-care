@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from app.simulation.domain import CatCareState, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState
+from app.simulation.domain import CatCareState, NoteRecord, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState
 
 
 NOW = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -251,6 +251,9 @@ def test_export_contains_current_state_and_chronological_event_history():
     assert exported["future_information_known"] is False
     assert exported["responsibilities"][0]["id"] == "r1"
     assert exported["events"][0]["type"] == "note_recorded"
+    note_time = NOW + timedelta(hours=1)
+    assert exported["notes"] == [{"description": "eating less", "occurred_at": note_time.isoformat()}]
+    assert state.notes == [NoteRecord("eating less", note_time)]
     assert json.loads(state.export_json()) == exported
 
 
@@ -266,6 +269,7 @@ def test_deleting_cat_removes_owned_records_and_leaves_no_orphans():
         "future_information_known": None,
         "responsibilities": [],
         "notifications": [],
+        "notes": [],
         "events": [],
     }
     with pytest.raises(ValueError, match="deleted"):

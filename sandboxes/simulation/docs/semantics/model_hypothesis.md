@@ -125,6 +125,8 @@ derived from due date, current time, and a configured threshold.
    exportable while their timeline event preserves the unified history view.
 53. Notification history adapters read the typed notification collection directly
    while preserving the released timeline-shaped response contract.
+54. Lightweight notes have typed domain records and remain separately exportable
+   while their timeline event preserves chronological history.
 
 ## Open questions
 

@@ -49,6 +49,17 @@ class NotificationRecord:
 
 
 @dataclass(frozen=True)
+class NoteRecord:
+    description: str
+    occurred_at: datetime
+
+    def __post_init__(self) -> None:
+        if not self.description.strip():
+            raise ValueError("note description cannot be empty")
+        _require_timezone_aware(self.occurred_at, "note time")
+
+
+@dataclass(frozen=True)
 class CareEvent:
     event_type: str
     occurred_at: datetime
@@ -156,6 +167,7 @@ class CatCareState:
     responsibilities: list[Responsibility] = field(default_factory=list)
     events: list[CareEvent] = field(default_factory=list)
     notifications: list[NotificationRecord] = field(default_factory=list)
+    notes: list[NoteRecord] = field(default_factory=list)
     future_information_known: bool = True
     deleted: bool = False
     birth_date: date | None = None
@@ -429,7 +441,10 @@ class CatCareState:
         return event
 
     def record_note(self, description: str, now: datetime, *, current_time: datetime | None = None) -> CareEvent:
-        return self.record_care_event("note_recorded", description, now, current_time=current_time)
+        note = NoteRecord(description, now)
+        event = self.record_care_event("note_recorded", description, now, current_time=current_time)
+        self.notes.append(note)
+        return event
 
     def timeline(self) -> list[CareEvent]:
         return sorted(self.events, key=lambda event: event.occurred_at, reverse=True)
@@ -442,6 +457,7 @@ class CatCareState:
                 "future_information_known": None,
                 "responsibilities": [],
                 "notifications": [],
+                "notes": [],
                 "events": [],
             }
         return {
@@ -474,6 +490,13 @@ class CatCareState:
                 }
                 for notification in sorted(self.notifications, key=lambda item: item.attempted_at)
             ],
+            "notes": [
+                {
+                    "description": note.description,
+                    "occurred_at": note.occurred_at.isoformat(),
+                }
+                for note in sorted(self.notes, key=lambda item: item.occurred_at)
+            ],
             "events": [
                 {
                     "type": event.event_type,
@@ -500,6 +523,7 @@ class CatCareState:
         receipt = DeletionReceipt(deleted_at, len(self.responsibilities), len(self.events))
         self.responsibilities.clear()
         self.notifications.clear()
+        self.notes.clear()
         self.events.clear()
         self.cat_name = ""
         self.birth_date = None
