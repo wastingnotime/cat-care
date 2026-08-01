@@ -185,6 +185,8 @@ derived from due date, current time, and a configured threshold.
    after the command handoff they reject.
 83. Duplicate-care rejection evidence derives action identity from responsibility
    state rather than duplicating scenario literals.
+84. Delivered and failed notification outcomes both preserve their linked action
+   identity in runtime observations.
 
 ## Open questions
 

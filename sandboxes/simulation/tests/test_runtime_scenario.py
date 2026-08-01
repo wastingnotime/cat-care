@@ -26,6 +26,13 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
         for item in result.observations.observations
         if item.name == "notification_recorded"
     } == {"failed", "delivered"}
+    delivered_notification = next(
+        item
+        for item in result.observations.observations
+        if item.name == "notification_recorded"
+        and item.payload["outcome"] == "delivered"
+    )
+    assert delivered_notification.payload["action_key"] == "mimi-appointment-2026"
     assert "responsibility_deferred" in names
     assert "responsibility_cancelled" in names
     assert "note_recorded" in names
