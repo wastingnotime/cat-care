@@ -32,6 +32,8 @@ medication recommendations.
 - Runtime observations preserve AI uncertainty and veterinarian rationale for
   auditability.
 - Deletion receipts report removed assessments and veterinarian reviews.
+- External triage, notification, profile, and recurrence systems are expressed
+  as replaceable ports; they cannot mutate domain state directly.
 
 ## Out of scope
 

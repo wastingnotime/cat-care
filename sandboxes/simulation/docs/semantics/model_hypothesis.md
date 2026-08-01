@@ -207,6 +207,8 @@ derived from due date, current time, and a configured threshold.
    an explicit veterinarian review transition before it becomes authoritative.
 94. Triage adapters expose provisional assessments and veterinarian reviews as
    separate read collections.
+95. External integrations use typed ports and return values that the domain
+   adapter validates before applying a state transition.
 
 ## Open questions
 
