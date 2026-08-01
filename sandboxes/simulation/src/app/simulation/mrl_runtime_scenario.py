@@ -45,6 +45,7 @@ def create_simulation() -> Scenario:
     )
     threshold = timedelta(days=2)
     last_status_kind: str | None = None
+    last_nearest_responsibility_id: str | None = None
 
     def invoke_use_case(context: object, name: str, *, actor: str = "owner") -> None:
         context.emit("use_case_invoked", name, source="Application", actor=actor)
@@ -57,7 +58,7 @@ def create_simulation() -> Scenario:
         )
 
     def observe_status(context: object) -> None:
-        nonlocal last_status_kind
+        nonlocal last_nearest_responsibility_id, last_status_kind
         invoke_use_case(context, "review_care_status")
         snapshot = state.status_snapshot(context.clock.now(), threshold)
         context.emit(
@@ -78,9 +79,16 @@ def create_simulation() -> Scenario:
                 "care_status_transition",
                 source="CareStatus",
                 actor="owner",
-                payload={"from": last_status_kind, "to": snapshot.kind},
+                payload={
+                    "from": last_status_kind,
+                    "to": snapshot.kind,
+                    "previous_nearest_responsibility_id": last_nearest_responsibility_id,
+                    "nearest_responsibility_id": snapshot.nearest_responsibility_id,
+                    "sentence": snapshot.sentence,
+                },
             )
         last_status_kind = snapshot.kind
+        last_nearest_responsibility_id = snapshot.nearest_responsibility_id
 
     def edit_profile(context: object) -> None:
         invoke_use_case(context, "edit_cat_profile")

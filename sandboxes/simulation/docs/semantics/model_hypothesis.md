@@ -89,6 +89,8 @@ derived from due date, current time, and a configured threshold.
    hidden observation node.
 35. Status observations preserve changes in the derived status kind as explicit
    transition evidence, rather than requiring consumers to diff snapshots.
+36. Status transition evidence includes the responsibility context and resulting
+   sentence needed to explain the change without reconstructing prior snapshots.
 
 ## Open questions
 

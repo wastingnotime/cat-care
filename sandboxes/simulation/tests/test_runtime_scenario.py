@@ -23,6 +23,12 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert {("planned", "due_soon"), ("due_soon", "overdue")} <= {
         (item["from"], item["to"]) for item in transitions
     }
+    overdue_transition = next(
+        item for item in transitions if item["from"] == "due_soon" and item["to"] == "overdue"
+    )
+    assert overdue_transition["previous_nearest_responsibility_id"] == "mimi-vaccine-1"
+    assert overdue_transition["nearest_responsibility_id"] == "mimi-vaccine-1"
+    assert overdue_transition["sentence"] == "Something important is overdue."
     use_cases = {item.name for item in result.observations.observations if item.type == "use_case_invoked"}
     assert {"review_care_status", "create_responsibility", "complete_responsibility"}.issubset(use_cases)
     assert any(
