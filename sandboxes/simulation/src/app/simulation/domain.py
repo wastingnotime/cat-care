@@ -65,6 +65,7 @@ class DirectCareRecord:
     description: str
     occurred_at: datetime
     responsibility_id: str | None = None
+    action_key: str | None = None
 
     def __post_init__(self) -> None:
         if not self.event_type.strip():
@@ -469,14 +470,19 @@ class CatCareState:
             _require_timezone_aware(current_time, "current time")
         if current_time is not None and occurred_at > current_time:
             raise ValueError("a care event cannot be recorded in the future")
-        if responsibility_id is not None and not any(
-            item.id == responsibility_id for item in self.responsibilities
-        ):
-            raise ValueError(f"responsibility {responsibility_id} does not exist")
-        event = CareEvent(event_type, occurred_at, description, responsibility_id)
+        linked_responsibility = None
+        if responsibility_id is not None:
+            linked_responsibility = next(
+                (item for item in self.responsibilities if item.id == responsibility_id),
+                None,
+            )
+            if linked_responsibility is None:
+                raise ValueError(f"responsibility {responsibility_id} does not exist")
+        action_key = linked_responsibility.action_key if linked_responsibility else None
+        event = CareEvent(event_type, occurred_at, description, responsibility_id, action_key)
         if event_type != "note_recorded":
             self.direct_care.append(
-                DirectCareRecord(event_type, description, occurred_at, responsibility_id)
+                DirectCareRecord(event_type, description, occurred_at, responsibility_id, action_key)
             )
         self.events.append(event)
         return event
@@ -548,6 +554,7 @@ class CatCareState:
                     "description": care.description,
                     "occurred_at": care.occurred_at.isoformat(),
                     "responsibility_id": care.responsibility_id,
+                    "action_key": care.action_key,
                 }
                 for care in sorted(self.direct_care, key=lambda item: item.occurred_at)
             ],

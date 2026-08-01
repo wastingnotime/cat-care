@@ -163,6 +163,8 @@ derived from due date, current time, and a configured threshold.
    records and profile data are removed.
 72. Direct-care adapter records preserve the linked responsibility action key
    when one exists.
+73. Direct-care action keys are stored on the typed record itself, keeping export
+   and adapter projections independent of later responsibility lookup.
 
 ## Open questions
 

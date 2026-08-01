@@ -259,7 +259,7 @@ def test_export_contains_current_state_and_chronological_event_history():
     note_time = NOW + timedelta(hours=1)
     assert exported["notes"] == [{"description": "eating less", "occurred_at": note_time.isoformat()}]
     assert state.notes == [NoteRecord("eating less", note_time)]
-    assert state.direct_care == [DirectCareRecord("weight_measured", "4.2 kg", NOW, "r1")]
+    assert state.direct_care == [DirectCareRecord("weight_measured", "4.2 kg", NOW, "r1", None)]
     assert json.loads(state.export_json()) == exported
 
 
