@@ -63,6 +63,8 @@ sentence and a stable status kind for future adapters.
   objects, reusing the canonical export projection.
 - The adapter exposes validated, past/present cat-profile edits with
   previous/new details.
+- The adapter exposes direct care-event recording with optional responsibility
+  linkage separately from note recording.
 
 ## Scenario
 

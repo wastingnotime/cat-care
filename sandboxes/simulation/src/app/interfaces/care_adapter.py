@@ -144,6 +144,25 @@ class CareAdapter:
             self.state.record_note(description, now, current_time=current_time)
         )
 
+    def record_care_event(
+        self,
+        event_type: str,
+        description: str,
+        occurred_at: datetime,
+        *,
+        current_time: datetime | None = None,
+        responsibility_id: str | None = None,
+    ) -> dict[str, object]:
+        return self._event_record(
+            self.state.record_care_event(
+                event_type,
+                description,
+                occurred_at,
+                current_time=current_time,
+                responsibility_id=responsibility_id,
+            )
+        )
+
     def record_notification(
         self,
         responsibility_id: str,

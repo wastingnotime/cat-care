@@ -208,6 +208,11 @@ with previous/new details through the domain and adapter contracts.
 Future profile edits are now covered and rejected without mutating the existing
 profile.
 
+## Care-event adapter build
+
+The adapter now exposes direct care-event recording for measurements, exams,
+and similar history entries, with optional responsibility linkage.
+
 ## Responsibility-order refinement
 
 Equal due dates now use responsibility ID as an explicit tie-breaker, making the

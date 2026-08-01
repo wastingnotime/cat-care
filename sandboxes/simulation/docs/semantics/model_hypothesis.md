@@ -74,6 +74,8 @@ derived from due date, current time, and a configured threshold.
    using the canonical domain export projection.
 28. Cat profile edits are validated, traceable, and exposed through the thin
    adapter contract; edits cannot be recorded in the future.
+29. Technology adapters expose direct care-event recording separately from
+   lightweight notes.
 
 ## Open questions
 

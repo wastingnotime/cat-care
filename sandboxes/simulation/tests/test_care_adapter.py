@@ -89,13 +89,22 @@ def test_adapter_commands_return_event_records_and_use_domain_transitions():
     )
     completed = adapter.complete_responsibility("r1", NOW, current_time=NOW)
     note = adapter.record_note("eating less", NOW, current_time=NOW)
+    care_event = adapter.record_care_event(
+        "weight_measured",
+        "4.2 kg",
+        NOW,
+        current_time=NOW,
+        responsibility_id="r1",
+    )
     assert created["type"] == "responsibility_created"
     assert edited["type"] == "responsibility_edited"
     assert edited["details"]["previous_title"] == "vaccine"
     assert completed["type"] == "responsibility_completed"
     assert completed["action_key"] == "vaccine-2026"
     assert note["type"] == "note_recorded"
-    assert len(state.events) == 4
+    assert care_event["type"] == "weight_measured"
+    assert care_event["responsibility_id"] == "r1"
+    assert len(state.events) == 5
 
 
 def test_adapter_exposes_newest_first_timeline_records():
