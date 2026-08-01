@@ -209,6 +209,8 @@ derived from due date, current time, and a configured threshold.
    separate read collections.
 95. External integrations use typed ports and return values that the domain
    adapter validates before applying a state transition.
+96. Notification provider identity and provider message identity are persisted
+   with the typed notification record, not retained only in an adapter response.
 
 ## Open questions
 

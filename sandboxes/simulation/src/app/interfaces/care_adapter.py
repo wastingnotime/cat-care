@@ -72,6 +72,8 @@ class CareAdapter:
         now: datetime,
         *,
         current_time: datetime | None = None,
+        provider: str | None = None,
+        provider_message_id: str | None = None,
     ) -> dict[str, object]:
         return self._event_record(
             self.state.edit_cat_profile(
@@ -222,6 +224,8 @@ class CareAdapter:
         outcome: str | NotificationOutcome,
         *,
         current_time: datetime | None = None,
+        provider: str | None = None,
+        provider_message_id: str | None = None,
     ) -> dict[str, object]:
         if isinstance(outcome, str):
             try:
@@ -234,6 +238,8 @@ class CareAdapter:
                 attempted_at,
                 outcome,
                 current_time=current_time,
+                provider=provider,
+                provider_message_id=provider_message_id,
             )
         )
 
@@ -254,12 +260,8 @@ class CareAdapter:
             attempted_at,
             delivery.outcome,
             current_time=current_time,
-        )
-        record["details"].update(
-            {
-                "provider": delivery.provider,
-                "provider_message_id": delivery.provider_message_id,
-            }
+            provider=delivery.provider,
+            provider_message_id=delivery.provider_message_id,
         )
         return record
 
@@ -492,7 +494,11 @@ class CareAdapter:
             "description": f"notification for {responsibility.title}",
             "responsibility_id": notification.responsibility_id,
             "action_key": notification.action_key,
-            "details": {"outcome": notification.outcome.value},
+            "details": {
+                "outcome": notification.outcome.value,
+                "provider": notification.provider,
+                "provider_message_id": notification.provider_message_id,
+            },
         }
 
     @staticmethod

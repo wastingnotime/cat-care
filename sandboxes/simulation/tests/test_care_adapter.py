@@ -259,6 +259,8 @@ def test_adapter_delivers_notification_through_gateway_and_records_outcome():
         "provider": "mail",
         "provider_message_id": "msg-1",
     }
+    assert state.notifications[0].provider == "mail"
+    assert state.export_data()["notifications"][0]["provider_message_id"] == "msg-1"
 
 
 def test_adapter_translates_triage_provider_suggestion_into_domain_assessment():

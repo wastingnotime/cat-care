@@ -57,6 +57,8 @@ class NotificationRecord:
     attempted_at: datetime
     outcome: NotificationOutcome
     action_key: str | None = None
+    provider: str | None = None
+    provider_message_id: str | None = None
 
     def __post_init__(self) -> None:
         _require_timezone_aware(self.attempted_at, "notification time")
@@ -389,6 +391,8 @@ class CatCareState:
         outcome: NotificationOutcome,
         *,
         current_time: datetime | None = None,
+        provider: str | None = None,
+        provider_message_id: str | None = None,
     ) -> CareEvent:
         self._ensure_active()
         if not isinstance(outcome, NotificationOutcome):
@@ -404,6 +408,8 @@ class CatCareState:
             attempted_at,
             outcome,
             responsibility.action_key,
+            provider,
+            provider_message_id,
         )
         self.notifications.append(notification)
         event = CareEvent(
@@ -412,7 +418,14 @@ class CatCareState:
             f"notification for {responsibility.title}",
             responsibility_id,
             responsibility.action_key,
-            details=(("outcome", outcome.value),),
+            details=tuple(
+                item
+                for item in (
+                    ("outcome", outcome.value),
+                    *(((("provider", provider),) if provider else ())),
+                    *(((("provider_message_id", provider_message_id),) if provider_message_id else ())),
+                )
+            ),
         )
         self.events.append(event)
         return event
@@ -750,6 +763,8 @@ class CatCareState:
                     "attempted_at": notification.attempted_at.isoformat(),
                     "outcome": notification.outcome.value,
                     "action_key": notification.action_key,
+                    "provider": notification.provider,
+                    "provider_message_id": notification.provider_message_id,
                 }
                 for notification in sorted(self.notifications, key=lambda item: item.attempted_at)
             ],
