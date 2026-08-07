@@ -1,6 +1,7 @@
 from mrl_simulation_runtime.runner import SimulationRunner
 
 from app.simulation.mrl_runtime_scenario import (
+    NODE_DOMAINS,
     USE_CASE_COMMAND_TARGETS,
     USE_CASE_NODE_IDS,
     create_simulation,
@@ -302,6 +303,28 @@ def test_observatory_graph_exposes_application_use_cases():
     )
     status = next(node for node in scenario.observatory_nodes if node.id == "status")
     assert status.layer == "projections"
+
+
+def test_observatory_graph_declares_cat_care_realm_and_business_domains():
+    scenario = create_simulation()
+    assert {node.realm for node in scenario.observatory_nodes} == {"cat-care"}
+    nodes = {node.id: node for node in scenario.observatory_nodes}
+    assert {node_id: nodes[node_id].domain for node_id in NODE_DOMAINS} == NODE_DOMAINS
+    assert nodes["owner"].domain is None
+    assert nodes["veterinarian"].domain is None
+    assert {
+        node.domain
+        for node in scenario.observatory_nodes
+        if node.domain is not None
+    } == {
+        "cat-profile",
+        "care-planning",
+        "care-records",
+        "care-status",
+        "notifications",
+        "care-triage",
+        "data-stewardship",
+    }
 
 
 def test_observatory_graph_exposes_veterinarian_as_triage_actor():

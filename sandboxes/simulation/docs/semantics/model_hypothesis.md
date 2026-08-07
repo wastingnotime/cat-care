@@ -217,6 +217,9 @@ derived from due date, current time, and a configured threshold.
    provisional triage, while veterinarian review is a separate interaction.
 99. Veterinarian triage work includes a pending queue, durable requests for more
    owner observations, and reviewed-assessment follow-up responsibilities.
+100. Cat Care is the simulation realm; profile, planning, records, status,
+   notifications, triage, and data stewardship are explicit business domains
+   independent from architectural node layers.
 
 ## Open questions
 
