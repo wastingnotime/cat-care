@@ -279,14 +279,18 @@ def test_observatory_graph_exposes_application_use_cases():
 
 def test_observatory_graph_exposes_integration_adapters_in_their_own_rank():
     scenario = create_simulation()
-    adapters = {node.id: node for node in scenario.observatory_nodes if node.kind == "adapter"}
+    adapters = {
+        node.id: node
+        for node in scenario.observatory_nodes
+        if node.kind == "outbound_adapter"
+    }
     assert set(adapters) == {
         "profile-adapter",
         "notification-adapter",
         "triage-adapter",
         "recurrence-adapter",
     }
-    assert {node.layer for node in adapters.values()} == {"adapters"}
+    assert {node.layer for node in adapters.values()} == {"outbound_adapters"}
     assert {
         (edge.from_node, edge.to_node)
         for edge in scenario.observatory_edges
