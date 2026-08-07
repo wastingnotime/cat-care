@@ -290,7 +290,13 @@ def test_observatory_graph_exposes_integration_adapters_in_their_own_rank():
         "triage-adapter",
         "recurrence-adapter",
     }
-    assert {node.layer for node in adapters.values()} == {"outbound_adapters"}
+    assert {node.layer for node in adapters.values()} == {"external_providers"}
+    projection_ids = {node.id for node in scenario.observatory_nodes if node.layer == "projections"}
+    assert all(
+        node.layer != "projections"
+        for node in adapters.values()
+    )
+    assert projection_ids
     assert {
         (edge.from_node, edge.to_node)
         for edge in scenario.observatory_edges
