@@ -71,6 +71,11 @@ class OwnerBehavior:
         context.emit("actor_intention", "review_cat_status", actor="owner", source="Owner")
 
 
+class VeterinarianBehavior:
+    def on_start(self, context: object) -> None:
+        context.emit("actor_intention", "review_triage", actor="veterinarian", source="Veterinarian")
+
+
 def create_simulation() -> Scenario:
     state = CatCareState(
         cat_name="Mimi",
@@ -111,7 +116,7 @@ def create_simulation() -> Scenario:
         context.emit(
             "command",
             USE_CASE_NODE_IDS[name],
-            source="owner",
+            source=actor,
             actor=actor,
             correlation_id=correlation_id,
             payload={"use_case": name},
@@ -324,7 +329,7 @@ def create_simulation() -> Scenario:
         )
 
     def review_triage(context: object) -> None:
-        invoke_use_case(context, "review_triage", actor="vet-123")
+        invoke_use_case(context, "review_triage", actor="veterinarian")
         review = state.review_triage(
             "triage-1",
             context.clock.now(),
@@ -338,7 +343,7 @@ def create_simulation() -> Scenario:
             "domain_event",
             "triage_reviewed",
             source="TriageAssessment",
-            actor="vet-123",
+            actor="veterinarian",
             correlation_id=review.assessment_id,
             payload={
                 "assessment_id": review.assessment_id,
@@ -643,7 +648,10 @@ def create_simulation() -> Scenario:
         seed=7,
         initial_time=INITIAL_TIME,
         run_id="cat-care-first-slice",
-        actors=[Actor("owner", OwnerBehavior())],
+        actors=[
+            Actor("owner", OwnerBehavior()),
+            Actor("veterinarian", VeterinarianBehavior()),
+        ],
         scheduled_actions=[
             InitialScheduledAction(INITIAL_TIME, observe_status, "observe_initial_status", "CareStatus"),
             InitialScheduledAction(INITIAL_TIME + timedelta(hours=2), add_food_responsibility, "add_food_responsibility", "Responsibility"),
@@ -675,6 +683,7 @@ def create_simulation() -> Scenario:
         ],
         observatory_nodes=[
             ObservatoryNode("owner", "Owner", "actor", "domain"),
+            ObservatoryNode("veterinarian", "Veterinarian", "actor", "domain"),
             ObservatoryNode("review-status", "Review care status", "use_case", "use_cases"),
             ObservatoryNode("review-history", "Review care history", "use_case", "use_cases"),
             ObservatoryNode("review-notifications", "Review notification history", "use_case", "use_cases"),
@@ -710,7 +719,7 @@ def create_simulation() -> Scenario:
             ObservatoryEdge("owner", "review-notes", "invokes"),
             ObservatoryEdge("owner", "review-profile", "invokes"),
             ObservatoryEdge("owner", "triage-care", "invokes"),
-            ObservatoryEdge("owner", "review-triage", "invokes"),
+            ObservatoryEdge("veterinarian", "review-triage", "reviews"),
             ObservatoryEdge("triage-care", "triage-assessment", "creates"),
             ObservatoryEdge("review-triage", "triage-assessment", "reviews"),
             ObservatoryEdge("owner", "manage-responsibility", "invokes"),

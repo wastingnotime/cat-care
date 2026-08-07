@@ -213,6 +213,8 @@ derived from due date, current time, and a configured threshold.
    with the typed notification record, not retained only in an adapter response.
 97. Integration boundaries are explicit outbound-adapter observatory nodes with
    clear gateway/provider roles and correlated handoff evidence.
+98. The veterinarian is an explicit actor for triage review; the owner requests
+   provisional triage, while veterinarian review is a separate interaction.
 
 ## Open questions
 

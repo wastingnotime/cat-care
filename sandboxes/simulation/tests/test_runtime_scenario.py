@@ -78,6 +78,13 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert triage_reviewed.payload["decision"] == "modified"
     assert triage_reviewed.payload["final_urgency"] == "urgent"
     assert triage_reviewed.payload["rationale"] == "Escalate after reviewing the history."
+    assert any(
+        item.type == "command"
+        and item.name == "review-triage"
+        and item.source == "veterinarian"
+        and item.payload["use_case"] == "review_triage"
+        for item in result.observations.observations
+    )
     delivered_notification = next(
         item
         for item in result.observations.observations
@@ -275,6 +282,18 @@ def test_observatory_graph_exposes_application_use_cases():
     )
     status = next(node for node in scenario.observatory_nodes if node.id == "status")
     assert status.layer == "projections"
+
+
+def test_observatory_graph_exposes_veterinarian_as_triage_actor():
+    scenario = create_simulation()
+    actors = {node.id for node in scenario.observatory_nodes if node.kind == "actor"}
+    assert {"owner", "veterinarian"} <= actors
+    assert any(
+        edge.from_node == "veterinarian"
+        and edge.to_node == "review-triage"
+        and edge.label == "reviews"
+        for edge in scenario.observatory_edges
+    )
 
 
 def test_observatory_graph_exposes_integration_adapters_in_their_own_rank():
