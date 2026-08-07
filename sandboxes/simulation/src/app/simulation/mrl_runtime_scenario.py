@@ -75,6 +75,30 @@ USE_CASE_ADAPTER_TARGETS = {
     "complete_responsibility": "recurrence-adapter",
 }
 
+USE_CASE_INBOUND_ADAPTERS = {
+    "review_care_status": "owner-mobile",
+    "review_care_history": "owner-web",
+    "review_notification_history": "owner-mobile",
+    "review_care_events": "owner-web",
+    "review_notes": "owner-mobile",
+    "review_cat_profile": "owner-web",
+    "request_triage": "owner-mobile",
+    "review_triage_queue": "veterinarian-web",
+    "request_triage_information": "veterinarian-web",
+    "review_triage": "veterinarian-web",
+    "define_triage_follow_up": "veterinarian-web",
+    "edit_cat_profile": "owner-web",
+    "create_responsibility": "owner-mobile",
+    "edit_responsibility": "owner-mobile",
+    "complete_responsibility": "owner-mobile",
+    "defer_responsibility": "owner-mobile",
+    "cancel_responsibility": "owner-mobile",
+    "record_care_event": "owner-mobile",
+    "record_note": "owner-mobile",
+    "export_data": "owner-web",
+    "delete_data": "owner-web",
+}
+
 NODE_DOMAINS = {
     "review-status": "care-status",
     "review-history": "care-records",
@@ -166,13 +190,23 @@ def create_simulation() -> Scenario:
             actor=actor,
             correlation_id=correlation_id,
         )
+        inbound_adapter = USE_CASE_INBOUND_ADAPTERS.get(name)
+        if inbound_adapter is not None:
+            context.emit(
+                "command",
+                inbound_adapter,
+                source=actor,
+                actor=actor,
+                correlation_id=correlation_id,
+                payload={"use_case": name, "boundary": "inbound_adapter"},
+            )
         context.emit(
             "command",
             USE_CASE_NODE_IDS[name],
-            source=actor,
+            source=inbound_adapter or actor,
             actor=actor,
             correlation_id=correlation_id,
-            payload={"use_case": name},
+            payload={"use_case": name, "channel": inbound_adapter},
         )
         target = USE_CASE_COMMAND_TARGETS.get(name)
         if target is not None:
@@ -353,7 +387,7 @@ def create_simulation() -> Scenario:
         )
 
     def request_triage(context: object) -> None:
-        invoke_use_case(context, "request_triage", actor="system")
+        invoke_use_case(context, "request_triage", actor="owner")
         assessment = state.request_triage(
             ["note-1"],
             TriageUrgency.NEEDS_ATTENTION,
@@ -368,7 +402,7 @@ def create_simulation() -> Scenario:
             "domain_event",
             "triage_assessed",
             source="TriageAssessment",
-            actor="system",
+            actor="owner",
             correlation_id=assessment.id,
             payload={
                 "assessment_id": assessment.id,
@@ -817,6 +851,9 @@ def create_simulation() -> Scenario:
         observatory_nodes=[
             cat_care_node("owner", "Owner", "actor", "domain"),
             cat_care_node("veterinarian", "Veterinarian", "actor", "domain"),
+            cat_care_node("owner-mobile", "Owner mobile app", "inbound_adapter", "inbound_adapters"),
+            cat_care_node("owner-web", "Owner web app", "inbound_adapter", "inbound_adapters"),
+            cat_care_node("veterinarian-web", "Veterinarian web portal", "inbound_adapter", "inbound_adapters"),
             cat_care_node("review-status", "Review care status", "use_case", "use_cases"),
             cat_care_node("review-history", "Review care history", "use_case", "use_cases"),
             cat_care_node("review-notifications", "Review notification history", "use_case", "use_cases"),
@@ -848,26 +885,29 @@ def create_simulation() -> Scenario:
             cat_care_node("timeline", "Timeline", "projection", "projections"),
         ],
         observatory_edges=[
-            ObservatoryEdge("owner", "review-status", "invokes"),
-            ObservatoryEdge("owner", "review-history", "invokes"),
-            ObservatoryEdge("owner", "review-notifications", "invokes"),
-            ObservatoryEdge("owner", "review-care", "invokes"),
-            ObservatoryEdge("owner", "review-notes", "invokes"),
-            ObservatoryEdge("owner", "review-profile", "invokes"),
-            ObservatoryEdge("owner", "triage-care", "invokes"),
-            ObservatoryEdge("veterinarian", "review-triage-queue", "reviews"),
-            ObservatoryEdge("veterinarian", "request-triage-information", "requests"),
-            ObservatoryEdge("veterinarian", "review-triage", "reviews"),
-            ObservatoryEdge("veterinarian", "define-triage-follow-up", "defines"),
+            ObservatoryEdge("owner", "owner-mobile", "uses"),
+            ObservatoryEdge("owner", "owner-web", "uses"),
+            ObservatoryEdge("veterinarian", "veterinarian-web", "uses"),
+            ObservatoryEdge("owner-mobile", "review-status", "invokes"),
+            ObservatoryEdge("owner-web", "review-history", "invokes"),
+            ObservatoryEdge("owner-mobile", "review-notifications", "invokes"),
+            ObservatoryEdge("owner-web", "review-care", "invokes"),
+            ObservatoryEdge("owner-mobile", "review-notes", "invokes"),
+            ObservatoryEdge("owner-web", "review-profile", "invokes"),
+            ObservatoryEdge("owner-mobile", "triage-care", "invokes"),
+            ObservatoryEdge("veterinarian-web", "review-triage-queue", "invokes"),
+            ObservatoryEdge("veterinarian-web", "request-triage-information", "invokes"),
+            ObservatoryEdge("veterinarian-web", "review-triage", "invokes"),
+            ObservatoryEdge("veterinarian-web", "define-triage-follow-up", "invokes"),
             ObservatoryEdge("triage-care", "triage-assessment", "creates"),
             ObservatoryEdge("review-triage-queue", "triage-assessment", "queries"),
             ObservatoryEdge("request-triage-information", "triage-assessment", "updates"),
             ObservatoryEdge("review-triage", "triage-assessment", "reviews"),
             ObservatoryEdge("define-triage-follow-up", "responsibility", "creates"),
-            ObservatoryEdge("owner", "manage-responsibility", "invokes"),
-            ObservatoryEdge("owner", "manage-cat-profile", "invokes"),
-            ObservatoryEdge("owner", "record-care", "invokes"),
-            ObservatoryEdge("owner", "manage-data", "invokes"),
+            ObservatoryEdge("owner-mobile", "manage-responsibility", "invokes"),
+            ObservatoryEdge("owner-web", "manage-cat-profile", "invokes"),
+            ObservatoryEdge("owner-mobile", "record-care", "invokes"),
+            ObservatoryEdge("owner-web", "manage-data", "invokes"),
             ObservatoryEdge("manage-responsibility", "responsibility", "commands"),
             ObservatoryEdge("manage-cat-profile", "cat-profile", "updates"),
             ObservatoryEdge("record-care", "responsibility", "records"),
@@ -879,7 +919,6 @@ def create_simulation() -> Scenario:
             ObservatoryEdge("recurrence-adapter", "responsibility", "translates-to"),
             ObservatoryEdge("record-care", "care-event", "records"),
             ObservatoryEdge("record-care", "note", "records"),
-            ObservatoryEdge("owner", "deliver-notification", "invokes"),
             ObservatoryEdge("responsibility", "status", "derives"),
         ],
     )

@@ -2,6 +2,7 @@ from mrl_simulation_runtime.runner import SimulationRunner
 
 from app.simulation.mrl_runtime_scenario import (
     NODE_DOMAINS,
+    USE_CASE_INBOUND_ADAPTERS,
     USE_CASE_COMMAND_TARGETS,
     USE_CASE_NODE_IDS,
     create_simulation,
@@ -82,7 +83,7 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert any(
         item.type == "command"
         and item.name == "review-triage"
-        and item.source == "veterinarian"
+        and item.source == "veterinarian-web"
         and item.payload["use_case"] == "review_triage"
         for item in result.observations.observations
     )
@@ -211,7 +212,7 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert any(
         item.type == "command"
         and item.name == "manage-responsibility"
-        and item.source == "owner"
+        and item.source == "owner-mobile"
         for item in result.observations.observations
     )
     assert any(
@@ -264,11 +265,12 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     declared_use_case_ids = {
         node.id for node in create_simulation().observatory_nodes if node.kind == "use_case"
     }
-    use_case_command_targets = {
-        item.name for item in result.observations.observations if item.type == "command"
-        and item.source == "owner"
+    inbound_command_targets = {
+        item.name
+        for item in result.observations.observations
+        if item.type == "command" and item.payload.get("boundary") == "inbound_adapter"
     }
-    assert use_case_command_targets <= declared_use_case_ids
+    assert inbound_command_targets == set(USE_CASE_INBOUND_ADAPTERS.values())
     assert set(USE_CASE_NODE_IDS.values()) <= declared_use_case_ids
     declared_node_ids = {node.id for node in create_simulation().observatory_nodes}
     assert set(USE_CASE_COMMAND_TARGETS.values()) <= declared_node_ids
@@ -333,9 +335,53 @@ def test_observatory_graph_exposes_veterinarian_as_triage_actor():
     assert {"owner", "veterinarian"} <= actors
     assert any(
         edge.from_node == "veterinarian"
-        and edge.to_node == "review-triage"
-        and edge.label == "reviews"
+        and edge.to_node == "veterinarian-web"
+        and edge.label == "uses"
         for edge in scenario.observatory_edges
+    )
+
+
+def test_observatory_routes_actors_through_mobile_and_web_inbound_adapters():
+    scenario = create_simulation()
+    inbound = {
+        node.id: node
+        for node in scenario.observatory_nodes
+        if node.kind == "inbound_adapter"
+    }
+    assert set(inbound) == {"owner-mobile", "owner-web", "veterinarian-web"}
+    assert {node.layer for node in inbound.values()} == {"inbound_adapters"}
+    assert all(node.realm == "cat-care" and node.domain is None for node in inbound.values())
+    edges = {(edge.from_node, edge.to_node) for edge in scenario.observatory_edges}
+    assert {
+        ("owner", "owner-mobile"),
+        ("owner", "owner-web"),
+        ("veterinarian", "veterinarian-web"),
+        ("owner-mobile", "triage-care"),
+        ("veterinarian-web", "review-triage"),
+    } <= edges
+
+
+def test_runtime_inbound_handoffs_preserve_actor_channel_and_correlation():
+    result = SimulationRunner().run(create_simulation())
+    inbound_commands = [
+        item
+        for item in result.observations.observations
+        if item.type == "command" and item.payload.get("boundary") == "inbound_adapter"
+    ]
+    assert inbound_commands
+    assert {item.name for item in inbound_commands} == {
+        "owner-mobile",
+        "owner-web",
+        "veterinarian-web",
+    }
+    assert all(item.correlation_id.startswith("use-case:") for item in inbound_commands)
+    assert any(
+        item.name == "owner-mobile" and item.source == "owner"
+        for item in inbound_commands
+    )
+    assert any(
+        item.name == "veterinarian-web" and item.source == "veterinarian"
+        for item in inbound_commands
     )
 
 

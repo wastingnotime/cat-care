@@ -220,6 +220,9 @@ derived from due date, current time, and a configured threshold.
 100. Cat Care is the simulation realm; profile, planning, records, status,
    notifications, triage, and data stewardship are explicit business domains
    independent from architectural node layers.
+101. Mobile and web are inbound technology adapters: actors enter through a
+   channel, while the invoked use case and domain behavior remain channel
+   independent.
 
 ## Open questions
 
