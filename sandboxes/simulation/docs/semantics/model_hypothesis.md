@@ -215,6 +215,8 @@ derived from due date, current time, and a configured threshold.
    clear gateway/provider roles and correlated handoff evidence.
 98. The veterinarian is an explicit actor for triage review; the owner requests
    provisional triage, while veterinarian review is a separate interaction.
+99. Veterinarian triage work includes a pending queue, durable requests for more
+   owner observations, and reviewed-assessment follow-up responsibilities.
 
 ## Open questions
 

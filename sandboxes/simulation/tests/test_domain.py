@@ -275,6 +275,7 @@ def test_deleting_cat_removes_owned_records_and_leaves_no_orphans():
     assert receipt.direct_care_removed == 0
     assert receipt.triage_assessments_removed == 0
     assert receipt.veterinarian_reviews_removed == 0
+    assert receipt.triage_information_requests_removed == 0
     assert state.export_data() == {
         "cat": {"name": None, "birth_date": None, "adoption_date": None, "photo_ref": None},
         "deleted": True,
@@ -286,6 +287,7 @@ def test_deleting_cat_removes_owned_records_and_leaves_no_orphans():
         "direct_care": [],
         "triage_assessments": [],
         "veterinarian_reviews": [],
+        "triage_information_requests": [],
         "events": [],
     }
     with pytest.raises(ValueError, match="deleted"):
@@ -404,3 +406,46 @@ def test_recurrence_policy_requires_one_explicit_rule():
         RecurrencePolicy()
     with pytest.raises(ValueError, match="exactly one"):
         RecurrencePolicy(30, 1)
+
+
+def test_veterinarian_triage_workflow_creates_information_request_and_follow_up():
+    state = CatCareState("Mimi")
+    state.record_note("eating less", NOW)
+    assessment = state.request_triage(
+        ["note-1"], TriageUrgency.NEEDS_ATTENTION, "Needs review.",
+        "No examination.", NOW, "triage-service", "model-1", current_time=NOW,
+    )
+    assert [item.id for item in state.pending_triage_assessments()] == [assessment.id]
+    request = state.request_triage_information(
+        assessment.id, NOW + timedelta(minutes=10), "vet-123",
+        "Has Mimi eaten today?", current_time=NOW + timedelta(minutes=10),
+    )
+    state.review_triage(
+        assessment.id, NOW + timedelta(minutes=20), "vet-123",
+        TriageReviewStatus.MODIFIED, TriageUrgency.URGENT,
+        "Urgent consultation needed.", current_time=NOW + timedelta(minutes=20),
+    )
+    follow_up = state.define_triage_follow_up(
+        assessment.id, "follow-up-1", "urgent veterinary consultation",
+        NOW + timedelta(hours=2), NOW + timedelta(minutes=30), "vet-123",
+        current_time=NOW + timedelta(minutes=30),
+    )
+    assert request.id == "triage-info-1"
+    assert state.pending_triage_assessments() == []
+    assert follow_up.category == "veterinary"
+    assert follow_up.action_key == "triage:triage-1:follow-up"
+    assert state.export_data()["triage_information_requests"][0]["question"] == "Has Mimi eaten today?"
+
+
+def test_triage_follow_up_requires_completed_veterinarian_review():
+    state = CatCareState("Mimi")
+    state.record_note("eating less", NOW)
+    assessment = state.request_triage(
+        ["note-1"], TriageUrgency.MONITOR, "Monitor.", "No examination.",
+        NOW, "triage-service", "model-1", current_time=NOW,
+    )
+    with pytest.raises(ValueError, match="reviewed triage"):
+        state.define_triage_follow_up(
+            assessment.id, "follow-up-1", "consultation", NOW + timedelta(hours=2),
+            NOW, "vet-123", current_time=NOW,
+        )

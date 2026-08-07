@@ -301,6 +301,7 @@ class CareAdapter:
             "direct_care_removed": receipt.direct_care_removed,
             "triage_assessments_removed": receipt.triage_assessments_removed,
             "veterinarian_reviews_removed": receipt.veterinarian_reviews_removed,
+            "triage_information_requests_removed": receipt.triage_information_requests_removed,
         }
 
     def get_timeline(self) -> list[dict[str, object]]:
@@ -423,6 +424,66 @@ class CareAdapter:
             }
             for review in self.state.veterinarian_reviews
         ]
+
+    def get_pending_triage_queue(self) -> list[dict[str, object]]:
+        return [
+            self._triage_record(assessment)
+            for assessment in self.state.pending_triage_assessments()
+        ]
+
+    def request_triage_information(
+        self,
+        assessment_id: str,
+        requested_at: datetime,
+        veterinarian_id: str,
+        question: str,
+        *,
+        current_time: datetime | None = None,
+    ) -> dict[str, object]:
+        request = self.state.request_triage_information(
+            assessment_id,
+            requested_at,
+            veterinarian_id,
+            question,
+            current_time=current_time,
+        )
+        return {
+            "id": request.id,
+            "assessment_id": request.assessment_id,
+            "requested_at": request.requested_at.isoformat(),
+            "veterinarian_id": request.veterinarian_id,
+            "question": request.question,
+        }
+
+    def define_triage_follow_up(
+        self,
+        assessment_id: str,
+        responsibility_id: str,
+        title: str,
+        due_at: datetime,
+        created_at: datetime,
+        veterinarian_id: str,
+        *,
+        current_time: datetime | None = None,
+    ) -> dict[str, object]:
+        responsibility = self.state.define_triage_follow_up(
+            assessment_id,
+            responsibility_id,
+            title,
+            due_at,
+            created_at,
+            veterinarian_id,
+            current_time=current_time,
+        )
+        return {
+            "id": responsibility.id,
+            "title": responsibility.title,
+            "category": responsibility.category,
+            "due_at": responsibility.due_at.isoformat(),
+            "state": responsibility.state.value,
+            "action_key": responsibility.action_key,
+            "assessment_id": assessment_id,
+        }
 
     @staticmethod
     def _triage_record(assessment: object) -> dict[str, object]:

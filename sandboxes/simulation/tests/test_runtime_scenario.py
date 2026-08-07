@@ -106,6 +106,23 @@ def test_first_slice_produces_status_transition_and_invariant_evidence():
     assert deletion.payload["direct_care_removed"] == 1
     assert deletion.payload["triage_assessments_removed"] == 1
     assert deletion.payload["veterinarian_reviews_removed"] == 1
+    assert deletion.payload["triage_information_requests_removed"] == 1
+    triage_queue = next(
+        item
+        for item in result.observations.observations
+        if item.type == "query" and item.source == "review-triage-queue"
+    )
+    assert triage_queue.payload["assessment_ids"] == ["triage-1"]
+    assert any(
+        item.name == "triage_information_requested"
+        and item.payload["assessment_id"] == "triage-1"
+        for item in result.observations.observations
+    )
+    assert any(
+        item.name == "triage_follow_up_defined"
+        and item.payload["responsibility_id"] == "mimi-triage-follow-up-1"
+        for item in result.observations.observations
+    )
     notification = next(
         item for item in result.observations.observations if item.name == "notification_recorded"
     )
@@ -269,7 +286,10 @@ def test_observatory_graph_exposes_application_use_cases():
         "review-notes",
         "review-profile",
         "triage-care",
+        "review-triage-queue",
+        "request-triage-information",
         "review-triage",
+        "define-triage-follow-up",
         "manage-responsibility",
         "manage-cat-profile",
         "record-care",

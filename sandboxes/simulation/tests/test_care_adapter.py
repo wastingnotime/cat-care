@@ -417,3 +417,27 @@ def test_adapter_exposes_calendar_recurrence_without_inference():
     assert adapter.get_responsibilities(NOW, timedelta(days=1))[0][
         "recurrence_calendar_months"
     ] == 1
+
+
+def test_adapter_exposes_veterinarian_triage_queue_information_and_follow_up():
+    adapter = CareAdapter(CatCareState("Mimi"))
+    adapter.record_note("eating less", NOW, current_time=NOW)
+    assessment = adapter.request_triage(
+        ["note-1"], "needs_attention", "Needs review.", "No examination.",
+        NOW, "triage-service", "model-1", current_time=NOW,
+    )
+    assert [item["id"] for item in adapter.get_pending_triage_queue()] == [assessment["id"]]
+    request = adapter.request_triage_information(
+        assessment["id"], NOW, "vet-123", "Has Mimi eaten today?", current_time=NOW,
+    )
+    adapter.review_triage(
+        assessment["id"], NOW, "vet-123", "modified", "urgent",
+        "Urgent consultation needed.", current_time=NOW,
+    )
+    follow_up = adapter.define_triage_follow_up(
+        assessment["id"], "follow-up-1", "urgent veterinary consultation",
+        NOW + timedelta(hours=2), NOW, "vet-123", current_time=NOW,
+    )
+    assert request["id"] == "triage-info-1"
+    assert follow_up["assessment_id"] == assessment["id"]
+    assert follow_up["category"] == "veterinary"

@@ -26,7 +26,10 @@ USE_CASE_NODE_IDS = {
     "review_notes": "review-notes",
     "review_cat_profile": "review-profile",
     "request_triage": "triage-care",
+    "review_triage_queue": "review-triage-queue",
+    "request_triage_information": "request-triage-information",
     "review_triage": "review-triage",
+    "define_triage_follow_up": "define-triage-follow-up",
     "edit_cat_profile": "manage-cat-profile",
     "create_responsibility": "manage-responsibility",
     "edit_responsibility": "manage-responsibility",
@@ -50,6 +53,8 @@ USE_CASE_COMMAND_TARGETS = {
     "cancel_responsibility": "responsibility",
     "record_care_event": "care-event",
     "record_note": "note",
+    "request_triage_information": "triage-assessment",
+    "define_triage_follow_up": "responsibility",
     "export_data": "data-lifecycle",
     "delete_data": "data-lifecycle",
 }
@@ -353,6 +358,82 @@ def create_simulation() -> Scenario:
                 "rationale": review.rationale,
             },
         )
+
+    def review_triage_queue(context: object) -> None:
+        correlation_id = invoke_use_case(
+            context,
+            "review_triage_queue",
+            actor="veterinarian",
+        )
+        queue = state.pending_triage_assessments()
+        context.emit(
+            "query",
+            "triage-assessment",
+            source="review-triage-queue",
+            actor="veterinarian",
+            correlation_id=correlation_id,
+            payload={
+                "pending_count": len(queue),
+                "assessment_ids": [assessment.id for assessment in queue],
+                "urgencies": [assessment.urgency.value for assessment in queue],
+            },
+        )
+
+    def request_more_triage_information(context: object) -> None:
+        correlation_id = invoke_use_case(
+            context,
+            "request_triage_information",
+            actor="veterinarian",
+        )
+        request = state.request_triage_information(
+            "triage-1",
+            context.clock.now(),
+            "vet-123",
+            "Has Mimi eaten or drunk anything since this observation?",
+            current_time=context.clock.now(),
+        )
+        context.emit(
+            "domain_event",
+            "triage_information_requested",
+            source="TriageAssessment",
+            actor="veterinarian",
+            correlation_id=correlation_id,
+            payload={
+                "request_id": request.id,
+                "assessment_id": request.assessment_id,
+                "veterinarian_id": request.veterinarian_id,
+                "question": request.question,
+            },
+        )
+
+    def define_triage_follow_up(context: object) -> None:
+        correlation_id = invoke_use_case(
+            context,
+            "define_triage_follow_up",
+            actor="veterinarian",
+        )
+        responsibility = state.define_triage_follow_up(
+            "triage-1",
+            "mimi-triage-follow-up-1",
+            "urgent veterinary consultation",
+            context.clock.now() + timedelta(hours=2),
+            context.clock.now(),
+            "vet-123",
+            current_time=context.clock.now(),
+        )
+        context.emit(
+            "domain_event",
+            "triage_follow_up_defined",
+            source="Responsibility",
+            actor="veterinarian",
+            correlation_id=correlation_id,
+            payload={
+                "assessment_id": "triage-1",
+                "responsibility_id": responsibility.id,
+                "due_at": responsibility.due_at.isoformat(),
+                "action_key": responsibility.action_key,
+            },
+        )
     def edit_profile(context: object) -> None:
         invoke_use_case(context, "edit_cat_profile")
         event = state.edit_cat_profile(
@@ -633,6 +714,7 @@ def create_simulation() -> Scenario:
                 "direct_care_removed": receipt.direct_care_removed,
                 "triage_assessments_removed": receipt.triage_assessments_removed,
                 "veterinarian_reviews_removed": receipt.veterinarian_reviews_removed,
+                "triage_information_requests_removed": receipt.triage_information_requests_removed,
                 "orphaned_records": 0,
             },
         )
@@ -667,7 +749,10 @@ def create_simulation() -> Scenario:
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4), review_care_events, "review_care_events", "CareEvent"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=2), review_notes, "review_notes", "Note"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=1, minutes=30), request_triage, "request_triage", "TriageAssessment"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=1, minutes=40), review_triage_queue, "review_triage_queue", "TriageAssessment"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=1, minutes=50), request_more_triage_information, "request_triage_information", "TriageAssessment"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=2, minutes=30), review_triage, "review_triage", "TriageAssessment"),
+            InitialScheduledAction(INITIAL_TIME + timedelta(days=4, hours=2, minutes=45), define_triage_follow_up, "define_triage_follow_up", "Responsibility", "mimi-triage-follow-up-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=1), defer_vaccine, "defer_vaccine", "Responsibility", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=2), complete_vaccine, "complete_vaccine", "Responsibility", "mimi-vaccine-1"),
             InitialScheduledAction(INITIAL_TIME + timedelta(days=3, hours=3), record_weight_event, "record_weight_event", "CareEvent", "mimi-vaccine-1"),
@@ -691,7 +776,10 @@ def create_simulation() -> Scenario:
             ObservatoryNode("review-notes", "Review notes", "use_case", "use_cases"),
             ObservatoryNode("review-profile", "Review cat profile", "use_case", "use_cases"),
             ObservatoryNode("triage-care", "Request care triage", "use_case", "use_cases"),
+            ObservatoryNode("review-triage-queue", "Review triage queue", "use_case", "use_cases"),
+            ObservatoryNode("request-triage-information", "Request more information", "use_case", "use_cases"),
             ObservatoryNode("review-triage", "Review care triage", "use_case", "use_cases"),
+            ObservatoryNode("define-triage-follow-up", "Define triage follow-up", "use_case", "use_cases"),
             ObservatoryNode("manage-responsibility", "Manage responsibility", "use_case", "use_cases"),
             ObservatoryNode("manage-cat-profile", "Edit cat profile", "use_case", "use_cases"),
             ObservatoryNode("record-care", "Record care history", "use_case", "use_cases"),
@@ -719,9 +807,15 @@ def create_simulation() -> Scenario:
             ObservatoryEdge("owner", "review-notes", "invokes"),
             ObservatoryEdge("owner", "review-profile", "invokes"),
             ObservatoryEdge("owner", "triage-care", "invokes"),
+            ObservatoryEdge("veterinarian", "review-triage-queue", "reviews"),
+            ObservatoryEdge("veterinarian", "request-triage-information", "requests"),
             ObservatoryEdge("veterinarian", "review-triage", "reviews"),
+            ObservatoryEdge("veterinarian", "define-triage-follow-up", "defines"),
             ObservatoryEdge("triage-care", "triage-assessment", "creates"),
+            ObservatoryEdge("review-triage-queue", "triage-assessment", "queries"),
+            ObservatoryEdge("request-triage-information", "triage-assessment", "updates"),
             ObservatoryEdge("review-triage", "triage-assessment", "reviews"),
+            ObservatoryEdge("define-triage-follow-up", "responsibility", "creates"),
             ObservatoryEdge("owner", "manage-responsibility", "invokes"),
             ObservatoryEdge("owner", "manage-cat-profile", "invokes"),
             ObservatoryEdge("owner", "record-care", "invokes"),

@@ -18,6 +18,10 @@ medication recommendations.
 - A veterinarian review records reviewer identity, decision, rationale, and
   timezone-aware review time.
 - A modified review must provide final urgency.
+- A veterinarian can inspect the pending queue and request additional owner
+  observations while an assessment remains pending.
+- A follow-up responsibility can only be defined after an accepted or modified
+  veterinarian review and remains linked to its assessment.
 - Review decisions cannot be changed through the same assessment.
 - AI urgency is not a diagnosis and does not authorize treatment.
 
@@ -28,7 +32,8 @@ medication recommendations.
 - Terminal deletion removes assessments and reviews.
 - Note references remain stable across domain, adapter, and export surfaces.
 - The deterministic scenario demonstrates pending AI assessment followed by
-  veterinarian modification.
+  queue review, an information request, veterinarian modification, and a linked
+  follow-up responsibility.
 - Runtime observations preserve AI uncertainty and veterinarian rationale for
   auditability.
 - Deletion receipts report removed assessments and veterinarian reviews.

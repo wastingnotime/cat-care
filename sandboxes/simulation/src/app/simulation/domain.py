@@ -129,6 +129,22 @@ class VeterinarianReview:
 
 
 @dataclass(frozen=True)
+class TriageInformationRequest:
+    id: str
+    assessment_id: str
+    requested_at: datetime
+    veterinarian_id: str
+    question: str
+
+    def __post_init__(self) -> None:
+        if not self.veterinarian_id.strip():
+            raise ValueError("veterinarian identity cannot be empty")
+        if not self.question.strip():
+            raise ValueError("information request question cannot be empty")
+        _require_timezone_aware(self.requested_at, "information request time")
+
+
+@dataclass(frozen=True)
 class DirectCareRecord:
     event_type: str
     description: str
@@ -271,6 +287,7 @@ class DeletionReceipt:
     direct_care_removed: int
     triage_assessments_removed: int
     veterinarian_reviews_removed: int
+    triage_information_requests_removed: int
 
 
 @dataclass
@@ -283,6 +300,7 @@ class CatCareState:
     direct_care: list[DirectCareRecord] = field(default_factory=list)
     triage_assessments: list[TriageAssessment] = field(default_factory=list)
     veterinarian_reviews: list[VeterinarianReview] = field(default_factory=list)
+    triage_information_requests: list[TriageInformationRequest] = field(default_factory=list)
     future_information_known: bool = True
     deleted: bool = False
     deleted_at: datetime | None = None
@@ -712,6 +730,117 @@ class CatCareState:
         )
         return review
 
+    def pending_triage_assessments(self) -> list[TriageAssessment]:
+        self._ensure_active()
+        return sorted(
+            (
+                assessment
+                for assessment in self.triage_assessments
+                if assessment.review_status == TriageReviewStatus.PENDING
+            ),
+            key=lambda assessment: (assessment.assessed_at, assessment.id),
+        )
+
+    def request_triage_information(
+        self,
+        assessment_id: str,
+        requested_at: datetime,
+        veterinarian_id: str,
+        question: str,
+        *,
+        current_time: datetime | None = None,
+    ) -> TriageInformationRequest:
+        self._ensure_active()
+        _require_timezone_aware(requested_at, "information request time")
+        if current_time is not None:
+            _require_timezone_aware(current_time, "current time")
+            if requested_at > current_time:
+                raise ValueError("an information request cannot be recorded in the future")
+        assessment = next(
+            (item for item in self.triage_assessments if item.id == assessment_id),
+            None,
+        )
+        if assessment is None:
+            raise ValueError(f"triage assessment {assessment_id} does not exist")
+        if assessment.review_status != TriageReviewStatus.PENDING:
+            raise ValueError("information can only be requested for pending triage")
+        request = TriageInformationRequest(
+            f"triage-info-{len(self.triage_information_requests) + 1}",
+            assessment_id,
+            requested_at,
+            veterinarian_id,
+            question,
+        )
+        self.triage_information_requests.append(request)
+        self.events.append(
+            CareEvent(
+                "triage_information_requested",
+                requested_at,
+                question,
+                details=(
+                    ("assessment_id", assessment_id),
+                    ("veterinarian_id", veterinarian_id),
+                ),
+            )
+        )
+        return request
+
+    def define_triage_follow_up(
+        self,
+        assessment_id: str,
+        responsibility_id: str,
+        title: str,
+        due_at: datetime,
+        created_at: datetime,
+        veterinarian_id: str,
+        *,
+        current_time: datetime | None = None,
+    ) -> Responsibility:
+        self._ensure_active()
+        _require_timezone_aware(created_at, "follow-up creation time")
+        _require_timezone_aware(due_at, "follow-up due time")
+        if current_time is not None:
+            _require_timezone_aware(current_time, "current time")
+            if created_at > current_time:
+                raise ValueError("a follow-up cannot be created in the future")
+        if due_at <= created_at:
+            raise ValueError("follow-up due time must be after creation")
+        assessment = next(
+            (item for item in self.triage_assessments if item.id == assessment_id),
+            None,
+        )
+        if assessment is None or assessment.review_status == TriageReviewStatus.PENDING:
+            raise ValueError("follow-up requires reviewed triage")
+        if assessment.review_status == TriageReviewStatus.REJECTED:
+            raise ValueError("rejected triage cannot define a follow-up")
+        if not veterinarian_id.strip():
+            raise ValueError("veterinarian identity cannot be empty")
+        if any(item.id == responsibility_id for item in self.responsibilities):
+            raise ValueError(f"responsibility {responsibility_id} already exists")
+        responsibility = Responsibility(
+            responsibility_id,
+            title,
+            due_at,
+            "veterinary",
+            action_key=f"triage:{assessment_id}:follow-up",
+        )
+        self.responsibilities.append(responsibility)
+        self.events.append(
+            CareEvent(
+                "triage_follow_up_defined",
+                created_at,
+                title,
+                responsibility_id,
+                responsibility.action_key,
+                details=(
+                    ("assessment_id", assessment_id),
+                    ("veterinarian_id", veterinarian_id),
+                    ("due_at", due_at.isoformat()),
+                ),
+            )
+        )
+        return responsibility
+
     def timeline(self) -> list[CareEvent]:
         return sorted(self.events, key=lambda event: event.occurred_at, reverse=True)
 
@@ -728,6 +857,7 @@ class CatCareState:
                 "direct_care": [],
                 "triage_assessments": [],
                 "veterinarian_reviews": [],
+                "triage_information_requests": [],
                 "events": [],
             }
         return {
@@ -812,6 +942,16 @@ class CatCareState:
                 }
                 for review in self.veterinarian_reviews
             ],
+            "triage_information_requests": [
+                {
+                    "id": request.id,
+                    "assessment_id": request.assessment_id,
+                    "requested_at": request.requested_at.isoformat(),
+                    "veterinarian_id": request.veterinarian_id,
+                    "question": request.question,
+                }
+                for request in self.triage_information_requests
+            ],
             "events": [
                 {
                     "type": event.event_type,
@@ -844,6 +984,7 @@ class CatCareState:
             len(self.direct_care),
             len(self.triage_assessments),
             len(self.veterinarian_reviews),
+            len(self.triage_information_requests),
         )
         self.responsibilities.clear()
         self.notifications.clear()
@@ -851,6 +992,7 @@ class CatCareState:
         self.direct_care.clear()
         self.triage_assessments.clear()
         self.veterinarian_reviews.clear()
+        self.triage_information_requests.clear()
         self.events.clear()
         self.cat_name = ""
         self.birth_date = None
