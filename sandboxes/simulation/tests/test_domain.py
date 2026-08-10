@@ -529,6 +529,13 @@ def test_recurrence_policy_requires_one_explicit_rule():
         RecurrencePolicy(30, 1)
 
 
+def test_recurrence_policy_rejects_boolean_and_fractional_intervals():
+    with pytest.raises(ValueError, match="integer"):
+        RecurrencePolicy(True)
+    with pytest.raises(ValueError, match="integer"):
+        RecurrencePolicy(calendar_months=1.5)
+
+
 def test_veterinarian_triage_workflow_creates_information_request_and_follow_up():
     state = CatCareState("Mimi")
     state.record_note("eating less", NOW)

@@ -215,6 +215,14 @@ class RecurrencePolicy:
     def __post_init__(self) -> None:
         if (self.interval_days is None) == (self.calendar_months is None):
             raise ValueError("recurrence must define exactly one interval rule")
+        if self.interval_days is not None and (
+            not isinstance(self.interval_days, int) or isinstance(self.interval_days, bool)
+        ):
+            raise ValueError("recurrence interval must be an integer")
+        if self.calendar_months is not None and (
+            not isinstance(self.calendar_months, int) or isinstance(self.calendar_months, bool)
+        ):
+            raise ValueError("calendar recurrence must be an integer")
         if self.interval_days is not None and self.interval_days <= 0:
             raise ValueError("recurrence interval must be positive")
         if self.calendar_months is not None and self.calendar_months <= 0:
