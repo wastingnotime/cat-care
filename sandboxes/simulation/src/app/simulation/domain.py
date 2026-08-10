@@ -179,6 +179,10 @@ class DirectCareRecord:
             raise ValueError("care event type cannot be empty")
         if not self.description.strip():
             raise ValueError("care event description cannot be empty")
+        if self.responsibility_id is not None and not self.responsibility_id.strip():
+            raise ValueError("care event responsibility ID cannot be empty")
+        if self.action_key is not None and not self.action_key.strip():
+            raise ValueError("care event action key cannot be empty")
         _require_timezone_aware(self.occurred_at, "care event time")
 
 
@@ -192,6 +196,14 @@ class CareEvent:
     details: tuple[tuple[str, str], ...] = ()
 
     def __post_init__(self) -> None:
+        if not self.event_type.strip():
+            raise ValueError("care event type cannot be empty")
+        if not self.description.strip():
+            raise ValueError("care event description cannot be empty")
+        if self.responsibility_id is not None and not self.responsibility_id.strip():
+            raise ValueError("care event responsibility ID cannot be empty")
+        if self.action_key is not None and not self.action_key.strip():
+            raise ValueError("care event action key cannot be empty")
         _require_timezone_aware(self.occurred_at, "care event time")
 
 

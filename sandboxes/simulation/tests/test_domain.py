@@ -241,6 +241,13 @@ def test_care_event_type_and_description_cannot_be_empty():
         state.record_note(" ", NOW)
 
 
+def test_care_record_identifiers_cannot_be_blank():
+    with pytest.raises(ValueError, match="responsibility ID"):
+        DirectCareRecord("exam", "completed", NOW, responsibility_id=" ")
+    with pytest.raises(ValueError, match="action key"):
+        DirectCareRecord("exam", "completed", NOW, action_key=" ")
+
+
 def test_failed_notification_does_not_change_owner_responsibility_state():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
     event = state.record_notification("r1", NOW, NotificationOutcome.FAILED)
