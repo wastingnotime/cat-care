@@ -334,3 +334,9 @@ responsibility reference. The complete runtime-backed suite passes: 89 passed.
 Veterinarian reviews now validate assessment identity and final-urgency enum
 values before mutating triage state. The complete runtime-backed suite passes:
 89 passed.
+
+## Notification-action-key build
+
+Notification records now reject blank optional action keys, preserving action
+correlation and duplicate-care semantics. The complete runtime-backed suite
+passes: 89 passed.
