@@ -340,3 +340,9 @@ values before mutating triage state. The complete runtime-backed suite passes:
 Notification records now reject blank optional action keys, preserving action
 correlation and duplicate-care semantics. The complete runtime-backed suite
 passes: 89 passed.
+
+## Care-event-detail build
+
+Care-event detail keys and values must be non-empty strings with unique keys.
+The validation is applied at the timeline-event boundary, and the complete
+runtime-backed suite passes: 90 passed.
