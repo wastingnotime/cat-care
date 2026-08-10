@@ -369,3 +369,9 @@ integer removal counts. The complete runtime-backed suite passes: 91 passed.
 Status snapshots now require non-empty kind and sentence fields and reject
 blank nearest-responsibility IDs. The complete runtime-backed suite passes:
 92 passed.
+
+## Projection-text build
+
+Status and note projections now reject non-text values explicitly, preserving
+stable adapter-facing validation errors. The complete runtime-backed suite
+passes: 92 passed.
