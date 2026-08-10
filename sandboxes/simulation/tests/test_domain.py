@@ -16,6 +16,11 @@ def test_due_soon_and_overdue_are_derived_from_time():
     assert responsibility.derived_state(NOW + timedelta(days=2), THRESHOLD) == "overdue"
 
 
+def test_status_rejects_negative_due_soon_threshold():
+    with pytest.raises(ValueError, match="cannot be negative"):
+        CatCareState("Mimi").status_snapshot(NOW, timedelta(days=-1))
+
+
 def test_status_snapshot_exposes_stable_kind_and_nearest_responsibility():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW + timedelta(days=1), "preventive care")])
     snapshot = state.status_snapshot(NOW, THRESHOLD)

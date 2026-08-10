@@ -338,6 +338,8 @@ class CatCareState:
     def status_snapshot(self, now: datetime, due_soon_threshold: timedelta) -> StatusSnapshot:
         self._ensure_active()
         _require_timezone_aware(now, "current time")
+        if due_soon_threshold < timedelta(0):
+            raise ValueError("due-soon threshold cannot be negative")
         active = [item for item in self.responsibilities if item.state == ResponsibilityState.PLANNED]
         overdue = [item for item in active if item.derived_state(now, due_soon_threshold) == "overdue"]
         if overdue:
