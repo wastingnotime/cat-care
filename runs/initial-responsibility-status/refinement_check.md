@@ -328,3 +328,9 @@ types at construction. The complete runtime-backed suite passes: 88 passed.
 
 Notes now reject blank explicit IDs, and notifications require a non-empty
 responsibility reference. The complete runtime-backed suite passes: 89 passed.
+
+## Veterinarian-review build
+
+Veterinarian reviews now validate assessment identity and final-urgency enum
+values before mutating triage state. The complete runtime-backed suite passes:
+89 passed.
