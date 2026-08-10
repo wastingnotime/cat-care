@@ -305,6 +305,8 @@ def test_notification_optional_provider_fields_cannot_be_blank():
 def test_note_optional_id_cannot_be_blank():
     with pytest.raises(ValueError, match="note ID"):
         NoteRecord("eating less", NOW, " ")
+    with pytest.raises(ValueError, match="description must be text"):
+        NoteRecord(42, NOW)
 
 
 def test_owner_deferral_records_decision_and_reschedules_responsibility():

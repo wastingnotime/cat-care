@@ -89,6 +89,10 @@ class NoteRecord:
     id: str | None = None
 
     def __post_init__(self) -> None:
+        if not isinstance(self.description, str):
+            raise ValueError("note description must be text")
+        if self.id is not None and not isinstance(self.id, str):
+            raise ValueError("note ID must be text")
         if not self.description.strip():
             raise ValueError("note description cannot be empty")
         if self.id is not None and not self.id.strip():
@@ -358,6 +362,14 @@ class StatusSnapshot:
     nearest_responsibility_id: str | None = None
 
     def __post_init__(self) -> None:
+        if not isinstance(self.kind, str):
+            raise ValueError("status kind must be text")
+        if not isinstance(self.sentence, str):
+            raise ValueError("status sentence must be text")
+        if self.nearest_responsibility_id is not None and not isinstance(
+            self.nearest_responsibility_id, str
+        ):
+            raise ValueError("status responsibility ID must be text")
         if not self.kind.strip():
             raise ValueError("status kind cannot be empty")
         if not self.sentence.strip():
