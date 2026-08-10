@@ -186,6 +186,7 @@ def test_care_event_can_be_logged_and_linked_to_a_responsibility():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
     event = state.record_care_event("weight_measured", "4.2 kg", NOW, responsibility_id="r1")
     assert event in state.timeline()
+    assert event.responsibility_id == "r1"
 
 
 def test_equal_time_events_export_in_deterministic_order():
@@ -194,7 +195,6 @@ def test_equal_time_events_export_in_deterministic_order():
     state.record_care_event("a_event", "a", NOW)
     assert [event.event_type for event in state.timeline()] == ["z_event", "a_event"]
     assert [event["type"] for event in state.export_data()["events"]] == ["a_event", "z_event"]
-    assert event.responsibility_id == "r1"
 
 
 def test_care_event_requires_existing_link_and_cannot_be_future_dated():

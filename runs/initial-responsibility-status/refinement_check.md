@@ -243,3 +243,8 @@ adapter response stable independent of insertion order.
 
 The domain now rejects blank responsibility IDs and titles at construction and
 edit boundaries. Pure simulation and adapter tests pass: 68 passed.
+
+## Equal-time projection build
+
+Status selection and timeline/export projections now use explicit ID and event
+field tie-breakers. Pure simulation and adapter tests pass: 70 passed.
