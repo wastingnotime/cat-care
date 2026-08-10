@@ -248,3 +248,8 @@ edit boundaries. Pure simulation and adapter tests pass: 68 passed.
 
 Status selection and timeline/export projections now use explicit ID and event
 field tie-breakers. Pure simulation and adapter tests pass: 70 passed.
+
+## Triage-decision build
+
+Veterinarian reviews now reject changed urgency on acceptance and any final
+urgency on rejection. Pure simulation and adapter tests pass: 71 passed.
