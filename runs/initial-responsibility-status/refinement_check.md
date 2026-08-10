@@ -381,3 +381,9 @@ passes: 92 passed.
 Responsibilities now require terminal timestamps to agree with planned,
 completed, or cancelled state. The complete runtime-backed suite passes:
 92 passed.
+
+## Triage-terminal-state build
+
+Rejected triage assessments now preserve no final urgency, and their review
+events export the explicit value `none`. The complete runtime-backed suite
+passes: 93 passed.

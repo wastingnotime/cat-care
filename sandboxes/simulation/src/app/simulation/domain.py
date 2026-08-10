@@ -882,7 +882,10 @@ class CatCareState:
                 f"Veterinarian reviewed {assessment_id}",
                 details=(
                     ("decision", decision.value),
-                    ("final_urgency", assessment.final_urgency.value),
+                    (
+                        "final_urgency",
+                        assessment.final_urgency.value if assessment.final_urgency else "none",
+                    ),
                     ("veterinarian_id", veterinarian_id),
                 ),
             )
