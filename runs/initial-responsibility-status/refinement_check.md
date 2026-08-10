@@ -346,3 +346,9 @@ passes: 89 passed.
 Care-event detail keys and values must be non-empty strings with unique keys.
 The validation is applied at the timeline-event boundary, and the complete
 runtime-backed suite passes: 90 passed.
+
+## Cat-profile-type build
+
+Cat profile construction now validates text name/photo metadata and exact date
+types before applying profile consistency rules. The complete runtime-backed
+suite passes: 90 passed.
