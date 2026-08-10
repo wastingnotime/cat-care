@@ -193,6 +193,15 @@ class DirectCareRecord:
             raise ValueError("care event responsibility ID cannot be empty")
         if self.action_key is not None and not self.action_key.strip():
             raise ValueError("care event action key cannot be empty")
+        keys: set[str] = set()
+        for key, value in self.details:
+            if not isinstance(key, str) or not key.strip():
+                raise ValueError("care event detail key cannot be empty")
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError("care event detail value cannot be empty")
+            if key in keys:
+                raise ValueError("care event detail keys must be unique")
+            keys.add(key)
         _require_timezone_aware(self.occurred_at, "care event time")
 
 

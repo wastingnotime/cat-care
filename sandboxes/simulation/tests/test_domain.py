@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from app.simulation.domain import CatCareState, DirectCareRecord, NoteRecord, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState, TriageAssessment, TriageReviewStatus, TriageUrgency, VeterinarianReview
+from app.simulation.domain import CareEvent, CatCareState, DirectCareRecord, NoteRecord, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState, TriageAssessment, TriageReviewStatus, TriageUrgency, VeterinarianReview
 
 
 NOW = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -250,6 +250,13 @@ def test_care_record_identifiers_cannot_be_blank():
         DirectCareRecord("exam", "completed", NOW, responsibility_id=" ")
     with pytest.raises(ValueError, match="action key"):
         DirectCareRecord("exam", "completed", NOW, action_key=" ")
+
+
+def test_care_event_details_require_unique_non_empty_text():
+    with pytest.raises(ValueError, match="detail key"):
+        CareEvent("exam", NOW, "completed", details=((" ", "value"),))
+    with pytest.raises(ValueError, match="detail keys"):
+        CareEvent("exam", NOW, "completed", details=(("result", "ok"), ("result", "again")))
 
 
 def test_failed_notification_does_not_change_owner_responsibility_state():
