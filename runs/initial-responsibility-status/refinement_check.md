@@ -238,3 +238,8 @@ layer visible in supervision.
 
 Equal due dates now use responsibility ID as an explicit tie-breaker, making the
 adapter response stable independent of insertion order.
+
+## Responsibility-identity build
+
+The domain now rejects blank responsibility IDs and titles at construction and
+edit boundaries. Pure simulation and adapter tests pass: 68 passed.
