@@ -51,6 +51,16 @@ def test_responsibility_category_is_required_and_exported():
     assert state.export_data()["responsibilities"][0]["category"] == "preventive care"
 
 
+def test_responsibility_identity_and_title_are_required():
+    with pytest.raises(ValueError, match="id"):
+        Responsibility(" ", "vaccine", NOW, "preventive care")
+    with pytest.raises(ValueError, match="title"):
+        Responsibility("r1", " ", NOW, "preventive care")
+    state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
+    with pytest.raises(ValueError, match="title"):
+        state.edit_responsibility("r1", NOW, title=" ", due_at=NOW)
+
+
 def test_duplicate_responsibility_ids_and_editing_completed_items_are_rejected():
     state = CatCareState("Mimi")
     state.add_responsibility(Responsibility("r1", "vaccine", NOW, "preventive care"), NOW)

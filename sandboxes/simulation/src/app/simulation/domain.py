@@ -210,6 +210,10 @@ class Responsibility:
     action_key: str | None = None
 
     def __post_init__(self) -> None:
+        if not self.id.strip():
+            raise ValueError("responsibility id cannot be empty")
+        if not self.title.strip():
+            raise ValueError("responsibility title cannot be empty")
         if not self.category.strip():
             raise ValueError("responsibility category cannot be empty")
         if self.due_at is not None:
@@ -504,6 +508,8 @@ class CatCareState:
             _require_timezone_aware(due_at, "responsibility due time")
         if category is not None and not category.strip():
             raise ValueError("responsibility category cannot be empty")
+        if not title.strip():
+            raise ValueError("responsibility title cannot be empty")
         previous_title = responsibility.title
         previous_due_at = responsibility.due_at
         previous_category = responsibility.category
