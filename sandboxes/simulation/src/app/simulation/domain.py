@@ -393,8 +393,12 @@ class CatCareState:
         _validate_cat_profile(self.cat_name, self.birth_date, self.adoption_date, self.photo_ref)
         if not isinstance(self.future_information_known, bool):
             raise ValueError("future information flag must be boolean")
+        if not isinstance(self.deleted, bool):
+            raise ValueError("deleted flag must be boolean")
         if self.deleted_at is not None:
             _require_timezone_aware(self.deleted_at, "deletion time")
+        if self.deleted != (self.deleted_at is not None):
+            raise ValueError("deletion metadata must match deleted state")
 
     def _ensure_active(self) -> None:
         if self.deleted:
