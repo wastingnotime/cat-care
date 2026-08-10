@@ -264,6 +264,13 @@ def test_notification_outcome_must_be_explicit():
         state.record_notification("r1", NOW, "failed")
 
 
+def test_notification_optional_provider_fields_cannot_be_blank():
+    with pytest.raises(ValueError, match="provider cannot be empty"):
+        NotificationRecord("r1", NOW, NotificationOutcome.DELIVERED, provider=" ")
+    with pytest.raises(ValueError, match="message ID cannot be empty"):
+        NotificationRecord("r1", NOW, NotificationOutcome.DELIVERED, provider_message_id=" ")
+
+
 def test_owner_deferral_records_decision_and_reschedules_responsibility():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
     event = state.defer_responsibility("r1", NOW, NOW + timedelta(days=7), current_time=NOW)

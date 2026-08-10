@@ -64,6 +64,10 @@ class NotificationRecord:
         _require_timezone_aware(self.attempted_at, "notification time")
         if not isinstance(self.outcome, NotificationOutcome):
             raise ValueError("notification outcome must be explicit")
+        if self.provider is not None and not self.provider.strip():
+            raise ValueError("notification provider cannot be empty")
+        if self.provider_message_id is not None and not self.provider_message_id.strip():
+            raise ValueError("notification provider message ID cannot be empty")
 
 
 @dataclass(frozen=True)
