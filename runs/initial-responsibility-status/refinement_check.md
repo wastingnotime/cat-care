@@ -375,3 +375,9 @@ blank nearest-responsibility IDs. The complete runtime-backed suite passes:
 Status and note projections now reject non-text values explicitly, preserving
 stable adapter-facing validation errors. The complete runtime-backed suite
 passes: 92 passed.
+
+## Responsibility-terminal-state build
+
+Responsibilities now require terminal timestamps to agree with planned,
+completed, or cancelled state. The complete runtime-backed suite passes:
+92 passed.
