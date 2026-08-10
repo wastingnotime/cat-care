@@ -352,3 +352,9 @@ runtime-backed suite passes: 90 passed.
 Cat profile construction now validates text name/photo metadata and exact date
 types before applying profile consistency rules. The complete runtime-backed
 suite passes: 90 passed.
+
+## Deletion-state build
+
+Aggregate deletion flags now require boolean values and must agree with the
+presence of deletion metadata. The complete runtime-backed suite passes:
+90 passed.
