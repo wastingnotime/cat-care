@@ -393,3 +393,9 @@ passes: 93 passed.
 Status projections now reject non-duration due-soon thresholds explicitly at
 both aggregate and responsibility boundaries. The complete runtime-backed
 suite passes: 93 passed.
+
+## Datetime-type build
+
+All timezone-aware domain timestamps now reject non-datetime values explicitly
+before timezone inspection. The complete runtime-backed suite passes: 93
+passed.
