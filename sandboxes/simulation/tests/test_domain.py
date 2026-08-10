@@ -92,6 +92,10 @@ def test_responsibility_identity_and_title_are_required():
         Responsibility("r3", "vaccine", NOW, "care", state="planned")
     with pytest.raises(ValueError, match="recurrence"):
         Responsibility("r4", "vaccine", NOW, "care", recurrence="daily")
+    with pytest.raises(ValueError, match="planned responsibility"):
+        Responsibility("r5", "vaccine", NOW, "care", completed_at=NOW)
+    with pytest.raises(ValueError, match="completed responsibility"):
+        Responsibility("r6", "vaccine", NOW, "care", state=ResponsibilityState.COMPLETED)
 
 
 def test_duplicate_responsibility_ids_and_editing_completed_items_are_rejected():

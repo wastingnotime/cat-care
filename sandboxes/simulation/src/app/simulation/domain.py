@@ -301,6 +301,13 @@ class Responsibility:
             _require_timezone_aware(self.completed_at, "responsibility completion time")
         if self.cancelled_at is not None:
             _require_timezone_aware(self.cancelled_at, "responsibility cancellation time")
+        timestamps = (self.completed_at is not None, self.cancelled_at is not None)
+        if self.state == ResponsibilityState.PLANNED and any(timestamps):
+            raise ValueError("planned responsibility cannot have terminal timestamps")
+        if self.state == ResponsibilityState.COMPLETED and timestamps != (True, False):
+            raise ValueError("completed responsibility requires completion time only")
+        if self.state == ResponsibilityState.CANCELLED and timestamps != (False, True):
+            raise ValueError("cancelled responsibility requires cancellation time only")
 
     def derived_state(self, now: datetime, due_soon_threshold: timedelta) -> str:
         _require_timezone_aware(now, "current time")
