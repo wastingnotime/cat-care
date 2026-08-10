@@ -667,6 +667,8 @@ class CatCareState:
             if assessed_at > current_time:
                 raise ValueError("a triage assessment cannot be recorded in the future")
         normalized_note_ids = tuple(note_ids)
+        if len(set(normalized_note_ids)) != len(normalized_note_ids):
+            raise ValueError("triage assessment cannot repeat a note")
         known_note_ids = {note.id for note in self.notes}
         if any(note_id not in known_note_ids for note_id in normalized_note_ids):
             raise ValueError("triage assessment references an unknown note")

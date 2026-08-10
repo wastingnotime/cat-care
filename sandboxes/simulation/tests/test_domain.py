@@ -446,6 +446,17 @@ def test_triage_review_decision_preserves_urgency_semantics():
         )
 
 
+def test_triage_rejects_duplicate_note_references():
+    state = CatCareState("Mimi")
+    state.record_note("sneezing", NOW)
+    with pytest.raises(ValueError, match="repeat a note"):
+        state.request_triage(
+            ["note-1", "note-1"], TriageUrgency.MONITOR, "Monitor.",
+            "Limited history.", NOW, "triage-service", "model-2026-01",
+            current_time=NOW,
+        )
+
+
 def test_triage_rejects_unknown_notes_and_future_review_times():
     state = CatCareState("Mimi")
     with pytest.raises(ValueError, match="unknown note"):
