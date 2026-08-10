@@ -283,3 +283,9 @@ canonical evidence link per note. The complete runtime-backed suite passes:
 The non-negative due-soon threshold invariant now applies to both aggregate
 status and individual responsibility projections, including adapter lists. The
 complete runtime-backed suite passes: 83 passed.
+
+## Triage-record build
+
+Triage assessment and information-request constructors now validate IDs,
+reference uniqueness, and enum fields directly. The complete runtime-backed
+suite passes: 84 passed.
