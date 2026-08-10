@@ -318,3 +318,8 @@ deletion metadata at construction. The complete runtime-backed suite passes:
 Recurrence policies now require positive integer day or calendar-month counts;
 booleans and fractional values are rejected. The complete runtime-backed suite
 passes: 88 passed.
+
+## Responsibility-type build
+
+Responsibilities now require explicit lifecycle-state and recurrence-policy
+types at construction. The complete runtime-backed suite passes: 88 passed.
