@@ -403,6 +403,25 @@ def test_ai_triage_is_provisional_until_veterinarian_review():
     assert state.export_data()["triage_assessments"][0]["final_urgency"] == "urgent"
 
 
+def test_triage_review_decision_preserves_urgency_semantics():
+    state = CatCareState("Mimi")
+    state.record_note("sneezing", NOW)
+    assessment = state.request_triage(
+        ["note-1"], TriageUrgency.MONITOR, "Monitor.", "Limited history.",
+        NOW, "triage-service", "model-2026-01", current_time=NOW,
+    )
+    with pytest.raises(ValueError, match="cannot change urgency"):
+        state.review_triage(
+            assessment.id, NOW, "vet-123", TriageReviewStatus.ACCEPTED,
+            TriageUrgency.URGENT, "Reviewed.", current_time=NOW,
+        )
+    with pytest.raises(ValueError, match="cannot have final urgency"):
+        state.review_triage(
+            assessment.id, NOW, "vet-123", TriageReviewStatus.REJECTED,
+            TriageUrgency.MONITOR, "Insufficient evidence.", current_time=NOW,
+        )
+
+
 def test_triage_rejects_unknown_notes_and_future_review_times():
     state = CatCareState("Mimi")
     with pytest.raises(ValueError, match="unknown note"):

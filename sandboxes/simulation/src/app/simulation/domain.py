@@ -117,6 +117,8 @@ class VeterinarianReview:
     rationale: str
 
     def __post_init__(self) -> None:
+        if not isinstance(self.decision, TriageReviewStatus):
+            raise ValueError("veterinarian review decision must be explicit")
         if not self.veterinarian_id.strip():
             raise ValueError("veterinarian identity cannot be empty")
         if self.decision == TriageReviewStatus.PENDING:
@@ -125,6 +127,8 @@ class VeterinarianReview:
             raise ValueError("veterinarian review rationale cannot be empty")
         if self.decision == TriageReviewStatus.MODIFIED and self.final_urgency is None:
             raise ValueError("modified triage review requires final urgency")
+        if self.decision == TriageReviewStatus.REJECTED and self.final_urgency is not None:
+            raise ValueError("rejected triage review cannot have final urgency")
         _require_timezone_aware(self.reviewed_at, "veterinarian review time")
 
 
@@ -706,6 +710,10 @@ class CatCareState:
             raise ValueError(f"triage assessment {assessment_id} does not exist")
         if assessment.review_status != TriageReviewStatus.PENDING:
             raise ValueError(f"triage assessment {assessment_id} has already been reviewed")
+        if decision == TriageReviewStatus.ACCEPTED and final_urgency not in (None, assessment.urgency):
+            raise ValueError("accepted triage review cannot change urgency")
+        if decision == TriageReviewStatus.REJECTED and final_urgency is not None:
+            raise ValueError("rejected triage review cannot have final urgency")
         effective_urgency = (
             assessment.urgency
             if decision == TriageReviewStatus.ACCEPTED and final_urgency is None
