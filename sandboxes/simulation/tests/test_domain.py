@@ -280,6 +280,13 @@ def test_notification_optional_provider_fields_cannot_be_blank():
         NotificationRecord("r1", NOW, NotificationOutcome.DELIVERED, provider=" ")
     with pytest.raises(ValueError, match="message ID cannot be empty"):
         NotificationRecord("r1", NOW, NotificationOutcome.DELIVERED, provider_message_id=" ")
+    with pytest.raises(ValueError, match="responsibility ID"):
+        NotificationRecord(" ", NOW, NotificationOutcome.DELIVERED)
+
+
+def test_note_optional_id_cannot_be_blank():
+    with pytest.raises(ValueError, match="note ID"):
+        NoteRecord("eating less", NOW, " ")
 
 
 def test_owner_deferral_records_decision_and_reschedules_responsibility():

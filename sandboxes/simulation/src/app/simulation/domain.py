@@ -61,6 +61,8 @@ class NotificationRecord:
     provider_message_id: str | None = None
 
     def __post_init__(self) -> None:
+        if not self.responsibility_id.strip():
+            raise ValueError("notification responsibility ID cannot be empty")
         _require_timezone_aware(self.attempted_at, "notification time")
         if not isinstance(self.outcome, NotificationOutcome):
             raise ValueError("notification outcome must be explicit")
@@ -79,6 +81,8 @@ class NoteRecord:
     def __post_init__(self) -> None:
         if not self.description.strip():
             raise ValueError("note description cannot be empty")
+        if self.id is not None and not self.id.strip():
+            raise ValueError("note ID cannot be empty")
         _require_timezone_aware(self.occurred_at, "note time")
 
 
