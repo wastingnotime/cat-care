@@ -63,6 +63,8 @@ class NotificationRecord:
     def __post_init__(self) -> None:
         if not self.responsibility_id.strip():
             raise ValueError("notification responsibility ID cannot be empty")
+        if self.action_key is not None and not self.action_key.strip():
+            raise ValueError("notification action key cannot be empty")
         _require_timezone_aware(self.attempted_at, "notification time")
         if not isinstance(self.outcome, NotificationOutcome):
             raise ValueError("notification outcome must be explicit")

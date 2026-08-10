@@ -282,6 +282,8 @@ def test_notification_optional_provider_fields_cannot_be_blank():
         NotificationRecord("r1", NOW, NotificationOutcome.DELIVERED, provider_message_id=" ")
     with pytest.raises(ValueError, match="responsibility ID"):
         NotificationRecord(" ", NOW, NotificationOutcome.DELIVERED)
+    with pytest.raises(ValueError, match="action key"):
+        NotificationRecord("r1", NOW, NotificationOutcome.DELIVERED, action_key=" ")
 
 
 def test_note_optional_id_cannot_be_blank():
