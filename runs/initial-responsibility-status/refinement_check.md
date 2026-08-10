@@ -253,3 +253,9 @@ field tie-breakers. Pure simulation and adapter tests pass: 70 passed.
 
 Veterinarian reviews now reject changed urgency on acceptance and any final
 urgency on rejection. Pure simulation and adapter tests pass: 71 passed.
+
+## Export-order build
+
+Owner export collections now use explicit stable keys for responsibilities,
+timeline-related records, notifications, notes, and triage records. Pure
+simulation and adapter tests pass: 72 passed.
