@@ -271,3 +271,9 @@ MRL runtime with `wnt install`, the complete suite passes: 81 passed.
 Status projections now reject negative due-soon thresholds rather than
 silently changing urgency semantics. The complete runtime-backed suite passes:
 82 passed.
+
+## Triage-evidence build
+
+AI triage assessments now reject repeated note references, preserving one
+canonical evidence link per note. The complete runtime-backed suite passes:
+83 passed.
