@@ -79,6 +79,10 @@ def test_responsibility_identity_and_title_are_required():
         state.edit_responsibility("r1", NOW, title=" ", due_at=NOW)
     with pytest.raises(ValueError, match="action key"):
         Responsibility("r2", "vaccine", NOW, "care", action_key=" ")
+    with pytest.raises(ValueError, match="state"):
+        Responsibility("r3", "vaccine", NOW, "care", state="planned")
+    with pytest.raises(ValueError, match="recurrence"):
+        Responsibility("r4", "vaccine", NOW, "care", recurrence="daily")
 
 
 def test_duplicate_responsibility_ids_and_editing_completed_items_are_rejected():

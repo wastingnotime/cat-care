@@ -260,6 +260,10 @@ class Responsibility:
             raise ValueError("responsibility category cannot be empty")
         if self.action_key is not None and not self.action_key.strip():
             raise ValueError("responsibility action key cannot be empty")
+        if not isinstance(self.state, ResponsibilityState):
+            raise ValueError("responsibility state must be explicit")
+        if self.recurrence is not None and not isinstance(self.recurrence, RecurrencePolicy):
+            raise ValueError("responsibility recurrence must be explicit")
         if self.due_at is not None:
             _require_timezone_aware(self.due_at, "responsibility due time")
         if self.completed_at is not None:
