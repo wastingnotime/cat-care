@@ -77,6 +77,8 @@ def test_responsibility_identity_and_title_are_required():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
     with pytest.raises(ValueError, match="title"):
         state.edit_responsibility("r1", NOW, title=" ", due_at=NOW)
+    with pytest.raises(ValueError, match="action key"):
+        Responsibility("r2", "vaccine", NOW, "care", action_key=" ")
 
 
 def test_duplicate_responsibility_ids_and_editing_completed_items_are_rejected():
