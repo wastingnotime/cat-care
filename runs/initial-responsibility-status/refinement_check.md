@@ -295,3 +295,8 @@ suite passes: 84 passed.
 Responsibility construction now rejects blank action keys, preserving the
 distinction between an identified care action and no action key. The complete
 runtime-backed suite passes: 84 passed.
+
+## Notification-metadata build
+
+Notification records now reject blank optional provider names and provider
+message IDs. The complete runtime-backed suite passes: 85 passed.
