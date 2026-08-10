@@ -387,3 +387,9 @@ completed, or cancelled state. The complete runtime-backed suite passes:
 Rejected triage assessments now preserve no final urgency, and their review
 events export the explicit value `none`. The complete runtime-backed suite
 passes: 93 passed.
+
+## Threshold-type build
+
+Status projections now reject non-duration due-soon thresholds explicitly at
+both aggregate and responsibility boundaries. The complete runtime-backed
+suite passes: 93 passed.
