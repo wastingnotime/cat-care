@@ -522,6 +522,21 @@ def test_triage_review_decision_preserves_urgency_semantics():
         )
 
 
+def test_rejected_triage_has_no_final_urgency():
+    state = CatCareState("Mimi")
+    state.record_note("sneezing", NOW)
+    assessment = state.request_triage(
+        ["note-1"], TriageUrgency.MONITOR, "Monitor.", "Limited history.",
+        NOW, "triage-service", "model-2026-01", current_time=NOW,
+    )
+    state.review_triage(
+        assessment.id, NOW, "vet-123", TriageReviewStatus.REJECTED,
+        None, "Not enough evidence to use this assessment.", current_time=NOW,
+    )
+    assert assessment.final_urgency is None
+    assert state.export_data()["triage_assessments"][0]["final_urgency"] is None
+
+
 def test_triage_rejects_duplicate_note_references():
     state = CatCareState("Mimi")
     state.record_note("sneezing", NOW)

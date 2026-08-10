@@ -136,6 +136,13 @@ class TriageAssessment:
             raise ValueError("triage review status must be explicit")
         if self.final_urgency is not None and not isinstance(self.final_urgency, TriageUrgency):
             raise ValueError("triage final urgency must be explicit")
+        if self.review_status == TriageReviewStatus.PENDING and self.final_urgency is not None:
+            raise ValueError("pending triage cannot have final urgency")
+        if self.review_status == TriageReviewStatus.REJECTED and self.final_urgency is not None:
+            raise ValueError("rejected triage cannot have final urgency")
+        if self.review_status in (TriageReviewStatus.ACCEPTED, TriageReviewStatus.MODIFIED):
+            if self.final_urgency is None:
+                raise ValueError("reviewed triage requires final urgency")
         _require_timezone_aware(self.assessed_at, "triage assessment time")
 
 
@@ -866,7 +873,7 @@ class CatCareState:
             rationale,
         )
         assessment.review_status = decision
-        assessment.final_urgency = effective_urgency or assessment.urgency
+        assessment.final_urgency = None if decision == TriageReviewStatus.REJECTED else effective_urgency
         self.veterinarian_reviews.append(review)
         self.events.append(
             CareEvent(
