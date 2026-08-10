@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from app.simulation.domain import CareEvent, CatCareState, DeletionReceipt, DirectCareRecord, NoteRecord, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState, TriageAssessment, TriageReviewStatus, TriageUrgency, VeterinarianReview
+from app.simulation.domain import CareEvent, CatCareState, DeletionReceipt, DirectCareRecord, NoteRecord, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState, StatusSnapshot, TriageAssessment, TriageReviewStatus, TriageUrgency, VeterinarianReview
 
 
 NOW = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -29,6 +29,15 @@ def test_status_snapshot_exposes_stable_kind_and_nearest_responsibility():
     assert snapshot.kind == "due_soon"
     assert snapshot.nearest_responsibility_id == "r1"
     assert snapshot.sentence == "Next: vaccine soon."
+
+
+def test_status_snapshot_rejects_blank_projection_fields():
+    with pytest.raises(ValueError, match="status kind"):
+        StatusSnapshot(" ", "Nothing pending")
+    with pytest.raises(ValueError, match="status sentence"):
+        StatusSnapshot("clear", " ")
+    with pytest.raises(ValueError, match="responsibility ID"):
+        StatusSnapshot("planned", "Next", " ")
 
 
 def test_equal_due_dates_choose_responsibility_id_for_status():

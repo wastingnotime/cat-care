@@ -357,6 +357,14 @@ class StatusSnapshot:
     sentence: str
     nearest_responsibility_id: str | None = None
 
+    def __post_init__(self) -> None:
+        if not self.kind.strip():
+            raise ValueError("status kind cannot be empty")
+        if not self.sentence.strip():
+            raise ValueError("status sentence cannot be empty")
+        if self.nearest_responsibility_id is not None and not self.nearest_responsibility_id.strip():
+            raise ValueError("status responsibility ID cannot be empty")
+
 
 @dataclass(frozen=True)
 class DeletionReceipt:
