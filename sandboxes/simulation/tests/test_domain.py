@@ -422,6 +422,13 @@ def test_cat_deletion_cannot_be_future_dated():
         CatCareState("Mimi").delete_cat(NOW + timedelta(days=1), current_time=NOW)
 
 
+def test_cat_state_validates_uncertainty_and_deletion_metadata():
+    with pytest.raises(ValueError, match="boolean"):
+        CatCareState("Mimi", future_information_known="yes")
+    with pytest.raises(ValueError, match="deletion time"):
+        CatCareState("Mimi", deleted=True, deleted_at=datetime(2026, 1, 1, 9))
+
+
 def test_ai_triage_is_provisional_until_veterinarian_review():
     state = CatCareState("Mimi")
     state.record_note("eating less", NOW)
