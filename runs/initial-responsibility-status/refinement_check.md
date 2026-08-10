@@ -289,3 +289,9 @@ complete runtime-backed suite passes: 83 passed.
 Triage assessment and information-request constructors now validate IDs,
 reference uniqueness, and enum fields directly. The complete runtime-backed
 suite passes: 84 passed.
+
+## Action-key build
+
+Responsibility construction now rejects blank action keys, preserving the
+distinction between an identified care action and no action key. The complete
+runtime-backed suite passes: 84 passed.
