@@ -135,6 +135,8 @@ class VeterinarianReview:
     rationale: str
 
     def __post_init__(self) -> None:
+        if not self.assessment_id.strip():
+            raise ValueError("veterinarian review assessment ID cannot be empty")
         if not isinstance(self.decision, TriageReviewStatus):
             raise ValueError("veterinarian review decision must be explicit")
         if not self.veterinarian_id.strip():
@@ -147,6 +149,8 @@ class VeterinarianReview:
             raise ValueError("modified triage review requires final urgency")
         if self.decision == TriageReviewStatus.REJECTED and self.final_urgency is not None:
             raise ValueError("rejected triage review cannot have final urgency")
+        if self.final_urgency is not None and not isinstance(self.final_urgency, TriageUrgency):
+            raise ValueError("veterinarian final urgency must be explicit")
         _require_timezone_aware(self.reviewed_at, "veterinarian review time")
 
 

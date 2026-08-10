@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from app.simulation.domain import CatCareState, DirectCareRecord, NoteRecord, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState, TriageAssessment, TriageReviewStatus, TriageUrgency
+from app.simulation.domain import CatCareState, DirectCareRecord, NoteRecord, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState, TriageAssessment, TriageReviewStatus, TriageUrgency, VeterinarianReview
 
 
 NOW = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -503,6 +503,11 @@ def test_triage_record_constructors_validate_identity_and_types():
         TriageAssessment(
             "triage-1", ("",), TriageUrgency.MONITOR, "Monitor.",
             "Limited history.", NOW, "provider", "model",
+        )
+    with pytest.raises(ValueError, match="final urgency"):
+        VeterinarianReview(
+            "triage-1", NOW, "vet-1", TriageReviewStatus.MODIFIED,
+            "urgent", "Reviewed.",
         )
 
 
