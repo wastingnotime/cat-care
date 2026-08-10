@@ -363,3 +363,9 @@ presence of deletion metadata. The complete runtime-backed suite passes:
 
 Deletion receipts now validate timezone-aware timestamps and non-negative
 integer removal counts. The complete runtime-backed suite passes: 91 passed.
+
+## Status-projection build
+
+Status snapshots now require non-empty kind and sentence fields and reject
+blank nearest-responsibility IDs. The complete runtime-backed suite passes:
+92 passed.
