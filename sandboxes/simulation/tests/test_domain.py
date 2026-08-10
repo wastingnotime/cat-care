@@ -447,6 +447,10 @@ def test_cat_state_validates_uncertainty_and_deletion_metadata():
         CatCareState("Mimi", future_information_known="yes")
     with pytest.raises(ValueError, match="deletion time"):
         CatCareState("Mimi", deleted=True, deleted_at=datetime(2026, 1, 1, 9))
+    with pytest.raises(ValueError, match="cat name must be text"):
+        CatCareState(42)
+    with pytest.raises(ValueError, match="birth date must be a date"):
+        CatCareState("Mimi", birth_date=datetime(2021, 1, 1, 9))
 
 
 def test_ai_triage_is_provisional_until_veterinarian_review():

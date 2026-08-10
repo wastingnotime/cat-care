@@ -18,10 +18,18 @@ def _validate_cat_profile(
     adoption_date: date | None,
     photo_ref: str | None,
 ) -> None:
+    if not isinstance(name, str):
+        raise ValueError("cat name must be text")
     if not name.strip():
         raise ValueError("cat name cannot be empty")
+    if birth_date is not None and type(birth_date) is not date:
+        raise ValueError("birth date must be a date")
+    if adoption_date is not None and type(adoption_date) is not date:
+        raise ValueError("adoption date must be a date")
     if birth_date is not None and adoption_date is not None and adoption_date < birth_date:
         raise ValueError("adoption date cannot be before birth date")
+    if photo_ref is not None and not isinstance(photo_ref, str):
+        raise ValueError("photo reference must be text")
     if photo_ref is not None and not photo_ref.strip():
         raise ValueError("photo reference cannot be empty")
 
