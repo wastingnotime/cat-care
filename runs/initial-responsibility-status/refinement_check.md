@@ -277,3 +277,9 @@ silently changing urgency semantics. The complete runtime-backed suite passes:
 AI triage assessments now reject repeated note references, preserving one
 canonical evidence link per note. The complete runtime-backed suite passes:
 83 passed.
+
+## Responsibility-threshold build
+
+The non-negative due-soon threshold invariant now applies to both aggregate
+status and individual responsibility projections, including adapter lists. The
+complete runtime-backed suite passes: 83 passed.
