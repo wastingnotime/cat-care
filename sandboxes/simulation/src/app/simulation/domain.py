@@ -318,6 +318,8 @@ class Responsibility:
 
     def derived_state(self, now: datetime, due_soon_threshold: timedelta) -> str:
         _require_timezone_aware(now, "current time")
+        if not isinstance(due_soon_threshold, timedelta):
+            raise ValueError("due-soon threshold must be a duration")
         if due_soon_threshold < timedelta(0):
             raise ValueError("due-soon threshold cannot be negative")
         if self.state != ResponsibilityState.PLANNED:
@@ -470,6 +472,8 @@ class CatCareState:
     def status_snapshot(self, now: datetime, due_soon_threshold: timedelta) -> StatusSnapshot:
         self._ensure_active()
         _require_timezone_aware(now, "current time")
+        if not isinstance(due_soon_threshold, timedelta):
+            raise ValueError("due-soon threshold must be a duration")
         if due_soon_threshold < timedelta(0):
             raise ValueError("due-soon threshold cannot be negative")
         active = [item for item in self.responsibilities if item.state == ResponsibilityState.PLANNED]

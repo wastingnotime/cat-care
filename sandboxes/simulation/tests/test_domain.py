@@ -21,6 +21,8 @@ def test_status_rejects_negative_due_soon_threshold():
         CatCareState("Mimi").status_snapshot(NOW, timedelta(days=-1))
     with pytest.raises(ValueError, match="cannot be negative"):
         Responsibility("r1", "vaccine", NOW, "care").derived_state(NOW, timedelta(days=-1))
+    with pytest.raises(ValueError, match="must be a duration"):
+        CatCareState("Mimi").status_snapshot(NOW, 2)
 
 
 def test_status_snapshot_exposes_stable_kind_and_nearest_responsibility():
