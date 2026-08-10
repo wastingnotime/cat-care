@@ -358,3 +358,8 @@ suite passes: 90 passed.
 Aggregate deletion flags now require boolean values and must agree with the
 presence of deletion metadata. The complete runtime-backed suite passes:
 90 passed.
+
+## Deletion-receipt build
+
+Deletion receipts now validate timezone-aware timestamps and non-negative
+integer removal counts. The complete runtime-backed suite passes: 91 passed.
