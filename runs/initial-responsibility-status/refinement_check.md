@@ -323,3 +323,8 @@ passes: 88 passed.
 
 Responsibilities now require explicit lifecycle-state and recurrence-policy
 types at construction. The complete runtime-backed suite passes: 88 passed.
+
+## Reference-integrity build
+
+Notes now reject blank explicit IDs, and notifications require a non-empty
+responsibility reference. The complete runtime-backed suite passes: 89 passed.
