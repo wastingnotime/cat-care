@@ -370,6 +370,23 @@ class DeletionReceipt:
     veterinarian_reviews_removed: int
     triage_information_requests_removed: int
 
+    def __post_init__(self) -> None:
+        _require_timezone_aware(self.deleted_at, "deletion time")
+        counts = (
+            self.responsibilities_removed,
+            self.events_removed,
+            self.notifications_removed,
+            self.notes_removed,
+            self.direct_care_removed,
+            self.triage_assessments_removed,
+            self.veterinarian_reviews_removed,
+            self.triage_information_requests_removed,
+        )
+        if any(not isinstance(count, int) or isinstance(count, bool) for count in counts):
+            raise ValueError("deletion counts must be integers")
+        if any(count < 0 for count in counts):
+            raise ValueError("deletion counts cannot be negative")
+
 
 @dataclass
 class CatCareState:

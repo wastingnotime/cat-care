@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from app.simulation.domain import CareEvent, CatCareState, DirectCareRecord, NoteRecord, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState, TriageAssessment, TriageReviewStatus, TriageUrgency, VeterinarianReview
+from app.simulation.domain import CareEvent, CatCareState, DeletionReceipt, DirectCareRecord, NoteRecord, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState, TriageAssessment, TriageReviewStatus, TriageUrgency, VeterinarianReview
 
 
 NOW = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -440,6 +440,14 @@ def test_cat_profile_edit_is_traceable_and_validated():
 def test_cat_deletion_cannot_be_future_dated():
     with pytest.raises(ValueError, match="future"):
         CatCareState("Mimi").delete_cat(NOW + timedelta(days=1), current_time=NOW)
+
+
+def test_deletion_receipt_validates_timestamp_and_counts():
+    counts = [0] * 8
+    with pytest.raises(ValueError, match="deletion time"):
+        DeletionReceipt(datetime(2026, 1, 1, 9), *counts)
+    with pytest.raises(ValueError, match="cannot be negative"):
+        DeletionReceipt(NOW, -1, *counts[1:])
 
 
 def test_cat_state_validates_uncertainty_and_deletion_metadata():
