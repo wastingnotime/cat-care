@@ -300,3 +300,9 @@ runtime-backed suite passes: 84 passed.
 
 Notification records now reject blank optional provider names and provider
 message IDs. The complete runtime-backed suite passes: 85 passed.
+
+## Direct-care-record build
+
+Direct care records and timeline events now reject blank linked responsibility
+and action identifiers, while preserving optional absence. The complete
+runtime-backed suite passes: 86 passed.
