@@ -328,14 +328,14 @@ class CatCareState:
         active = [item for item in self.responsibilities if item.state == ResponsibilityState.PLANNED]
         overdue = [item for item in active if item.derived_state(now, due_soon_threshold) == "overdue"]
         if overdue:
-            nearest = min(overdue, key=lambda item: item.due_at)
+            nearest = min(overdue, key=lambda item: (item.due_at, item.id))
             return StatusSnapshot("overdue", "Something important is overdue.", nearest.id)
         unknown = next((item for item in active if item.due_at is None), None)
         if unknown is not None:
             return StatusSnapshot("unknown", "Some future care information is unknown.", unknown.id)
         nearest = min(
             (item for item in active if item.due_at is not None),
-            key=lambda item: item.due_at,
+            key=lambda item: (item.due_at, item.id),
             default=None,
         )
         if nearest is not None:
@@ -848,7 +848,17 @@ class CatCareState:
         return responsibility
 
     def timeline(self) -> list[CareEvent]:
-        return sorted(self.events, key=lambda event: event.occurred_at, reverse=True)
+        return sorted(self.events, key=self._event_sort_key, reverse=True)
+
+    @staticmethod
+    def _event_sort_key(event: CareEvent) -> tuple[datetime, str, str, str, str]:
+        return (
+            event.occurred_at,
+            event.event_type,
+            event.responsibility_id or "",
+            event.action_key or "",
+            event.description,
+        )
 
     def export_data(self) -> dict[str, object]:
         if self.deleted:
@@ -967,7 +977,7 @@ class CatCareState:
                     "action_key": event.action_key,
                     "details": dict(event.details),
                 }
-                for event in sorted(self.events, key=lambda event: event.occurred_at)
+                for event in sorted(self.events, key=self._event_sort_key)
             ],
         }
 

@@ -24,6 +24,17 @@ def test_status_snapshot_exposes_stable_kind_and_nearest_responsibility():
     assert snapshot.sentence == "Next: vaccine soon."
 
 
+def test_equal_due_dates_choose_responsibility_id_for_status():
+    state = CatCareState(
+        "Mimi",
+        [
+            Responsibility("z-last", "later label", NOW, "care"),
+            Responsibility("a-first", "earlier label", NOW, "care"),
+        ],
+    )
+    assert state.status_snapshot(NOW, THRESHOLD).nearest_responsibility_id == "a-first"
+
+
 def test_responsibility_can_be_added_and_edited_with_history_events():
     state = CatCareState("Mimi")
     responsibility = Responsibility("r1", "buy food", NOW + timedelta(days=7), "supplies")
@@ -175,6 +186,14 @@ def test_care_event_can_be_logged_and_linked_to_a_responsibility():
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, "preventive care")])
     event = state.record_care_event("weight_measured", "4.2 kg", NOW, responsibility_id="r1")
     assert event in state.timeline()
+
+
+def test_equal_time_events_export_in_deterministic_order():
+    state = CatCareState("Mimi")
+    state.record_care_event("z_event", "z", NOW)
+    state.record_care_event("a_event", "a", NOW)
+    assert [event.event_type for event in state.timeline()] == ["z_event", "a_event"]
+    assert [event["type"] for event in state.export_data()["events"]] == ["a_event", "z_event"]
     assert event.responsibility_id == "r1"
 
 
