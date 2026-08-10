@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from app.simulation.domain import CatCareState, DirectCareRecord, NoteRecord, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState, TriageReviewStatus, TriageUrgency
+from app.simulation.domain import CatCareState, DirectCareRecord, NoteRecord, NotificationOutcome, NotificationRecord, RecurrencePolicy, Responsibility, ResponsibilityState, TriageAssessment, TriageReviewStatus, TriageUrgency
 
 
 NOW = datetime(2026, 1, 1, 9, tzinfo=timezone.utc)
@@ -456,6 +456,19 @@ def test_triage_rejects_duplicate_note_references():
             ["note-1", "note-1"], TriageUrgency.MONITOR, "Monitor.",
             "Limited history.", NOW, "triage-service", "model-2026-01",
             current_time=NOW,
+        )
+
+
+def test_triage_record_constructors_validate_identity_and_types():
+    with pytest.raises(ValueError, match="assessment id"):
+        TriageAssessment(
+            " ", ("note-1",), TriageUrgency.MONITOR, "Monitor.",
+            "Limited history.", NOW, "provider", "model",
+        )
+    with pytest.raises(ValueError, match="note IDs"):
+        TriageAssessment(
+            "triage-1", ("",), TriageUrgency.MONITOR, "Monitor.",
+            "Limited history.", NOW, "provider", "model",
         )
 
 

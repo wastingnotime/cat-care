@@ -92,8 +92,14 @@ class TriageAssessment:
     final_urgency: TriageUrgency | None = None
 
     def __post_init__(self) -> None:
+        if not self.id.strip():
+            raise ValueError("triage assessment id cannot be empty")
         if not self.note_ids:
             raise ValueError("triage assessment requires at least one note")
+        if any(not note_id.strip() for note_id in self.note_ids):
+            raise ValueError("triage assessment note IDs cannot be empty")
+        if len(set(self.note_ids)) != len(self.note_ids):
+            raise ValueError("triage assessment cannot repeat a note")
         if not self.rationale.strip():
             raise ValueError("triage rationale cannot be empty")
         if not self.uncertainty.strip():
@@ -104,6 +110,10 @@ class TriageAssessment:
             raise ValueError("triage model version cannot be empty")
         if not isinstance(self.urgency, TriageUrgency):
             raise ValueError("triage urgency must be explicit")
+        if not isinstance(self.review_status, TriageReviewStatus):
+            raise ValueError("triage review status must be explicit")
+        if self.final_urgency is not None and not isinstance(self.final_urgency, TriageUrgency):
+            raise ValueError("triage final urgency must be explicit")
         _require_timezone_aware(self.assessed_at, "triage assessment time")
 
 
@@ -141,6 +151,10 @@ class TriageInformationRequest:
     question: str
 
     def __post_init__(self) -> None:
+        if not self.id.strip():
+            raise ValueError("information request id cannot be empty")
+        if not self.assessment_id.strip():
+            raise ValueError("information request assessment ID cannot be empty")
         if not self.veterinarian_id.strip():
             raise ValueError("veterinarian identity cannot be empty")
         if not self.question.strip():
