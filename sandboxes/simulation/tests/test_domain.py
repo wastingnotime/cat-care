@@ -78,6 +78,8 @@ def test_responsibility_category_is_required_and_exported():
         Responsibility("r1", "vaccine", NOW, category=" ")
     state = CatCareState("Mimi", [Responsibility("r1", "vaccine", NOW, category="preventive care")])
     assert state.export_data()["responsibilities"][0]["category"] == "preventive care"
+    with pytest.raises(ValueError, match="must be a datetime"):
+        Responsibility("r2", "vaccine", "tomorrow", "preventive care")
 
 
 def test_responsibility_identity_and_title_are_required():

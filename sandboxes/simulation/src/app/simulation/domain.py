@@ -8,6 +8,8 @@ from enum import Enum
 
 
 def _require_timezone_aware(value: datetime, field_name: str) -> None:
+    if not isinstance(value, datetime):
+        raise ValueError(f"{field_name} must be a datetime")
     if value.tzinfo is None or value.utcoffset() is None:
         raise ValueError(f"{field_name} must be timezone-aware")
 
