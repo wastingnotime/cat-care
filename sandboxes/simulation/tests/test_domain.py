@@ -197,6 +197,15 @@ def test_equal_time_events_export_in_deterministic_order():
     assert [event["type"] for event in state.export_data()["events"]] == ["a_event", "z_event"]
 
 
+def test_export_orders_responsibilities_by_id():
+    state = CatCareState("Mimi")
+    state.add_responsibility(Responsibility("z-last", "later", NOW, "care"), NOW)
+    state.add_responsibility(Responsibility("a-first", "earlier", NOW, "care"), NOW)
+    assert [item["id"] for item in state.export_data()["responsibilities"]] == [
+        "a-first", "z-last"
+    ]
+
+
 def test_care_event_requires_existing_link_and_cannot_be_future_dated():
     state = CatCareState("Mimi")
     with pytest.raises(ValueError, match="does not exist"):

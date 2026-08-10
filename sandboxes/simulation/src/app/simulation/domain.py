@@ -909,7 +909,7 @@ class CatCareState:
                     ),
                     "action_key": item.action_key,
                 }
-                for item in self.responsibilities
+                for item in sorted(self.responsibilities, key=lambda item: item.id)
             ],
             "notifications": [
                 {
@@ -920,7 +920,15 @@ class CatCareState:
                     "provider": notification.provider,
                     "provider_message_id": notification.provider_message_id,
                 }
-                for notification in sorted(self.notifications, key=lambda item: item.attempted_at)
+                for notification in sorted(
+                    self.notifications,
+                    key=lambda item: (
+                        item.attempted_at,
+                        item.responsibility_id,
+                        item.outcome.value,
+                        item.provider_message_id or "",
+                    ),
+                )
             ],
             "notes": [
                 {
@@ -928,7 +936,7 @@ class CatCareState:
                     "description": note.description,
                     "occurred_at": note.occurred_at.isoformat(),
                 }
-                for note in sorted(self.notes, key=lambda item: item.occurred_at)
+                for note in sorted(self.notes, key=lambda item: (item.occurred_at, item.id or ""))
             ],
             "direct_care": [
                 {
@@ -938,7 +946,10 @@ class CatCareState:
                     "responsibility_id": care.responsibility_id,
                     "action_key": care.action_key,
                 }
-                for care in sorted(self.direct_care, key=lambda item: item.occurred_at)
+                for care in sorted(
+                    self.direct_care,
+                    key=lambda item: (item.occurred_at, item.event_type, item.description),
+                )
             ],
             "triage_assessments": [
                 {
@@ -953,7 +964,7 @@ class CatCareState:
                     "review_status": assessment.review_status.value,
                     "final_urgency": assessment.final_urgency.value if assessment.final_urgency else None,
                 }
-                for assessment in self.triage_assessments
+                for assessment in sorted(self.triage_assessments, key=lambda item: item.id)
             ],
             "veterinarian_reviews": [
                 {
@@ -964,7 +975,10 @@ class CatCareState:
                     "final_urgency": review.final_urgency.value if review.final_urgency else None,
                     "rationale": review.rationale,
                 }
-                for review in self.veterinarian_reviews
+                for review in sorted(
+                    self.veterinarian_reviews,
+                    key=lambda item: (item.reviewed_at, item.assessment_id),
+                )
             ],
             "triage_information_requests": [
                 {
@@ -974,7 +988,7 @@ class CatCareState:
                     "veterinarian_id": request.veterinarian_id,
                     "question": request.question,
                 }
-                for request in self.triage_information_requests
+                for request in sorted(self.triage_information_requests, key=lambda item: item.id)
             ],
             "events": [
                 {
