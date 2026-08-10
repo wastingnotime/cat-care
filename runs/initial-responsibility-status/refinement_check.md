@@ -259,3 +259,9 @@ urgency on rejection. Pure simulation and adapter tests pass: 71 passed.
 Owner export collections now use explicit stable keys for responsibilities,
 timeline-related records, notifications, notes, and triage records. Pure
 simulation and adapter tests pass: 72 passed.
+
+## Responsibility-error build
+
+Unknown responsibility commands now return explicit domain `ValueError`
+messages, including through notification delivery. After installing the WNT
+MRL runtime with `wnt install`, the complete suite passes: 81 passed.
