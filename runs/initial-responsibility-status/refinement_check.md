@@ -312,3 +312,9 @@ runtime-backed suite passes: 86 passed.
 Cat-care state now validates the boolean uncertainty flag and timezone-aware
 deletion metadata at construction. The complete runtime-backed suite passes:
 87 passed.
+
+## Recurrence-type build
+
+Recurrence policies now require positive integer day or calendar-month counts;
+booleans and fractional values are rejected. The complete runtime-backed suite
+passes: 88 passed.
