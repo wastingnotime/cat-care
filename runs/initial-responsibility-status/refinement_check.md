@@ -265,3 +265,9 @@ simulation and adapter tests pass: 72 passed.
 Unknown responsibility commands now return explicit domain `ValueError`
 messages, including through notification delivery. After installing the WNT
 MRL runtime with `wnt install`, the complete suite passes: 81 passed.
+
+## Status-threshold build
+
+Status projections now reject negative due-soon thresholds rather than
+silently changing urgency semantics. The complete runtime-backed suite passes:
+82 passed.
