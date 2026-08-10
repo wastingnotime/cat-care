@@ -306,3 +306,9 @@ message IDs. The complete runtime-backed suite passes: 85 passed.
 Direct care records and timeline events now reject blank linked responsibility
 and action identifiers, while preserving optional absence. The complete
 runtime-backed suite passes: 86 passed.
+
+## Aggregate-metadata build
+
+Cat-care state now validates the boolean uncertainty flag and timezone-aware
+deletion metadata at construction. The complete runtime-backed suite passes:
+87 passed.
