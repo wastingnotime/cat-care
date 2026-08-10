@@ -229,6 +229,8 @@ class Responsibility:
 
     def derived_state(self, now: datetime, due_soon_threshold: timedelta) -> str:
         _require_timezone_aware(now, "current time")
+        if due_soon_threshold < timedelta(0):
+            raise ValueError("due-soon threshold cannot be negative")
         if self.state != ResponsibilityState.PLANNED:
             return self.state.value
         if self.due_at is None:
