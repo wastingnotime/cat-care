@@ -82,6 +82,16 @@ def test_duplicate_responsibility_ids_and_editing_completed_items_are_rejected()
         state.edit_responsibility("r1", NOW, title="corrected", due_at=NOW)
 
 
+def test_unknown_responsibility_commands_have_domain_errors():
+    state = CatCareState("Mimi")
+    with pytest.raises(ValueError, match="responsibility missing does not exist"):
+        state.complete("missing", NOW)
+    with pytest.raises(ValueError, match="responsibility missing does not exist"):
+        state.cancel("missing", NOW)
+    with pytest.raises(ValueError, match="responsibility missing does not exist"):
+        state.record_notification("missing", NOW, NotificationOutcome.DELIVERED)
+
+
 def test_completion_records_event_and_recurring_next_occurrence():
     state = CatCareState(
         "Mimi", [Responsibility("r1", "treatment", NOW, "treatment", recurrence=RecurrencePolicy(30))]

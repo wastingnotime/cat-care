@@ -251,9 +251,7 @@ class CareAdapter:
         *,
         current_time: datetime | None = None,
     ) -> dict[str, object]:
-        responsibility = next(
-            item for item in self.state.responsibilities if item.id == responsibility_id
-        )
+        responsibility = self.state._responsibility(responsibility_id)
         delivery = gateway.deliver(responsibility.id, responsibility.title, responsibility.due_at)
         record = self.record_notification(
             responsibility_id,

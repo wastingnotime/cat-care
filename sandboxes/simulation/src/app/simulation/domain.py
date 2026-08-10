@@ -323,6 +323,15 @@ class CatCareState:
         if self.deleted:
             raise ValueError("cat data has been deleted")
 
+    def _responsibility(self, responsibility_id: str) -> Responsibility:
+        responsibility = next(
+            (item for item in self.responsibilities if item.id == responsibility_id),
+            None,
+        )
+        if responsibility is None:
+            raise ValueError(f"responsibility {responsibility_id} does not exist")
+        return responsibility
+
     def status(self, now: datetime, due_soon_threshold: timedelta) -> str:
         return self.status_snapshot(now, due_soon_threshold).sentence
 
@@ -428,7 +437,7 @@ class CatCareState:
             _require_timezone_aware(current_time, "current time")
         if current_time is not None and attempted_at > current_time:
             raise ValueError("a notification cannot be recorded in the future")
-        responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
+        responsibility = self._responsibility(responsibility_id)
         notification = NotificationRecord(
             responsibility_id,
             attempted_at,
@@ -473,7 +482,7 @@ class CatCareState:
             raise ValueError("a deferral cannot be recorded in the future")
         if new_due_at <= now:
             raise ValueError("deferred due time must be in the future")
-        responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
+        responsibility = self._responsibility(responsibility_id)
         if responsibility.state != ResponsibilityState.PLANNED:
             raise ValueError(f"responsibility {responsibility.id} is not deferrable")
         previous_due_at = responsibility.due_at
@@ -505,7 +514,7 @@ class CatCareState:
     ) -> CareEvent:
         self._ensure_active()
         _require_timezone_aware(now, "edit time")
-        responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
+        responsibility = self._responsibility(responsibility_id)
         if responsibility.state != ResponsibilityState.PLANNED:
             raise ValueError(f"responsibility {responsibility.id} is not editable")
         if due_at is not None:
@@ -547,7 +556,7 @@ class CatCareState:
         current_time: datetime | None = None,
     ) -> CareEvent:
         self._ensure_active()
-        responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
+        responsibility = self._responsibility(responsibility_id)
         if responsibility.action_key is not None and any(
             event.event_type == "responsibility_completed" and event.action_key == responsibility.action_key
             for event in self.events
@@ -589,7 +598,7 @@ class CatCareState:
         current_time: datetime | None = None,
     ) -> CareEvent:
         self._ensure_active()
-        responsibility = next(item for item in self.responsibilities if item.id == responsibility_id)
+        responsibility = self._responsibility(responsibility_id)
         event = responsibility.cancel(now, current_time=current_time)
         assert event is not None
         self.events.append(event)
