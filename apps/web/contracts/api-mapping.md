@@ -6,6 +6,6 @@ This refresh behavior prevents browser state from becoming an alternative
 source of domain truth and makes completion/status changes visible without a
 full-page navigation.
 
-The default local API origin is `http://127.0.0.1:8000`. A developer may set the
-`catCareApiUrl` local-storage value for another local endpoint. Authentication
-is intentionally absent in local mode and is not a production precedent.
+The SolidStart BFF maps same-origin `/api/*` calls to `/v1/*` at
+`CAT_CARE_API_URL`, which defaults to `http://127.0.0.1:8080`. Authentication is
+intentionally absent in local mode and is not a production precedent.

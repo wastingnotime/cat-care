@@ -1,10 +1,11 @@
 # Cat Care HTTP API v1
 
-The API is authoritative for persisted care state. The web application consumes
+The API is authoritative for care state. The web application consumes
 this contract and must refresh reads after commands rather than deriving domain
 transitions locally.
 
-Base path: `/api/v1`
+API base path: `/v1`. The SolidStart BFF maps browser `/api/*` requests to this
+surface.
 
 | Method | Path | Meaning |
 |---|---|---|
@@ -15,14 +16,14 @@ Base path: `/api/v1`
 | `POST` | `/responsibilities/{id}/complete` | Complete one planned responsibility. |
 | `GET` | `/timeline` | Read newest-first responsibility history. |
 
-`GET /healthz` is the local readiness endpoint. OpenAPI is the executable field
-and error schema. The synchronized `0.1.0` surface covers the responsibility
-status slice only; other released simulation slices remain candidates for later
-API increments.
+`GET /healthz` is the local readiness endpoint. Go request/response types and
+HTTP contract tests are the executable field and error schema. The synchronized
+`0.1.0` surface covers the responsibility-status slice only; other released
+simulation slices remain candidates for later API increments.
 
 ## Errors
 
-- `422`: malformed fields, missing timezone, or invalid query policy.
+- `400`: malformed fields, missing RFC 3339 timezone, or invalid query policy.
 - `404`: responsibility identity is unknown.
 - `409`: the requested transition conflicts with current state.
 

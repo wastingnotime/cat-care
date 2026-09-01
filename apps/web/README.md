@@ -1,17 +1,18 @@
 # Cat Care web
 
-Thin browser client for the Cat Care API. It owns presentation, interaction,
-accessibility, and browser refresh behavior; the API remains authoritative for
-care state.
+SolidStart browser application following the WNT pattern used by Community Lab.
+It owns presentation, interaction, accessibility, and a same-origin BFF; the Go
+API remains authoritative for care state.
 
 ## Run
 
-With the API listening on port `8000`:
+With the API listening on port `8080`:
 
 ```bash
-python3 -m http.server 5173 --directory apps/web/client
+npm install
+npm run dev -- --port 5173
 ```
 
-Open `http://127.0.0.1:5173`. The client reloads status, responsibilities, and
-history after every successful command, so no domain transition is inferred in
-browser state.
+Override the BFF upstream with `CAT_CARE_API_URL`. The client reloads status,
+responsibilities, and history after every successful command, so no domain
+transition is inferred in browser state.

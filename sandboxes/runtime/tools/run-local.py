@@ -28,42 +28,33 @@ def wait_until_ready(url: str, process: subprocess.Popen[bytes], timeout: float 
 
 def main() -> int:
     environment = os.environ.copy()
-    api_port = environment.get("CAT_CARE_API_PORT", "8000")
+    api_address = environment.get("CAT_CARE_API_ADDR", "127.0.0.1:8080")
+    api_port = api_address.rsplit(":", 1)[-1]
     web_port = environment.get("CAT_CARE_WEB_PORT", "5173")
-    environment.setdefault("CAT_CARE_DB_PATH", str(REPOSITORY / ".local" / "cat-care.db"))
-    environment.setdefault(
-        "CAT_CARE_WEB_ORIGINS",
-        f"http://127.0.0.1:{web_port},http://localhost:{web_port}",
-    )
+    environment["CAT_CARE_API_ADDR"] = api_address
+    environment.setdefault("CAT_CARE_API_URL", f"http://127.0.0.1:{api_port}")
 
     api = subprocess.Popen(
         [
-            sys.executable,
-            "-m",
-            "uvicorn",
-            "cat_care_api.main:app",
-            "--app-dir",
-            str(REPOSITORY / "apps" / "api" / "src"),
-            "--host",
-            "127.0.0.1",
-            "--port",
-            api_port,
+            "go",
+            "run",
+            "./cmd/api",
         ],
-        cwd=REPOSITORY,
+        cwd=REPOSITORY / "apps" / "api",
         env=environment,
     )
     web = subprocess.Popen(
         [
-            sys.executable,
-            "-m",
-            "http.server",
-            web_port,
-            "--bind",
+            "npm",
+            "run",
+            "dev",
+            "--",
+            "--host",
             "127.0.0.1",
-            "--directory",
-            str(REPOSITORY / "apps" / "web" / "client"),
+            "--port",
+            web_port,
         ],
-        cwd=REPOSITORY,
+        cwd=REPOSITORY / "apps" / "web",
         env=environment,
     )
     processes = (api, web)

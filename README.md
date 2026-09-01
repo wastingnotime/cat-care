@@ -10,11 +10,10 @@ states, transitions, uncertainty, and timelines before implementation.
 The released model is materialized as a locally runnable API and web client:
 
 ```bash
-python3 -m venv .venv
-.venv/bin/pip install -e 'apps/api[test]'
-.venv/bin/python sandboxes/runtime/tools/run-local.py
+cd apps/web && npm install && cd ../..
+python3 sandboxes/runtime/tools/run-local.py
 ```
 
-Then open `http://127.0.0.1:5173`. Local data is stored in
-`.local/cat-care.db`. See [`sandboxes/runtime/`](sandboxes/runtime/) for runtime
-configuration and validation commands.
+Then open `http://127.0.0.1:5173`. The development API uses in-memory state and
+resets when the runtime stops. See [`sandboxes/runtime/`](sandboxes/runtime/)
+for runtime configuration and validation commands.
