@@ -36,9 +36,9 @@ def main() -> int:
 
     api = subprocess.Popen(
         [
-            "go",
-            "run",
-            "./cmd/api",
+            "air",
+            "-c",
+            ".air.toml",
         ],
         cwd=REPOSITORY / "apps" / "api",
         env=environment,
@@ -58,8 +58,11 @@ def main() -> int:
         env=environment,
     )
     processes = (api, web)
+    stopping = False
 
     def stop(_signum: int | None = None, _frame: object | None = None) -> None:
+        nonlocal stopping
+        stopping = True
         for process in processes:
             if process.poll() is None:
                 process.terminate()
@@ -72,6 +75,8 @@ def main() -> int:
         print(f"Cat Care is ready: http://127.0.0.1:{web_port}", flush=True)
         while all(process.poll() is None for process in processes):
             time.sleep(0.25)
+        if stopping:
+            return 0
         return next((process.returncode for process in processes if process.returncode), 1)
     except (KeyboardInterrupt, RuntimeError) as error:
         if isinstance(error, RuntimeError):

@@ -5,18 +5,21 @@ does not own production deployment or promotion.
 
 ## Start
 
-Install web dependencies once:
+Install Air once if needed:
 
 ```bash
-cd apps/web
-npm install
+go install github.com/air-verse/air@latest
 ```
 
-Then run:
+Then start both apps from the repository root:
 
 ```bash
-python3 sandboxes/runtime/tools/run-local.py
+make dev
 ```
+
+`make dev` installs current web dependencies, runs the Go API under Air, and
+runs the SolidStart development server. Use `make dev-api` or `make dev-web`
+when only one surface is needed.
 
 Endpoints:
 
@@ -36,8 +39,7 @@ service.
 ## Validate
 
 ```bash
-cd apps/api && go test ./...
-cd ../web && npm run typecheck && npm run build && npm run test:e2e
+make test
 ```
 
 The browser test must run while the local composition is available and uses the

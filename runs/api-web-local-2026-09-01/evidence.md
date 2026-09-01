@@ -8,6 +8,7 @@ Date: 2026-09-01
 - Go API source project with deterministic in-memory persistence
 - SolidStart web application and BFF against the real local API
 - Runtime composition on loopback ports `8080` and `5173`
+- Root `make dev` entrypoint with Air-managed Go reload and SolidStart dev mode
 
 ## Results
 

@@ -9,13 +9,16 @@ explicit package boundaries. It does not import the simulation implementation.
 
 ```bash
 cd apps/api
-go run ./cmd/api
+air -c .air.toml
 ```
 
 The API listens on `http://127.0.0.1:8080`. Override the address with
 `CAT_CARE_API_ADDR`. Local state is deterministic and in-memory. Local
 development is intentionally unauthenticated; this is not a production identity
 contract.
+
+Air rebuilds and restarts the service when Go source changes. Install it with
+`go install github.com/air-verse/air@latest` if it is not already available.
 
 ```bash
 go test ./...

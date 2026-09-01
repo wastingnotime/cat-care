@@ -10,8 +10,7 @@ states, transitions, uncertainty, and timelines before implementation.
 The released model is materialized as a locally runnable API and web client:
 
 ```bash
-cd apps/web && npm install && cd ../..
-python3 sandboxes/runtime/tools/run-local.py
+make dev
 ```
 
 Then open `http://127.0.0.1:5173`. The development API uses in-memory state and
