@@ -22,21 +22,39 @@ func (server *Server) Handler() http.Handler {
 		writeJSON(writer, http.StatusOK, map[string]string{"status": "ok"})
 	})
 	mux.HandleFunc("GET /v1/cat", server.cat)
+	mux.HandleFunc("PUT /v1/cat", server.updateProfile)
 	mux.HandleFunc("GET /v1/status", server.status)
 	mux.HandleFunc("GET /v1/responsibilities", server.responsibilities)
 	mux.HandleFunc("POST /v1/responsibilities", server.createResponsibility)
 	mux.HandleFunc("POST /v1/responsibilities/{id}/complete", server.completeResponsibility)
+	mux.HandleFunc("PUT /v1/responsibilities/{id}", server.editResponsibility)
+	mux.HandleFunc("POST /v1/responsibilities/{id}/cancel", server.cancelResponsibility)
+	mux.HandleFunc("POST /v1/responsibilities/{id}/defer", server.deferResponsibility)
 	mux.HandleFunc("GET /v1/timeline", server.timeline)
+	mux.HandleFunc("GET /v1/notes", server.notes)
+	mux.HandleFunc("POST /v1/notes", server.recordNote)
+	mux.HandleFunc("GET /v1/care-events", server.directCare)
+	mux.HandleFunc("POST /v1/care-events", server.recordDirectCare)
+	mux.HandleFunc("GET /v1/notifications", server.notifications)
+	mux.HandleFunc("POST /v1/notifications", server.recordNotification)
+	mux.HandleFunc("GET /v1/triage", server.triage)
+	mux.HandleFunc("GET /v1/triage-reviews", server.triageReviews)
+	mux.HandleFunc("POST /v1/triage", server.requestTriage)
+	mux.HandleFunc("POST /v1/triage/{id}/review", server.reviewTriage)
+	mux.HandleFunc("POST /v1/triage/{id}/information-requests", server.requestTriageInformation)
+	mux.HandleFunc("POST /v1/triage/{id}/follow-up", server.defineTriageFollowUp)
+	mux.HandleFunc("GET /v1/export", server.exportData)
+	mux.HandleFunc("DELETE /v1/data", server.deleteData)
 	return mux
 }
 
 func (server *Server) cat(writer http.ResponseWriter, request *http.Request) {
-	name, err := server.service.Cat(request.Context())
+	profile, err := server.service.Profile(request.Context())
 	if err != nil {
 		internalError(writer)
 		return
 	}
-	writeJSON(writer, http.StatusOK, map[string]string{"id": "primary", "name": name})
+	writeJSON(writer, http.StatusOK, profile)
 }
 func (server *Server) status(writer http.ResponseWriter, request *http.Request) {
 	days := 2
@@ -73,9 +91,11 @@ func (server *Server) timeline(writer http.ResponseWriter, request *http.Request
 }
 
 type createCommand struct {
-	Title    string     `json:"title"`
-	Category string     `json:"category"`
-	DueAt    *time.Time `json:"due_at"`
+	Title            string     `json:"title"`
+	Category         string     `json:"category"`
+	DueAt            *time.Time `json:"due_at"`
+	RecurrenceDays   int        `json:"recurrence_days"`
+	RecurrenceMonths int        `json:"recurrence_months"`
 }
 
 func (server *Server) createResponsibility(writer http.ResponseWriter, request *http.Request) {
@@ -86,7 +106,7 @@ func (server *Server) createResponsibility(writer http.ResponseWriter, request *
 		writeError(writer, http.StatusBadRequest, "invalid_request", "invalid responsibility payload")
 		return
 	}
-	item, err := server.service.CreateResponsibility(request.Context(), command.Title, command.Category, command.DueAt)
+	item, err := server.service.CreateResponsibilityWithPolicy(request.Context(), command.Title, command.Category, command.DueAt, command.RecurrenceDays, command.RecurrenceMonths)
 	if errors.Is(err, domain.ErrInvalidResponsibility) {
 		writeError(writer, http.StatusBadRequest, "invalid_request", err.Error())
 		return

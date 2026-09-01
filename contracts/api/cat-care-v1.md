@@ -14,12 +14,27 @@ surface.
 | `GET` | `/responsibilities` | List responsibilities in deterministic due-date order. |
 | `POST` | `/responsibilities` | Create a responsibility from `title`, `category`, and optional timezone-aware `due_at`. |
 | `POST` | `/responsibilities/{id}/complete` | Complete one planned responsibility. |
+| `PUT` | `/responsibilities/{id}` | Correct a planned responsibility and recurrence policy. |
+| `POST` | `/responsibilities/{id}/cancel` | Cancel a planned responsibility with history. |
+| `POST` | `/responsibilities/{id}/defer` | Record an owner decision and move the due time later. |
 | `GET` | `/timeline` | Read newest-first responsibility history. |
+| `PUT` | `/cat` | Edit validated profile metadata. |
+| `GET`, `POST` | `/notes` | Read and record lightweight non-diagnosis observations. |
+| `GET`, `POST` | `/care-events` | Read and record typed direct care. |
+| `GET`, `POST` | `/notifications` | Read and record delivered/failed outcomes without changing care state. |
+| `GET`, `POST` | `/triage` | Read or request provisional triage from note references. |
+| `GET` | `/triage-reviews` | Read veterinarian decisions separately from provisional assessments. |
+| `POST` | `/triage/{id}/review` | Record a veterinarian accept/modify/reject decision. |
+| `POST` | `/triage/{id}/information-requests` | Ask the owner for more observations while review is pending. |
+| `POST` | `/triage/{id}/follow-up` | Create a veterinarian-linked follow-up after accepted/modified review. |
+| `GET` | `/export` | Export the complete current owner record. |
+| `DELETE` | `/data` | Terminally delete all locally owned care records and return counts. |
 
 `GET /healthz` is the local readiness endpoint. Go request/response types and
 HTTP contract tests are the executable field and error schema. The synchronized
-`0.1.0` surface covers the responsibility-status slice only; other released
-simulation slices remain candidates for later API increments.
+`0.1.0` surface covers all five released simulation slices. External provider,
+production persistence, authentication, and clinical-validation adapters remain
+outside this local contract.
 
 ## Errors
 

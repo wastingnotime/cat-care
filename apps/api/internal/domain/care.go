@@ -11,16 +11,23 @@ var (
 	ErrInvalidResponsibility    = errors.New("title and category are required")
 	ErrResponsibilityNotFound   = errors.New("responsibility not found")
 	ErrResponsibilityNotPlanned = errors.New("only a planned responsibility can be completed")
+	ErrInvalidTransition        = errors.New("invalid care transition")
+	ErrRecordNotFound           = errors.New("care record not found")
+	ErrDataDeleted              = errors.New("cat data has been deleted")
 )
 
 type Responsibility struct {
-	ID          string     `json:"id"`
-	Title       string     `json:"title"`
-	Category    string     `json:"category"`
-	DueAt       *time.Time `json:"due_at"`
-	State       string     `json:"state"`
-	CreatedAt   time.Time  `json:"created_at"`
-	CompletedAt *time.Time `json:"completed_at"`
+	ID               string     `json:"id"`
+	Title            string     `json:"title"`
+	Category         string     `json:"category"`
+	DueAt            *time.Time `json:"due_at"`
+	State            string     `json:"state"`
+	CreatedAt        time.Time  `json:"created_at"`
+	CompletedAt      *time.Time `json:"completed_at"`
+	CancelledAt      *time.Time `json:"cancelled_at"`
+	RecurrenceDays   int        `json:"recurrence_days,omitempty"`
+	RecurrenceMonths int        `json:"recurrence_months,omitempty"`
+	ActionKey        string     `json:"action_key,omitempty"`
 }
 
 type ResponsibilityView struct {
@@ -59,6 +66,23 @@ func (responsibility Responsibility) Complete(now time.Time) (Responsibility, er
 	}
 	responsibility.State = "completed"
 	responsibility.CompletedAt = &now
+	return responsibility, nil
+}
+
+func (responsibility Responsibility) Cancel(now time.Time) (Responsibility, error) {
+	if responsibility.State != "planned" {
+		return Responsibility{}, ErrResponsibilityNotPlanned
+	}
+	responsibility.State = "cancelled"
+	responsibility.CancelledAt = &now
+	return responsibility, nil
+}
+
+func (responsibility Responsibility) Defer(dueAt, now time.Time) (Responsibility, error) {
+	if responsibility.State != "planned" || !dueAt.After(now) || (responsibility.DueAt != nil && !dueAt.After(*responsibility.DueAt)) {
+		return Responsibility{}, ErrInvalidTransition
+	}
+	responsibility.DueAt = &dueAt
 	return responsibility, nil
 }
 

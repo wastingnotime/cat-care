@@ -1,6 +1,6 @@
 import type { APIEvent } from "@solidjs/start/server";
 
-const allowed = new Set(["GET", "POST"]);
+const allowed = new Set(["GET", "POST", "PUT", "DELETE"]);
 
 async function proxy(event: APIEvent) {
   if (!allowed.has(event.request.method)) return Response.json({ code: "method_not_allowed", message: "method not allowed" }, { status: 405 });
@@ -22,3 +22,5 @@ async function proxy(event: APIEvent) {
 
 export const GET = proxy;
 export const POST = proxy;
+export const PUT = proxy;
+export const DELETE = proxy;

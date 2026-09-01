@@ -20,6 +20,12 @@ contract.
 Air rebuilds and restarts the service when Go source changes. Install it with
 `go install github.com/air-verse/air@latest` if it is not already available.
 
+The service synchronizes the five released model slices: responsibility status
+and recurrence, profile and typed care history, notification/deferral,
+provisional triage with veterinarian review, and data export/deletion. The local
+triage and notification providers are deterministic fakes; they do not represent
+clinical validation or production delivery.
+
 ```bash
 go test ./...
 ```

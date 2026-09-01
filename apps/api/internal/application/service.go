@@ -9,9 +9,17 @@ import (
 )
 
 type State struct {
-	CatName          string
-	Responsibilities []domain.Responsibility
-	Events           []domain.Event
+	Profile             domain.Profile              `json:"cat"`
+	Responsibilities    []domain.Responsibility     `json:"responsibilities"`
+	Events              []domain.Event              `json:"events"`
+	Notes               []domain.Note               `json:"notes"`
+	DirectCare          []domain.DirectCare         `json:"direct_care"`
+	Notifications       []domain.Notification       `json:"notifications"`
+	TriageAssessments   []domain.TriageAssessment   `json:"triage_assessments"`
+	VeterinarianReviews []domain.VeterinarianReview `json:"veterinarian_reviews"`
+	InformationRequests []domain.InformationRequest `json:"information_requests"`
+	Deleted             bool                        `json:"deleted"`
+	DeletedAt           *time.Time                  `json:"deleted_at"`
 }
 
 type Repository interface {
@@ -35,7 +43,19 @@ func NewService(repository Repository, clock Clock, ids IDs) *Service {
 
 func (service *Service) Cat(ctx context.Context) (string, error) {
 	state, err := service.repository.Load(ctx)
-	return state.CatName, err
+	return state.Profile.Name, err
+}
+
+func (service *Service) Profile(ctx context.Context) (domain.Profile, error) {
+	state, err := service.repository.Load(ctx)
+	return state.Profile, err
+}
+
+func (service *Service) ensureActive(state State) error {
+	if state.Deleted {
+		return domain.ErrDataDeleted
+	}
+	return nil
 }
 
 func (service *Service) Responsibilities(ctx context.Context) ([]domain.ResponsibilityView, error) {
@@ -70,6 +90,9 @@ func (service *Service) CreateResponsibility(ctx context.Context, title, categor
 		return domain.ResponsibilityView{}, err
 	}
 	now := service.clock.Now()
+	if err := service.ensureActive(state); err != nil {
+		return domain.ResponsibilityView{}, err
+	}
 	responsibility, err := domain.NewResponsibility(service.ids.Next("responsibility"), title, category, dueAt, now)
 	if err != nil {
 		return domain.ResponsibilityView{}, err
@@ -90,6 +113,9 @@ func (service *Service) CompleteResponsibility(ctx context.Context, id string) (
 		return domain.ResponsibilityView{}, err
 	}
 	now := service.clock.Now()
+	if err := service.ensureActive(state); err != nil {
+		return domain.ResponsibilityView{}, err
+	}
 	for index, responsibility := range state.Responsibilities {
 		if responsibility.ID != id {
 			continue
@@ -99,7 +125,20 @@ func (service *Service) CompleteResponsibility(ctx context.Context, id string) (
 			return domain.ResponsibilityView{}, completeErr
 		}
 		state.Responsibilities[index] = completed
-		state.Events = append(state.Events, domain.Event{ID: service.ids.Next("event"), Type: "responsibility_completed", OccurredAt: now, Description: completed.Title, ResponsibilityID: completed.ID, Details: map[string]any{}})
+		details := map[string]any{}
+		if dueAt, recurring := nextDue(completed); recurring {
+			next, createErr := domain.NewResponsibility(service.ids.Next("responsibility"), recurrenceTitle(completed), completed.Category, dueAt, now)
+			if createErr != nil {
+				return domain.ResponsibilityView{}, createErr
+			}
+			next.RecurrenceDays = completed.RecurrenceDays
+			next.RecurrenceMonths = completed.RecurrenceMonths
+			next.ActionKey = completed.ActionKey
+			state.Responsibilities = append(state.Responsibilities, next)
+			details["next_responsibility_id"] = next.ID
+			details["next_due_at"] = dueAt
+		}
+		state.Events = append(state.Events, domain.Event{ID: service.ids.Next("event"), Type: "responsibility_completed", OccurredAt: now, Description: completed.Title, ResponsibilityID: completed.ID, Details: details})
 		if err := service.repository.Save(ctx, state); err != nil {
 			return domain.ResponsibilityView{}, err
 		}

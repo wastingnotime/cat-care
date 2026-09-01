@@ -42,6 +42,7 @@ def main() -> int:
         ],
         cwd=REPOSITORY / "apps" / "api",
         env=environment,
+        start_new_session=True,
     )
     web = subprocess.Popen(
         [
@@ -56,6 +57,7 @@ def main() -> int:
         ],
         cwd=REPOSITORY / "apps" / "web",
         env=environment,
+        start_new_session=True,
     )
     processes = (api, web)
     stopping = False
@@ -65,7 +67,7 @@ def main() -> int:
         stopping = True
         for process in processes:
             if process.poll() is None:
-                process.terminate()
+                os.killpg(process.pid, signal.SIGTERM)
 
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
@@ -88,7 +90,7 @@ def main() -> int:
             try:
                 process.wait(timeout=5)
             except subprocess.TimeoutExpired:
-                process.kill()
+                os.killpg(process.pid, signal.SIGKILL)
 
 
 if __name__ == "__main__":
