@@ -224,11 +224,18 @@ derived from due date, current time, and a configured threshold.
    channel, while the invoked use case and domain behavior remain channel
    independent.
 
-## Open questions
+## Model-release decisions
 
-- What due-soon threshold feels useful without creating urgency inflation?
-- Which missing information is important enough to show as uncertainty?
-- Which recurrence policies beyond a fixed day interval are needed by real
-  owners?
-- Does an undated responsibility need a separate “needs scheduling” state, or
-  is the current uncertainty status sufficient?
+- The due-soon threshold is an injected policy rather than universal domain
+  truth. The release scenario uses two days; technology projects must choose and
+  disclose their configured value instead of embedding another status rule.
+- Missing information blocks an all-clear result when an active responsibility
+  has no due date or when `future_information_known` is false. Other forms of
+  uncertainty require new evidence and a later model refinement.
+- This release supports fixed positive day intervals and positive calendar-month
+  recurrence. Weekday schedules, provider-driven schedules, and other policies
+  are deferred until owner evidence requires them.
+- An undated active responsibility remains `planned` and produces an `unknown`
+  calm status with its responsibility ID. A separate `needs_scheduling` domain
+  state is deferred; a technology adapter may present that instruction without
+  changing domain state.

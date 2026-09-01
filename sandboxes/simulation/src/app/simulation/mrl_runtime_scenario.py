@@ -807,6 +807,11 @@ def create_simulation() -> Scenario:
             for item in state.responsibilities
         )
 
+    def timeline_is_newest_first(context: object) -> bool:
+        timeline = state.timeline()
+        keys = [state._event_sort_key(event) for event in timeline]
+        return all(left >= right for left, right in zip(keys, keys[1:]))
+
     return Scenario(
         name="cat-care-responsibility-status",
         seed=7,
@@ -846,7 +851,7 @@ def create_simulation() -> Scenario:
         ],
         invariants=[
             Invariant("completed_responsibility_is_not_overdue", no_overdue_completed_responsibility),
-            Invariant("timeline_is_newest_first", lambda context: state.timeline() == sorted(state.events, key=lambda event: event.occurred_at, reverse=True)),
+            Invariant("timeline_is_newest_first", timeline_is_newest_first),
         ],
         observatory_nodes=[
             cat_care_node("owner", "Owner", "actor", "domain"),

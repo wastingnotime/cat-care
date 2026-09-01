@@ -8,4 +8,7 @@ reveals better boundaries.
 Current slices:
 
 - `responsibility-status`: calm responsibility status and care history
+- `cat-profile-and-care-history`: validated profile data and distinct records
+- `notification-and-deferral`: delivery evidence separated from owner decisions
 - `care-triage`: provisional AI urgency assessment with veterinarian review
+- `data-stewardship`: deterministic export and terminal deletion

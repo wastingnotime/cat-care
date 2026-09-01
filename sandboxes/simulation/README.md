@@ -6,16 +6,16 @@ care environment rather than one application per slice.
 ## Run
 
 ```bash
-PYTHONPATH=sandboxes/simulation/src python3 -m pytest sandboxes/simulation/tests
+PYTHONPATH="$HOME/.wnt/runtime/mrl:sandboxes/simulation/src" \
+  python3 -m pytest sandboxes/simulation/tests
 mrl-simulation supervise
 ```
 
 The runtime adapter is `app.simulation.mrl_runtime_scenario:create_simulation`.
 
-## Current slice
+## Current model
 
-`responsibility-status` tests the smallest useful promise: given a cat's
-responsibilities and the current time, produce a trustworthy calm status. It
-deliberately represents incomplete information as uncertainty rather than
-false reassurance.
-
+The release candidate combines responsibility status, care history, owner
+notification decisions, data stewardship, and provisional care triage in one
+deterministic environment. The current scope and release evidence are mapped in
+`work/changes/model-release-2026-09-01/model_slice_map.md`.
