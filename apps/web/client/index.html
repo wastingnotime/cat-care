@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f0e6" />
+    <title>Cat Care</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='25' font-size='25'%3E🐈%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Cat Care home">
+        <span aria-hidden="true">◡̈</span> Cat Care
+      </a>
+      <span class="local-badge">Local companion</span>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="greeting">
+        <p class="eyebrow">A calm view of today</p>
+        <h1 id="greeting">How is <span id="cat-name">your cat</span> doing?</h1>
+        <div class="status-card" data-kind="loading" id="status-card" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
+          <div>
+            <p class="status-label" id="status-label">Checking care status</p>
+            <p class="status-copy" id="status-copy">Connecting to your local care record…</p>
+          </div>
+        </div>
+      </section>
+
+      <div id="error" class="error" role="alert" hidden></div>
+
+      <section class="workspace" aria-label="Care workspace">
+        <article class="panel responsibilities-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Responsibilities</p>
+              <h2>What needs care</h2>
+            </div>
+            <button class="secondary" id="show-form" type="button">Add responsibility</button>
+          </div>
+
+          <form id="responsibility-form" class="responsibility-form" hidden>
+            <label>
+              What needs to happen?
+              <input name="title" required maxlength="160" placeholder="Annual exam" />
+            </label>
+            <label>
+              Category
+              <select name="category" required>
+                <option value="veterinary">Veterinary</option>
+                <option value="preventive">Preventive care</option>
+                <option value="nutrition">Nutrition</option>
+                <option value="grooming">Grooming</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label>
+              Due date <span class="optional">optional</span>
+              <input name="due_at" type="datetime-local" />
+            </label>
+            <div class="form-actions">
+              <button class="primary" type="submit">Save responsibility</button>
+              <button class="text-button" id="cancel-form" type="button">Cancel</button>
+            </div>
+          </form>
+
+          <div id="responsibilities" class="responsibility-list" aria-live="polite"></div>
+        </article>
+
+        <aside class="panel history-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">History</p>
+              <h2>Recent care</h2>
+            </div>
+          </div>
+          <ol id="timeline" class="timeline"></ol>
+        </aside>
+      </section>
+    </main>
+
+    <footer>
+      Notes and status help organize care. They are not medical diagnoses.
+    </footer>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

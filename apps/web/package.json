@@ -1,0 +1,12 @@
+{
+  "name": "cat-care-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "python3 -m http.server 5173 --directory client",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
+  }
+}
