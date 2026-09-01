@@ -37,9 +37,24 @@ test("owner records observations and veterinarian reviews provisional triage", a
   await note.getByRole("button", { name: "Request triage" }).click();
   await expect(page.getByText(/veterinarian review is still required/)).toBeVisible();
 
+  await page.getByRole("link", { name: "Triage", exact: true }).click();
   const assessment = page.locator("article.triage-card", { hasText: "needs attention" });
   await assessment.getByRole("button", { name: "Mark urgent" }).click();
   await expect(assessment.getByText(/modified · urgent/)).toBeVisible();
   await assessment.getByRole("button", { name: "Add follow-up responsibility" }).click();
+  await page.getByRole("link", { name: "Today", exact: true }).click();
   await expect(page.locator("article.responsibility", { hasText: "Veterinarian follow-up" })).toBeVisible();
+});
+
+test("primary navigation separates profile and data stewardship", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: "Today", exact: true })).toHaveAttribute("aria-current", "page");
+
+  await page.getByRole("link", { name: "Cat profile", exact: true }).click();
+  await expect(page.getByRole("heading", { name: /About Mimi/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Cat profile", exact: true })).toHaveAttribute("aria-current", "page");
+
+  await page.getByRole("link", { name: "Account & data", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Data stewardship" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Download export" })).toBeVisible();
 });
