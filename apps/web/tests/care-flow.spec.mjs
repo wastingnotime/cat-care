@@ -62,8 +62,13 @@ test("owner records observations and veterinarian reviews provisional triage", a
 test("primary navigation separates profile and data stewardship", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("link", { name: "Today", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("link", { name: "Triage", exact: true })).toHaveCount(0);
 
-  await page.getByRole("link", { name: "Cat profile", exact: true }).click();
+  await page.goto("/triage");
+  await expect(page.getByRole("heading", { name: "Clinical review is restricted." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Veterinarian review" })).toHaveCount(0);
+
+  await page.goto("/profile");
   await expect(page.getByRole("heading", { name: /About Mimi/ })).toBeVisible();
   await expect(page.getByRole("link", { name: "Cat profile", exact: true })).toHaveAttribute("aria-current", "page");
 
