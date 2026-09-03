@@ -9,7 +9,10 @@ surface.
 
 | Method | Path | Meaning |
 |---|---|---|
-| `GET` | `/cat` | Read the current cat identity. |
+| `POST`, `GET`, `DELETE` | `/session` | Log on, read the current session, or log out. |
+| `GET`, `POST` | `/cats` | List accessible cats or add a cat to the owner account. |
+| `POST` | `/cats/{id}/select` | Select the cat that scopes subsequent care requests. |
+| `GET` | `/cat` | Read the selected cat identity. |
 | `GET` | `/status?due_soon_days=2` | Read calm status using an explicit threshold. |
 | `GET` | `/responsibilities` | List responsibilities in deterministic due-date order. |
 | `POST` | `/responsibilities` | Create a responsibility from `title`, `category`, and optional timezone-aware `due_at`. |
@@ -44,7 +47,18 @@ outside this local contract.
 
 ## Authentication
 
-Local mode is explicitly unauthenticated and binds to loopback by default. No
-production issuer, audience, roles, permissions, or browser session contract has
-been accepted. Production exposure is blocked until those mappings exist and
-are enforced by the API and web channel.
+Local mode provides deterministic password identities and opaque, HTTP-only,
+same-site sessions. `owner@cat.care` / `owner` opens owner mode and
+`vet@cat.care` / `vet` opens veterinarian mode. These are development fixtures,
+not production credentials.
+
+Every protected request is scoped to the session's selected cat. Owners list
+and create cats only in their own account, operate care records, and may request
+provisional triage. Veterinarians may list all locally available cats and read
+their records, but only veterinarian mode may review triage, request more
+information, or define a reviewed follow-up. The API derives veterinarian
+identity from the session rather than trusting a command field.
+
+No production issuer, discovery URL, audience, client registration, redirect
+URI, token validation, or refresh policy has been accepted. Production exposure
+remains blocked until those mappings replace the local identity fixture.

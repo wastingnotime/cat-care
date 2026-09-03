@@ -18,7 +18,7 @@ func LoadConfig() Config {
 	return Config{Address: address}
 }
 func NewHandler() *httpapi.Server {
-	repository := infrastructure.NewMemoryRepository("Mimi")
+	repository := infrastructure.NewMultiCatMemoryRepository("owner-local", "Mimi")
 	service := application.NewService(repository, infrastructure.SystemClock{}, &infrastructure.SequenceIDs{})
-	return httpapi.NewServer(service)
+	return httpapi.NewLocalServer(service)
 }

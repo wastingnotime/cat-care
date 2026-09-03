@@ -1,11 +1,12 @@
 import { getRequestEvent } from "solid-js/web";
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const event = getRequestEvent();
   const requestOrigin = typeof window === "undefined"
-    ? new URL(getRequestEvent()?.request.url ?? "http://127.0.0.1:5173").origin
+    ? new URL(event?.request.url ?? "http://127.0.0.1:5173").origin
     : "";
   const response = await fetch(`${requestOrigin}/api/${path}`, {
-    headers: { "content-type": "application/json", ...(init?.headers ?? {}) },
+    headers: { "content-type": "application/json", ...(event?.request.headers.get("cookie") ? { cookie:event.request.headers.get("cookie")! } : {}), ...(init?.headers ?? {}) },
     ...init,
   });
   if (!response.ok) {

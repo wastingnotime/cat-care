@@ -197,6 +197,9 @@ func (server *Server) reviewTriage(w http.ResponseWriter, r *http.Request) {
 	if !decode(w, r, &c) {
 		return
 	}
+	if session, ok := principal(r.Context()); ok {
+		c.VeterinarianID = session.User.ID
+	}
 	item, e := server.service.ReviewTriage(r.Context(), r.PathValue("id"), c.VeterinarianID, c.Decision, c.FinalUrgency, c.Rationale)
 	if e != nil {
 		domainError(w, e)
@@ -211,6 +214,9 @@ func (server *Server) requestTriageInformation(w http.ResponseWriter, r *http.Re
 	}
 	if !decode(w, r, &c) {
 		return
+	}
+	if session, ok := principal(r.Context()); ok {
+		c.VeterinarianID = session.User.ID
 	}
 	item, e := server.service.RequestTriageInformation(r.Context(), r.PathValue("id"), c.VeterinarianID, c.Question)
 	if e != nil {
@@ -227,6 +233,9 @@ func (server *Server) defineTriageFollowUp(w http.ResponseWriter, r *http.Reques
 	}
 	if !decode(w, r, &c) {
 		return
+	}
+	if session, ok := principal(r.Context()); ok {
+		c.VeterinarianID = session.User.ID
 	}
 	item, e := server.service.DefineTriageFollowUp(r.Context(), r.PathValue("id"), c.Title, c.VeterinarianID, c.DueAt)
 	if e != nil {

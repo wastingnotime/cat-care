@@ -16,3 +16,8 @@ make dev
 Then open `http://127.0.0.1:5173`. The development API uses in-memory state and
 resets when the runtime stops. See [`sandboxes/runtime/`](sandboxes/runtime/)
 for runtime configuration and validation commands.
+
+The logon screen offers local owner (`owner@cat.care` / `owner`) and
+veterinarian (`vet@cat.care` / `vet`) identities. Owners can maintain separate
+care records for multiple cats; veterinarians can switch among available cats
+in a role-limited review workspace. This local fixture is not production auth.

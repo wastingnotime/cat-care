@@ -12,15 +12,29 @@ import (
 	"github.com/wastingnotime/cat-care/apps/api/internal/domain"
 )
 
-type Server struct{ service *application.Service }
+type Server struct {
+	service  *application.Service
+	identity *localIdentity
+}
 
 func NewServer(service *application.Service) *Server { return &Server{service: service} }
+func NewLocalServer(service *application.Service) *Server {
+	return &Server{service: service, identity: newLocalIdentity()}
+}
 
 func (server *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(writer http.ResponseWriter, _ *http.Request) {
 		writeJSON(writer, http.StatusOK, map[string]string{"status": "ok"})
 	})
+	if server.identity != nil {
+		mux.HandleFunc("POST /v1/session", server.createSession)
+		mux.HandleFunc("GET /v1/session", server.currentSession)
+		mux.HandleFunc("DELETE /v1/session", server.deleteSession)
+		mux.HandleFunc("GET /v1/cats", server.cats)
+		mux.HandleFunc("POST /v1/cats", server.createCat)
+		mux.HandleFunc("POST /v1/cats/{id}/select", server.selectCat)
+	}
 	mux.HandleFunc("GET /v1/cat", server.cat)
 	mux.HandleFunc("PUT /v1/cat", server.updateProfile)
 	mux.HandleFunc("GET /v1/status", server.status)
@@ -45,6 +59,9 @@ func (server *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /v1/triage/{id}/follow-up", server.defineTriageFollowUp)
 	mux.HandleFunc("GET /v1/export", server.exportData)
 	mux.HandleFunc("DELETE /v1/data", server.deleteData)
+	if server.identity != nil {
+		return server.authenticate(mux)
+	}
 	return mux
 }
 

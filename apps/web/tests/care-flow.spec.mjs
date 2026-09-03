@@ -1,5 +1,16 @@
 import { expect, test } from "@playwright/test";
 
+async function logOn(page, mode="owner") {
+  await page.goto("/login");
+  if (mode === "veterinarian") await page.getByRole("button", { name: "Use veterinarian demo" }).click();
+  await page.getByRole("button", { name: "Log on" }).click();
+  await page.waitForURL(mode === "veterinarian" ? "/triage" : "/");
+}
+
+test.beforeEach(async ({ page }) => {
+  await logOn(page);
+});
+
 test("owner creates and completes a responsibility", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /How is Mimi doing/ })).toBeVisible();
@@ -37,12 +48,14 @@ test("owner records observations and veterinarian reviews provisional triage", a
   await note.getByRole("button", { name: "Request triage" }).click();
   await expect(page.getByText(/veterinarian review is still required/)).toBeVisible();
 
-  await page.getByRole("link", { name: "Triage", exact: true }).click();
+  await page.getByRole("button", { name: "Log out" }).click();
+  await logOn(page, "veterinarian");
   const assessment = page.locator("article.triage-card", { hasText: "needs attention" });
   await assessment.getByRole("button", { name: "Mark urgent" }).click();
   await expect(assessment.getByText(/modified · urgent/)).toBeVisible();
   await assessment.getByRole("button", { name: "Add follow-up responsibility" }).click();
-  await page.getByRole("link", { name: "Today", exact: true }).click();
+  await page.getByRole("button", { name: "Log out" }).click();
+  await logOn(page);
   await expect(page.locator("article.responsibility", { hasText: "Veterinarian follow-up" })).toBeVisible();
 });
 

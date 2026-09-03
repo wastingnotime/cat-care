@@ -27,6 +27,29 @@ type Repository interface {
 	Save(context.Context, State) error
 }
 
+type Cat struct {
+	ID      string         `json:"id"`
+	OwnerID string         `json:"owner_id"`
+	Profile domain.Profile `json:"profile"`
+}
+
+type CatRepository interface {
+	Repository
+	Cats(context.Context, string, bool) ([]Cat, error)
+	CreateCat(context.Context, string, domain.Profile) (Cat, error)
+}
+
+type catContextKey struct{}
+
+func WithCat(ctx context.Context, catID string) context.Context {
+	return context.WithValue(ctx, catContextKey{}, catID)
+}
+
+func CatFromContext(ctx context.Context) string {
+	value, _ := ctx.Value(catContextKey{}).(string)
+	return value
+}
+
 type Clock interface{ Now() time.Time }
 type IDs interface{ Next(string) string }
 
@@ -39,6 +62,25 @@ type Service struct {
 
 func NewService(repository Repository, clock Clock, ids IDs) *Service {
 	return &Service{repository: repository, clock: clock, ids: ids}
+}
+
+func (service *Service) Cats(ctx context.Context, ownerID string, all bool) ([]Cat, error) {
+	repository, ok := service.repository.(CatRepository)
+	if !ok {
+		return nil, domain.ErrInvalidTransition
+	}
+	return repository.Cats(ctx, ownerID, all)
+}
+
+func (service *Service) CreateCat(ctx context.Context, ownerID string, profile domain.Profile) (Cat, error) {
+	if err := domain.ValidateProfile(profile); err != nil {
+		return Cat{}, err
+	}
+	repository, ok := service.repository.(CatRepository)
+	if !ok {
+		return Cat{}, domain.ErrInvalidTransition
+	}
+	return repository.CreateCat(ctx, ownerID, profile)
 }
 
 func (service *Service) Cat(ctx context.Context) (string, error) {
