@@ -15,6 +15,11 @@ test("owner creates and completes a responsibility", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /How is Mimi doing/ })).toBeVisible();
 
+  await page.getByRole("link", { name: "Add observation" }).click();
+  await expect(page.getByRole("textbox", { name: "What did you notice?" })).toBeFocused();
+  await page.getByRole("link", { name: "Record direct care" }).click();
+  await expect(page.getByRole("textbox", { name: "Description" })).toBeFocused();
+
   await page.getByRole("button", { name: "Add responsibility" }).click();
   await page.getByLabel("What needs to happen?").fill("Annual exam");
   await page.getByLabel("Category").selectOption("veterinary");
