@@ -179,6 +179,7 @@ func (service *Service) CompleteResponsibility(ctx context.Context, id string) (
 			state.Responsibilities = append(state.Responsibilities, next)
 			details["next_responsibility_id"] = next.ID
 			details["next_due_at"] = dueAt
+			state.Events = append(state.Events, domain.Event{ID: service.ids.Next("event"), Type: "responsibility_created", OccurredAt: now, Description: next.Title, ResponsibilityID: next.ID, Details: map[string]any{"category": next.Category, "due_at": next.DueAt, "recurring_from_id": completed.ID}})
 		}
 		state.Events = append(state.Events, domain.Event{ID: service.ids.Next("event"), Type: "responsibility_completed", OccurredAt: now, Description: completed.Title, ResponsibilityID: completed.ID, Details: details})
 		if err := service.repository.Save(ctx, state); err != nil {

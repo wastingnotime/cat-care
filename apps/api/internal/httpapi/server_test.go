@@ -104,6 +104,14 @@ func TestRemainingReleasedSlicesThroughHTTP(t *testing.T) {
 	if triage["review_status"] != "pending" {
 		t.Fatalf("triage must remain provisional: %s", triageResponse.Body.String())
 	}
+	timeline := request(t, handler, http.MethodGet, "/v1/timeline", nil)
+	if !bytes.Contains(timeline.Body.Bytes(), []byte(`"type":"triage_requested"`)) || !bytes.Contains(timeline.Body.Bytes(), []byte(`"description":"observation: Eating less than usual"`)) || !bytes.Contains(timeline.Body.Bytes(), []byte(`"assessment_id":"`+assessmentID+`"`)) {
+		t.Fatalf("triage timeline linkage: %d %s", timeline.Code, timeline.Body.String())
+	}
+	comment := request(t, handler, http.MethodPost, "/v1/triage/"+assessmentID+"/comments", map[string]string{"message": "She ate a little this morning."})
+	if comment.Code != http.StatusCreated || !bytes.Contains(comment.Body.Bytes(), []byte(`"type":"triage_owner_commented"`)) || !bytes.Contains(comment.Body.Bytes(), []byte(`"assessment_id":"`+assessmentID+`"`)) {
+		t.Fatalf("triage owner comment: %d %s", comment.Code, comment.Body.String())
+	}
 	review := request(t, handler, http.MethodPost, "/v1/triage/"+assessmentID+"/review", map[string]string{"veterinarian_id": "vet-local", "decision": "modified", "final_urgency": "urgent", "rationale": "Prompt examination is appropriate."})
 	if review.Code != http.StatusOK || !bytes.Contains(review.Body.Bytes(), []byte(`"decision":"modified"`)) {
 		t.Fatalf("review: %d %s", review.Code, review.Body.String())

@@ -232,11 +232,13 @@ func (service *Service) RequestTriage(ctx context.Context, noteIDs []string) (do
 	if len(noteIDs) == 0 {
 		return domain.TriageAssessment{}, domain.ErrInvalidTransition
 	}
+	observations := make([]string, 0, len(noteIDs))
 	for _, id := range noteIDs {
 		found := false
 		for _, note := range state.Notes {
 			if note.ID == id {
 				found = true
+				observations = append(observations, note.Description)
 			}
 		}
 		if !found {
@@ -246,7 +248,10 @@ func (service *Service) RequestTriage(ctx context.Context, noteIDs []string) (do
 	now := service.clock.Now()
 	item := domain.TriageAssessment{ID: service.ids.Next("triage"), NoteIDs: noteIDs, Urgency: "needs_attention", Rationale: "The observation merits timely professional review.", Uncertainty: "No physical examination or vital signs are available.", Provider: "local-triage-fake", ModelVersion: "development-1", AssessedAt: now, ReviewStatus: "pending"}
 	state.TriageAssessments = append(state.TriageAssessments, item)
-	state.Events = append(state.Events, domain.Event{ID: service.ids.Next("event"), Type: "triage_assessed", OccurredAt: now, Description: "Provisional care triage", Details: map[string]any{"assessment_id": item.ID, "urgency": item.Urgency}})
+	state.Events = append(state.Events,
+		domain.Event{ID: service.ids.Next("event"), Type: "triage_requested", OccurredAt: now, Description: "observation: " + strings.Join(observations, "; "), Details: map[string]any{"assessment_id": item.ID, "note_ids": noteIDs}},
+		domain.Event{ID: service.ids.Next("event"), Type: "triage_assessed", OccurredAt: now, Description: item.Rationale, Details: map[string]any{"assessment_id": item.ID, "urgency": item.Urgency}},
+	)
 	return item, service.repository.Save(ctx, state)
 }
 func (service *Service) ReviewTriage(ctx context.Context, id, veterinarianID, decision, finalUrgency, rationale string) (domain.VeterinarianReview, error) {
@@ -273,7 +278,7 @@ func (service *Service) ReviewTriage(ctx context.Context, id, veterinarianID, de
 			item.FinalUrgency = finalUrgency
 			state.TriageAssessments[i] = item
 			state.VeterinarianReviews = append(state.VeterinarianReviews, review)
-			state.Events = append(state.Events, domain.Event{ID: service.ids.Next("event"), Type: "triage_reviewed", OccurredAt: now, Description: "Veterinarian reviewed " + id, Details: map[string]any{"decision": decision, "final_urgency": finalUrgency}})
+			state.Events = append(state.Events, domain.Event{ID: service.ids.Next("event"), Type: "triage_reviewed", OccurredAt: now, Description: rationale, Details: map[string]any{"assessment_id": id, "decision": decision, "final_urgency": finalUrgency}})
 			return review, service.repository.Save(ctx, state)
 		}
 	}
@@ -305,6 +310,36 @@ func (service *Service) RequestTriageInformation(ctx context.Context, id, veteri
 	return request, service.repository.Save(ctx, state)
 }
 
+func (service *Service) CommentOnTriage(ctx context.Context, id, authorID, authorName, message string) (domain.Event, error) {
+	service.mu.Lock()
+	defer service.mu.Unlock()
+	state, e := service.repository.Load(ctx)
+	if e != nil {
+		return domain.Event{}, e
+	}
+	if e := service.ensureActive(state); e != nil {
+		return domain.Event{}, e
+	}
+	found := false
+	for _, item := range state.TriageAssessments {
+		if item.ID == id {
+			found = true
+			break
+		}
+	}
+	message = strings.TrimSpace(message)
+	if !found {
+		return domain.Event{}, domain.ErrRecordNotFound
+	}
+	if message == "" {
+		return domain.Event{}, domain.ErrInvalidTransition
+	}
+	now := service.clock.Now()
+	comment := domain.Event{ID: service.ids.Next("event"), Type: "triage_owner_commented", OccurredAt: now, Description: message, Details: map[string]any{"assessment_id": id, "author_id": authorID, "author_name": authorName}}
+	state.Events = append(state.Events, comment)
+	return comment, service.repository.Save(ctx, state)
+}
+
 func (service *Service) DefineTriageFollowUp(ctx context.Context, id, title, veterinarianID string, dueAt time.Time) (domain.ResponsibilityView, error) {
 	service.mu.Lock()
 	defer service.mu.Unlock()
@@ -328,7 +363,10 @@ func (service *Service) DefineTriageFollowUp(ctx context.Context, id, title, vet
 	}
 	item.ActionKey = "triage:" + id + ":follow-up"
 	state.Responsibilities = append(state.Responsibilities, item)
-	state.Events = append(state.Events, domain.Event{ID: service.ids.Next("event"), Type: "triage_follow_up_defined", OccurredAt: now, Description: title, ResponsibilityID: item.ID, Details: map[string]any{"assessment_id": id, "veterinarian_id": veterinarianID, "due_at": dueAt}})
+	state.Events = append(state.Events,
+		domain.Event{ID: service.ids.Next("event"), Type: "responsibility_created", OccurredAt: now, Description: item.Title, ResponsibilityID: item.ID, Details: map[string]any{"category": item.Category, "due_at": item.DueAt, "triage_assessment_id": id}},
+		domain.Event{ID: service.ids.Next("event"), Type: "triage_follow_up_defined", OccurredAt: now, Description: title, ResponsibilityID: item.ID, Details: map[string]any{"assessment_id": id, "veterinarian_id": veterinarianID, "due_at": dueAt}},
+	)
 	return domain.ResponsibilityView{Responsibility: item, DerivedState: domain.DerivedState(item, now, 48*time.Hour)}, service.repository.Save(ctx, state)
 }
 

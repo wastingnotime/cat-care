@@ -105,6 +105,7 @@ h2 { margin: 0; font-size: 1.75rem; }
 [data-kind="due_soon"] .status-dot, [data-kind="unknown"] .status-dot { background: var(--amber); }
 .status-label { margin: 0 0 2px; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 .status-copy { margin: 0; color: #48544f; }
+.cat-status-list { display:grid; gap:10px; }
 
 .workspace { display: grid; gap: 24px; align-items: start; }
 .panel { padding: 28px; border: 1px solid var(--line); border-radius: 24px; background: rgba(255, 253, 248, 0.9); box-shadow: var(--shadow); }
@@ -127,6 +128,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .responsibility { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; padding: 17px 18px; border: 1px solid #e2ddd3; border-radius: 14px; background: var(--paper); }
 .responsibility h3 { margin: 0 0 5px; font-size: 1rem; }
 .responsibility p { margin: 0; color: var(--muted); font-size: 0.84rem; }
+.responsibility .item-cat { margin-bottom:4px; color:var(--sage-dark); font-size:.7rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
 .responsibility.completed { opacity: 0.64; }
 .responsibility.completed h3 { text-decoration: line-through; }
 .empty { padding: 35px 12px; color: var(--muted); text-align: center; }
@@ -154,6 +156,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .triage-list { display: grid; gap: 12px; margin-top: 18px; }
 .triage-card { padding: 15px; border: 1px solid var(--line); border-radius: 13px; background: var(--paper); }
 .triage-card p { margin: 8px 0; }
+.triage-card .item-cat { margin:0 0 8px; color:var(--sage-dark); font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
 .triage-card small, .boundary-copy { color: var(--muted); }
 .urgency { display: inline-block; padding: 5px 8px; border-radius: 999px; color: #795427; background: #f6ead1; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
 .stewardship { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-top: 24px; }

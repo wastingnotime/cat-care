@@ -7,12 +7,16 @@ transitions locally.
 API base path: `/v1`. The SolidStart BFF maps browser `/api/*` requests to this
 surface.
 
+Authenticated cat-scoped resources accept a `cat_id` query parameter. The API
+verifies that the cat is available to the account and scopes only that request;
+owners do not need to switch a global cat context.
+
 | Method | Path | Meaning |
 |---|---|---|
 | `POST`, `GET`, `DELETE` | `/session` | Log on, read the current session, or log out. |
 | `GET`, `POST` | `/cats` | List accessible cats or add a cat to the owner account. |
-| `POST` | `/cats/{id}/select` | Select the cat that scopes subsequent care requests. |
-| `GET` | `/cat` | Read the selected cat identity. |
+| `POST` | `/cats/{id}/select` | Remember the last-used cat for future action forms. |
+| `GET` | `/cat` | Read one cat identity, using `cat_id` or the last-used cat. |
 | `GET` | `/status?due_soon_days=2` | Read calm status using an explicit threshold. |
 | `GET` | `/responsibilities` | List responsibilities in deterministic due-date order. |
 | `POST` | `/responsibilities` | Create a responsibility from `title`, `category`, and optional timezone-aware `due_at`. |
@@ -29,6 +33,7 @@ surface.
 | `GET` | `/triage-reviews` | Read veterinarian decisions separately from provisional assessments. |
 | `POST` | `/triage/{id}/review` | Record a veterinarian accept/modify/reject decision. |
 | `POST` | `/triage/{id}/information-requests` | Ask the owner for more observations while review is pending. |
+| `POST` | `/triage/{id}/comments` | Add an owner reply to the shared triage thread. |
 | `POST` | `/triage/{id}/follow-up` | Create a veterinarian-linked follow-up after accepted/modified review. |
 | `GET` | `/export` | Export the complete current owner record. |
 | `DELETE` | `/data` | Terminally delete all locally owned care records and return counts. |

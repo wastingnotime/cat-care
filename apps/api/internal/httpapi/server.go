@@ -56,6 +56,7 @@ func (server *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /v1/triage", server.requestTriage)
 	mux.HandleFunc("POST /v1/triage/{id}/review", server.reviewTriage)
 	mux.HandleFunc("POST /v1/triage/{id}/information-requests", server.requestTriageInformation)
+	mux.HandleFunc("POST /v1/triage/{id}/comments", server.commentOnTriage)
 	mux.HandleFunc("POST /v1/triage/{id}/follow-up", server.defineTriageFollowUp)
 	mux.HandleFunc("GET /v1/export", server.exportData)
 	mux.HandleFunc("DELETE /v1/data", server.deleteData)

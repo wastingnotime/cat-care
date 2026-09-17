@@ -67,6 +67,12 @@ func TestAuthenticationCatIsolationAndModes(t *testing.T) {
 	if profile := authRequest(t, handler, owner, http.MethodGet, "/v1/cat", nil); !bytes.Contains(profile.Body.Bytes(), []byte(`"name":"Nina"`)) {
 		t.Fatalf("selected profile: %s", profile.Body.String())
 	}
+	if profile := authRequest(t, handler, owner, http.MethodGet, "/v1/cat?cat_id=cat-1", nil); !bytes.Contains(profile.Body.Bytes(), []byte(`"name":"Mimi"`)) {
+		t.Fatalf("request-scoped profile: %s", profile.Body.String())
+	}
+	if profile := authRequest(t, handler, owner, http.MethodGet, "/v1/cat?cat_id=missing", nil); profile.Code != http.StatusNotFound {
+		t.Fatalf("unavailable request-scoped cat: %d %s", profile.Code, profile.Body.String())
+	}
 	if review := authRequest(t, handler, owner, http.MethodPost, "/v1/triage/missing/review", map[string]string{"decision": "accepted"}); review.Code != http.StatusForbidden {
 		t.Fatalf("owner review status: %d", review.Code)
 	}

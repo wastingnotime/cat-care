@@ -225,6 +225,24 @@ func (server *Server) requestTriageInformation(w http.ResponseWriter, r *http.Re
 	}
 	writeJSON(w, http.StatusCreated, item)
 }
+func (server *Server) commentOnTriage(w http.ResponseWriter, r *http.Request) {
+	var c struct {
+		Message string `json:"message"`
+	}
+	if !decode(w, r, &c) {
+		return
+	}
+	authorID, authorName := "owner", "Owner"
+	if session, ok := principal(r.Context()); ok {
+		authorID, authorName = session.User.ID, session.User.Name
+	}
+	item, e := server.service.CommentOnTriage(r.Context(), r.PathValue("id"), authorID, authorName, c.Message)
+	if e != nil {
+		domainError(w, e)
+		return
+	}
+	writeJSON(w, http.StatusCreated, item)
+}
 func (server *Server) defineTriageFollowUp(w http.ResponseWriter, r *http.Request) {
 	var c struct {
 		Title          string    `json:"title"`

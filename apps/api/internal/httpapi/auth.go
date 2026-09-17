@@ -183,8 +183,23 @@ func (server *Server) authenticate(next http.Handler) http.Handler {
 			writeError(w, 403, "forbidden", "Veterinarian mode is required")
 			return
 		}
+		catID := session.ActiveCatID
+		if requestedCatID := r.URL.Query().Get("cat_id"); requestedCatID != "" {
+			allowed := false
+			for _, cat := range session.Cats {
+				if cat.ID == requestedCatID {
+					allowed = true
+					break
+				}
+			}
+			if !allowed {
+				writeError(w, 404, "not_found", "Cat is not available to this account")
+				return
+			}
+			catID = requestedCatID
+		}
 		ctx := context.WithValue(r.Context(), principalKey{}, session)
-		ctx = application.WithCat(ctx, session.ActiveCatID)
+		ctx = application.WithCat(ctx, catID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
