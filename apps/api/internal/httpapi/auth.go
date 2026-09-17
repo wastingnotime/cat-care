@@ -94,10 +94,14 @@ func (server *Server) createSession(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, session)
 }
 func (server *Server) currentSession(w http.ResponseWriter, r *http.Request) {
-	_, session, ok := server.identity.get(r)
+	token, session, ok := server.identity.get(r)
 	if !ok {
 		writeError(w, 401, "unauthenticated", "Log on to continue")
 		return
+	}
+	if cats, err := server.service.Cats(r.Context(), session.User.ID, session.User.Mode == "veterinarian"); err == nil {
+		session.Cats = cats
+		server.identity.save(token, session)
 	}
 	writeJSON(w, 200, session)
 }

@@ -105,6 +105,11 @@ test("primary navigation separates cats and data stewardship", async ({ page }) 
   await page.locator(".cat-card", { hasText: "Mimi" }).click();
   await expect(page.getByRole("heading", { name: /About Mimi/ })).toBeVisible();
   await expect(page).toHaveURL(/\/cats\/cat-1$/);
+  await page.getByRole("radio", { name: "Orange tabby" }).check();
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByRole("status")).toHaveText("Profile saved.");
+  await page.getByRole("link", { name: "All cats" }).click();
+  await expect(page.locator(".cat-card", { hasText: "Mimi" }).getByRole("img", { name: /orange-tabby cat/ })).toBeVisible();
 
   await page.getByRole("link", { name: "Account & data", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Data stewardship" })).toBeVisible();
