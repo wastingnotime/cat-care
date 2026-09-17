@@ -168,7 +168,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .danger-zone { border-color: #d8aaa5; }
 .danger-zone .eyebrow { color: var(--rose); }
 .deleted-state { max-width: 700px; margin: 80px auto; padding: 45px; border: 1px solid var(--line); border-radius: 24px; background: var(--paper); box-shadow: var(--shadow); }
-.history-section { max-width: 820px; margin: 44px auto 0; }
+.history-section { max-width: none; margin: 44px 0 0; }
 .section-heading { display:flex; justify-content:space-between; gap:24px; align-items:end; margin-bottom:18px; }
 .section-heading > p { max-width:330px; margin:0; color:var(--muted); text-align:right; }
 .history-feed { display:grid; gap:14px; }
