@@ -90,7 +90,7 @@ h2 { margin: 0; font-size: 1.75rem; }
   display: flex;
   gap: 15px;
   align-items: center;
-  max-width: 650px;
+  max-width: none;
   padding: 19px 22px;
   border: 1px solid #cbd8cf;
   border-radius: 18px;
