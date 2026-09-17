@@ -77,7 +77,7 @@ button { cursor: pointer; }
 .inline-form input { padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--paper); }
 
 main { max-width: 1180px; margin: auto; padding: 58px 28px 32px; }
-.hero { max-width: 760px; margin-bottom: 44px; }
+.hero { max-width: none; margin-bottom: 44px; }
 .page-heading { max-width: 760px; margin-bottom: 34px; }
 .page-heading h1 { margin-bottom: 18px; }
 .page-heading > p:last-child { max-width: 620px; color: var(--muted); font-size: 1.05rem; }
