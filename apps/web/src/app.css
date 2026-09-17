@@ -157,6 +157,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .triage-card { padding: 15px; border: 1px solid var(--line); border-radius: 13px; background: var(--paper); }
 .triage-card p { margin: 8px 0; }
 .triage-card .item-cat { margin:0 0 8px; color:var(--sage-dark); font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.cat-observations { margin:12px 0; padding:11px 13px; border-radius:11px; background:#f1eee5; }
+.cat-observations > strong { display:block; margin-bottom:5px; font-size:.78rem; }
+.cat-observations p { margin:4px 0; color:var(--muted); font-size:.88rem; }
 .triage-card small, .boundary-copy { color: var(--muted); }
 .urgency { display: inline-block; padding: 5px 8px; border-radius: 999px; color: #795427; background: #f6ead1; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
 .stewardship { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-top: 24px; }
