@@ -66,7 +66,7 @@ test("owner records observations and veterinarian reviews provisional triage", a
   const assessment = page.locator("article.triage-card", { hasText: "needs attention" });
   await expect(page.locator(".site-header select")).toHaveCount(0);
   await expect(assessment.getByText("Mimi", { exact: true })).toBeVisible();
-  await expect(assessment.getByText("Observation: Eating less than usual")).toBeVisible();
+  await expect(assessment.getByText("Eating less than usual", { exact: true })).toBeVisible();
   await assessment.getByRole("button", { name: "Ask owner" }).click();
   await expect(assessment.getByText("Please share appetite and energy changes.")).toBeVisible();
   await page.getByRole("button", { name: "Log out" }).click();
@@ -90,7 +90,7 @@ test("owner records observations and veterinarian reviews provisional triage", a
   await expect(page.locator("article.responsibility", { hasText: "Veterinarian follow-up" })).toBeVisible();
 });
 
-test("primary navigation separates profile and data stewardship", async ({ page }) => {
+test("primary navigation separates cats and data stewardship", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("link", { name: "Today", exact: true })).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("link", { name: "Triage", exact: true })).toHaveCount(0);
@@ -99,9 +99,12 @@ test("primary navigation separates profile and data stewardship", async ({ page 
   await expect(page.getByRole("heading", { name: "Clinical review is restricted." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Veterinarian review" })).toHaveCount(0);
 
-  await page.goto("/profile");
+  await page.goto("/cats");
+  await expect(page.getByRole("heading", { name: "One home, every cat." })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Cats", exact: true })).toHaveAttribute("aria-current", "page");
+  await page.locator(".cat-card", { hasText: "Mimi" }).click();
   await expect(page.getByRole("heading", { name: /About Mimi/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Cat profile", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page).toHaveURL(/\/cats\/cat-1$/);
 
   await page.getByRole("link", { name: "Account & data", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Data stewardship" })).toBeVisible();
@@ -109,10 +112,11 @@ test("primary navigation separates profile and data stewardship", async ({ page 
 });
 
 test("owner handles multiple cats without switching dashboard context", async ({ page }) => {
-  await page.goto("/account");
+  await page.goto("/cats");
   await page.getByPlaceholder("Cat name").fill("Nina");
   await page.getByRole("button", { name: "Add cat" }).click();
-  await page.waitForURL("/profile");
+  await page.waitForURL(/\/cats\/cat-2$/);
+  await expect(page.getByRole("heading", { name: "About Nina" })).toBeVisible();
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "How are your cats doing?" })).toBeVisible();

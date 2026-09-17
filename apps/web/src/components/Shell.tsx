@@ -6,7 +6,7 @@ import type { Session } from "../lib/contracts";
 
 const navigation = [
   { href: "/", label: "Today" },
-  { href: "/profile", label: "Cat profile" },
+  { href: "/cats", label: "Cats" },
   { href: "/triage", label: "Triage" },
   { href: "/account", label: "Account & data" },
 ];
