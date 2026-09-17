@@ -76,6 +76,25 @@ func TestInvalidPayloadAndTransitionsHaveStableErrors(t *testing.T) {
 	}
 }
 
+func TestCancelledResponsibilitiesRemainAtBottom(t *testing.T) {
+	handler := testHandler()
+	planned := request(t, handler, http.MethodPost, "/v1/responsibilities", map[string]any{"title": "Planned", "category": "other", "due_at": nil})
+	var item map[string]any
+	_ = json.Unmarshal(planned.Body.Bytes(), &item)
+	cancelled := request(t, handler, http.MethodPost, "/v1/responsibilities", map[string]any{"title": "Cancelled", "category": "other", "due_at": nil})
+	var cancelledItem map[string]any
+	_ = json.Unmarshal(cancelled.Body.Bytes(), &cancelledItem)
+	if response := request(t, handler, http.MethodPost, "/v1/responsibilities/"+cancelledItem["id"].(string)+"/cancel", nil); response.Code != http.StatusOK {
+		t.Fatalf("cancel: %d %s", response.Code, response.Body.String())
+	}
+	listing := request(t, handler, http.MethodGet, "/v1/responsibilities", nil)
+	var items []map[string]any
+	_ = json.Unmarshal(listing.Body.Bytes(), &items)
+	if len(items) != 2 || items[0]["title"] != "Planned" || items[1]["title"] != "Cancelled" {
+		t.Fatalf("cancelled responsibility ordering: %s", listing.Body.String())
+	}
+}
+
 func TestRemainingReleasedSlicesThroughHTTP(t *testing.T) {
 	handler := testHandler()
 	profile := request(t, handler, http.MethodPut, "/v1/cat", map[string]any{"name": "Mimi", "birth_date": "2021-05-01", "adoption_date": "2021-07-10", "photo_ref": "mimi.jpg"})

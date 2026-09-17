@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"sort"
 	"sync"
 	"time"
 
@@ -105,7 +106,19 @@ func (service *Service) Responsibilities(ctx context.Context) ([]domain.Responsi
 	if err != nil {
 		return nil, err
 	}
-	return domain.Views(state.Responsibilities, service.clock.Now(), 48*time.Hour), nil
+	now := service.clock.Now()
+	retained := make([]domain.Responsibility, 0, len(state.Responsibilities))
+	for _, item := range state.Responsibilities {
+		if item.State == "cancelled" && item.CancelledAt != nil && now.Sub(*item.CancelledAt) > 24*time.Hour {
+			continue
+		}
+		retained = append(retained, item)
+	}
+	views := domain.Views(retained, now, 48*time.Hour)
+	sort.SliceStable(views, func(left, right int) bool {
+		return views[left].State != "cancelled" && views[right].State == "cancelled"
+	})
+	return views, nil
 }
 
 func (service *Service) Status(ctx context.Context, dueSoonDays int) (domain.Status, error) {

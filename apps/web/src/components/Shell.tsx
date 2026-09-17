@@ -25,6 +25,6 @@ export function Shell(props: { children: JSX.Element }) {
       <div class="session-controls"><span class={`mode-badge ${session()?.user.mode}`}>{session()?.user.mode??"local"}</span><button class="text-button" onClick={async()=>{await api("session",{method:"DELETE"});window.location.href="/login"}}>Log out</button></div>
     </header>
     <main>{props.children}</main>
-    <footer>Notes and provisional triage help organize care. They are not medical diagnoses or treatment advice.</footer>
+    <footer>Notes and provisional triage help organize care. They are not medical diagnoses or treatment advice. The Notify action is included for test purposes only.</footer>
   </>;
 }
