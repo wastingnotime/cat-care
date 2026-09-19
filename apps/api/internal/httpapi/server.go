@@ -34,6 +34,7 @@ func (server *Server) Handler() http.Handler {
 		mux.HandleFunc("GET /v1/cats", server.cats)
 		mux.HandleFunc("POST /v1/cats", server.createCat)
 		mux.HandleFunc("POST /v1/cats/{id}/select", server.selectCat)
+		mux.HandleFunc("POST /v1/dev/reset-seed", server.resetSeed)
 	}
 	mux.HandleFunc("GET /v1/cat", server.cat)
 	mux.HandleFunc("PUT /v1/cat", server.updateProfile)
@@ -64,6 +65,19 @@ func (server *Server) Handler() http.Handler {
 		return server.authenticate(mux)
 	}
 	return mux
+}
+
+func (server *Server) resetSeed(writer http.ResponseWriter, request *http.Request) {
+	session, ok := principal(request.Context())
+	if !ok || session.User.Mode != "owner" {
+		writeError(writer, http.StatusForbidden, "forbidden", "Owner mode is required")
+		return
+	}
+	if !server.service.ResetSeed() {
+		writeError(writer, http.StatusNotImplemented, "unsupported", "reset-seed is only available for the local runtime")
+		return
+	}
+	writeJSON(writer, http.StatusOK, map[string]any{"status": "reset", "cats": []string{"cat-1", "cat-2"}})
 }
 
 func (server *Server) cat(writer http.ResponseWriter, request *http.Request) {

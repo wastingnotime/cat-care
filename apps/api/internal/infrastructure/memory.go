@@ -28,6 +28,17 @@ func NewMultiCatMemoryRepository(ownerID, catName string) *MemoryRepository {
 	return &MemoryRepository{states: map[string]application.State{"cat-1": state}, owners: map[string]string{"cat-1": ownerID}, nextCat: 1}
 }
 
+func (repository *MemoryRepository) ResetSeed() {
+	repository.mu.Lock()
+	defer repository.mu.Unlock()
+	repository.states = map[string]application.State{
+		"cat-1": emptyState(domain.Profile{Name: "Mimi", PhotoRef: "gray"}),
+		"cat-2": emptyState(domain.Profile{Name: "Luna", PhotoRef: "orange-tabby"}),
+	}
+	repository.owners = map[string]string{"cat-1": "owner-local", "cat-2": "owner-local"}
+	repository.nextCat = 2
+}
+
 func emptyState(profile domain.Profile) application.State {
 	return application.State{Profile: profile, Responsibilities: []domain.Responsibility{}, Events: []domain.Event{}, Notes: []domain.Note{}, DirectCare: []domain.DirectCare{}, Notifications: []domain.Notification{}, TriageAssessments: []domain.TriageAssessment{}, VeterinarianReviews: []domain.VeterinarianReview{}, InformationRequests: []domain.InformationRequest{}}
 }

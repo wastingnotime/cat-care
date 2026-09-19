@@ -40,6 +40,8 @@ type CatRepository interface {
 	CreateCat(context.Context, string, domain.Profile) (Cat, error)
 }
 
+type SeedResetter interface{ ResetSeed() }
+
 type catContextKey struct{}
 
 func WithCat(ctx context.Context, catID string) context.Context {
@@ -63,6 +65,15 @@ type Service struct {
 
 func NewService(repository Repository, clock Clock, ids IDs) *Service {
 	return &Service{repository: repository, clock: clock, ids: ids}
+}
+
+func (service *Service) ResetSeed() bool {
+	resetter, ok := service.repository.(SeedResetter)
+	if !ok {
+		return false
+	}
+	resetter.ResetSeed()
+	return true
 }
 
 func (service *Service) Cats(ctx context.Context, ownerID string, all bool) ([]Cat, error) {

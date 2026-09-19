@@ -36,6 +36,13 @@ Configuration:
 Stop with `Ctrl-C`. Development state is in-memory and starts fresh with the Go
 service.
 
+To reset a running local API and seed the deterministic owner fixture (`Mimi`
+and `Luna`), run:
+
+```bash
+make reset-seed
+```
+
 ## Validate
 
 ```bash
