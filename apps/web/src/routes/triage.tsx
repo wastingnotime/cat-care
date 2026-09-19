@@ -25,7 +25,7 @@ export default function Triage() {
   const command=async(catID:string,path:string,body?:unknown)=>{setError("");setNotice("");try{await api(withCat(path,catID),{method:"POST",body:body===undefined?undefined:JSON.stringify(body)});await refetch()}catch(failure){setError(failure instanceof Error?failure.message:"Triage command failed.");throw failure}};
   const review=(catID:string,id:string,decision:string,finalUrgency="")=>command(catID,`triage/${id}/review`,{decision,final_urgency:finalUrgency,rationale:decision==="modified"?"Prompt examination is appropriate.":"Reviewed in the local veterinarian queue."}).then(()=>setNotice("Veterinarian review recorded.")).catch(()=>{});
   const cards=()=>(queues()??[]).flatMap(queue=>queue.assessments.map(assessment=>({queue,assessment}))).sort((a,b)=>new Date(b.assessment.assessed_at).getTime()-new Date(a.assessment.assessed_at).getTime());
-  const observations=(queue:CatTriage,_item:TriageAssessment)=>queue.notes;
+  const observations=(queue:CatTriage,item:TriageAssessment)=>queue.notes.filter(note=>item.note_ids.includes(note.id));
   const thread=(queue:CatTriage,id:string)=>queue.timeline.filter(event=>event.type.startsWith("triage_")&&event.type!=="triage_requested"&&event.details.assessment_id===id).slice().reverse();
   const threadLabel=(event:CareEvent)=>event.type==="triage_owner_commented"?String(event.details.author_name??"Owner"):event.type.replace("triage_","triage ").replaceAll("_"," ");
   const hasFollowUp=(queue:CatTriage)=>queue.responsibilities.some(item=>item.title.toLowerCase()==="veterinarian follow-up");
