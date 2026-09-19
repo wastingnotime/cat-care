@@ -31,6 +31,7 @@ func (server *Server) Handler() http.Handler {
 		mux.HandleFunc("POST /v1/session", server.createSession)
 		mux.HandleFunc("GET /v1/session", server.currentSession)
 		mux.HandleFunc("DELETE /v1/session", server.deleteSession)
+		mux.HandleFunc("POST /v1/session/workspace", server.switchWorkspace)
 		mux.HandleFunc("GET /v1/cats", server.cats)
 		mux.HandleFunc("POST /v1/cats", server.createCat)
 		mux.HandleFunc("POST /v1/cats/{id}/select", server.selectCat)
@@ -77,7 +78,7 @@ func (server *Server) resetSeed(writer http.ResponseWriter, request *http.Reques
 		writeError(writer, http.StatusNotImplemented, "unsupported", "reset-seed is only available for the local runtime")
 		return
 	}
-	writeJSON(writer, http.StatusOK, map[string]any{"status": "reset", "cats": []string{"cat-1", "cat-2"}})
+	writeJSON(writer, http.StatusOK, map[string]any{"status": "reset", "cats": []string{"cat-1", "cat-2", "cat-3"}})
 }
 
 func (server *Server) cat(writer http.ResponseWriter, request *http.Request) {

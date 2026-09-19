@@ -15,6 +15,7 @@ import (
 
 func authenticatedHandler() http.Handler {
 	repository := infrastructure.NewMultiCatMemoryRepository("owner-local", "Mimi")
+	repository.ResetSeed()
 	service := application.NewService(repository, fixedClock{time.Date(2026, 9, 1, 12, 0, 0, 0, time.UTC)}, &infrastructure.SequenceIDs{})
 	return httpapi.NewLocalServer(service).Handler()
 }
@@ -82,5 +83,14 @@ func TestAuthenticationCatIsolationAndModes(t *testing.T) {
 	}
 	if cats := authRequest(t, handler, vet, http.MethodGet, "/v1/cats", nil); cats.Code != http.StatusOK || !bytes.Contains(cats.Body.Bytes(), []byte("Nina")) {
 		t.Fatalf("vet cats: %d %s", cats.Code, cats.Body.String())
+	}
+	if switched := authRequest(t, handler, vet, http.MethodPost, "/v1/session/workspace", map[string]string{"mode": "owner"}); switched.Code != http.StatusOK || !bytes.Contains(switched.Body.Bytes(), []byte(`"mode":"owner"`)) {
+		t.Fatalf("switch to owner workspace: %d %s", switched.Code, switched.Body.String())
+	}
+	if cats := authRequest(t, handler, vet, http.MethodGet, "/v1/cats", nil); cats.Code != http.StatusOK || !bytes.Contains(cats.Body.Bytes(), []byte(`"owner_id":"vet-local"`)) || bytes.Contains(cats.Body.Bytes(), []byte(`"name":"Mimi"`)) {
+		t.Fatalf("vet owner cats: %d %s", cats.Code, cats.Body.String())
+	}
+	if note := authRequest(t, handler, vet, http.MethodPost, "/v1/notes", map[string]string{"description": "My own cat observation"}); note.Code != http.StatusCreated {
+		t.Fatalf("vet acting as owner: %d %s", note.Code, note.Body.String())
 	}
 }

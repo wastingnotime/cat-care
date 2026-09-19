@@ -34,9 +34,10 @@ func (repository *MemoryRepository) ResetSeed() {
 	repository.states = map[string]application.State{
 		"cat-1": emptyState(domain.Profile{Name: "Mimi", PhotoRef: "gray"}),
 		"cat-2": emptyState(domain.Profile{Name: "Luna", PhotoRef: "orange-tabby"}),
+		"cat-3": emptyState(domain.Profile{Name: "Nina", PhotoRef: "calico"}),
 	}
-	repository.owners = map[string]string{"cat-1": "owner-local", "cat-2": "owner-local"}
-	repository.nextCat = 2
+	repository.owners = map[string]string{"cat-1": "owner-local", "cat-2": "owner-local", "cat-3": "vet-local"}
+	repository.nextCat = 3
 }
 
 func emptyState(profile domain.Profile) application.State {

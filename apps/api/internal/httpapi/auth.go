@@ -15,10 +15,11 @@ import (
 const sessionCookie = "cat_care_session"
 
 type User struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Mode  string `json:"mode"`
+	ID    string   `json:"id"`
+	Name  string   `json:"name"`
+	Email string   `json:"email"`
+	Mode  string   `json:"mode"`
+	Roles []string `json:"roles"`
 }
 type Session struct {
 	User        User              `json:"user"`
@@ -37,9 +38,9 @@ func (identity *localIdentity) login(email, password string, service *applicatio
 	var user User
 	switch {
 	case email == "owner@cat.care" && password == "owner":
-		user = User{ID: "owner-local", Name: "Alex", Email: email, Mode: "owner"}
+		user = User{ID: "owner-local", Name: "Alex", Email: email, Mode: "owner", Roles: []string{"owner"}}
 	case email == "vet@cat.care" && password == "vet":
-		user = User{ID: "vet-local", Name: "Dr. Silva", Email: email, Mode: "veterinarian"}
+		user = User{ID: "vet-local", Name: "Dr. Silva", Email: email, Mode: "veterinarian", Roles: []string{"owner", "veterinarian"}}
 	default:
 		return "", Session{}, false
 	}
@@ -55,6 +56,15 @@ func (identity *localIdentity) login(email, password string, service *applicatio
 	identity.sessions[token] = session
 	identity.mu.Unlock()
 	return token, session, true
+}
+
+func hasRole(user User, role string) bool {
+	for _, candidate := range user.Roles {
+		if candidate == role {
+			return true
+		}
+	}
+	return false
 }
 
 func (identity *localIdentity) get(r *http.Request) (string, Session, bool) {
@@ -114,6 +124,33 @@ func (server *Server) deleteSession(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, &http.Cookie{Name: sessionCookie, Path: "/", MaxAge: -1, HttpOnly: true})
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (server *Server) switchWorkspace(w http.ResponseWriter, r *http.Request) {
+	token, session, _ := server.identity.get(r)
+	var command struct {
+		Mode string `json:"mode"`
+	}
+	if !decode(w, r, &command) {
+		return
+	}
+	if !hasRole(session.User, command.Mode) {
+		writeError(w, http.StatusForbidden, "forbidden", "This workspace is not available to this account")
+		return
+	}
+	session.User.Mode = command.Mode
+	cats, err := server.service.Cats(r.Context(), session.User.ID, command.Mode == "veterinarian")
+	if err != nil {
+		internalError(w)
+		return
+	}
+	session.Cats = cats
+	session.ActiveCatID = ""
+	if len(cats) > 0 {
+		session.ActiveCatID = cats[0].ID
+	}
+	server.identity.save(token, session)
+	writeJSON(w, http.StatusOK, session)
 }
 
 func (server *Server) cats(w http.ResponseWriter, r *http.Request) {
@@ -179,7 +216,7 @@ func (server *Server) authenticate(next http.Handler) http.Handler {
 			writeError(w, 409, "cat_required", "Select a cat to continue")
 			return
 		}
-		if session.User.Mode == "veterinarian" && r.Method != "GET" && !strings.Contains(r.URL.Path, "/review") && !strings.Contains(r.URL.Path, "/information-requests") && !strings.Contains(r.URL.Path, "/follow-up") && r.URL.Path != "/v1/session" && !strings.HasSuffix(r.URL.Path, "/select") {
+		if session.User.Mode == "veterinarian" && r.Method != "GET" && !strings.Contains(r.URL.Path, "/review") && !strings.Contains(r.URL.Path, "/information-requests") && !strings.Contains(r.URL.Path, "/follow-up") && !strings.HasPrefix(r.URL.Path, "/v1/session") && !strings.HasSuffix(r.URL.Path, "/select") {
 			writeError(w, 403, "forbidden", "This action belongs to owner mode")
 			return
 		}
