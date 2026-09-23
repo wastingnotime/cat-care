@@ -2,32 +2,41 @@ import { expect, test } from "@playwright/test";
 
 async function logOn(page, mode="owner") {
   await page.goto("/login");
-  if (mode === "veterinarian") await page.getByRole("button", { name: "Use veterinarian demo" }).click();
+  if (mode === "veterinarian") await page.getByRole("button", { name: "Use dual-role veterinarian demo" }).click();
   await page.getByRole("button", { name: "Log on" }).click();
   await page.waitForURL(mode === "veterinarian" ? "/triage" : "/");
 }
 
 test.beforeEach(async ({ page }) => {
   await logOn(page);
+  const reset = await page.request.post("/api/dev/reset-seed");
+  expect(reset.ok()).toBeTruthy();
 });
 
 test("owner creates and completes a responsibility", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /How is Mimi doing/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "How are your cats doing?" })).toBeVisible();
 
   await page.getByRole("button", { name: "Add observation" }).click();
   await expect(page.getByRole("textbox", { name: "What did you notice?" })).toBeFocused();
   await page.getByRole("button", { name: "Record direct care" }).click();
+  await expect(page.getByRole("textbox", { name: "What did you notice?" })).toHaveCount(0);
   await expect(page.getByRole("textbox", { name: "Description" })).toBeFocused();
 
   await page.getByRole("button", { name: "Add responsibility" }).click();
+  await expect(page.getByRole("textbox", { name: "Description" })).toHaveCount(0);
+  await expect(page.locator(".responsibility-form .quick-cat-picker")).toBeVisible();
+  await page.getByRole("button", { name: "Add observation" }).click();
+  await expect(page.locator(".responsibility-form")).toHaveCount(0);
+  await page.getByRole("button", { name: "Add responsibility" }).click();
+  await expect(page.locator(".quick-action-form")).toHaveCount(0);
   await page.getByLabel("What needs to happen?").fill("Annual exam");
   await page.getByLabel("Category").selectOption("veterinary");
   await page.getByRole("button", { name: "Save responsibility" }).click();
 
   const responsibility = page.locator("article.responsibility", { hasText: "Annual exam" });
   await expect(responsibility).toBeVisible();
-  await expect(page.getByText("Some future care information is unknown.")).toBeVisible();
+  await expect(page.getByText("Set a due date for Annual exam.")).toBeVisible();
 
   await responsibility.getByRole("button", { name: "Mark Annual exam complete" }).click();
   await expect(responsibility).toHaveClass(/completed/);
@@ -35,6 +44,43 @@ test("owner creates and completes a responsibility", async ({ page }) => {
   const completion = page.locator(".history-card", { hasText: "Annual exam" }).first();
   await expect(completion.getByText("responsibility completed")).toBeVisible();
   await expect(page.locator(".history-card", { hasText: "Annual exam" })).toHaveCount(1);
+});
+
+test("undated care can be scheduled and finished care leaves Today after the day", async ({ page }) => {
+  await page.clock.install({ time: new Date() });
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Add responsibility" }).click();
+  await page.getByLabel("What needs to happen?").fill("Schedule me");
+  await page.getByRole("button", { name: "Save responsibility" }).click();
+  const scheduled = page.locator("article.responsibility", { hasText: "Schedule me" });
+  await scheduled.getByRole("button", { name: "Set due date" }).click();
+  await scheduled.getByLabel("Due date for Schedule me").fill(new Date(Date.now() + 4 * 86400000).toISOString().slice(0, 16));
+  await scheduled.getByRole("button", { name: "Save due date" }).click();
+  await expect(scheduled.getByRole("button", { name: "Set due date" })).toHaveCount(0);
+  await expect(scheduled).not.toContainText("unknown");
+
+  await page.getByRole("button", { name: "Add responsibility" }).click();
+  await page.getByLabel("What needs to happen?").fill("Complete me");
+  await page.getByRole("button", { name: "Save responsibility" }).click();
+  const completed = page.locator("article.responsibility", { hasText: "Complete me" });
+  await completed.getByRole("button", { name: "Mark Complete me complete" }).click();
+  await expect(completed).toHaveClass(/completed/);
+
+  await page.getByRole("button", { name: "Add responsibility" }).click();
+  await page.getByLabel("What needs to happen?").fill("Cancel me");
+  await page.getByRole("button", { name: "Save responsibility" }).click();
+  const cancelled = page.locator("article.responsibility", { hasText: "Cancel me" });
+  await cancelled.getByRole("button", { name: "Cancel", exact: true }).click();
+  const rows = page.locator(".responsibility-list article.responsibility");
+  await expect(rows).toHaveCount(3);
+  await expect(rows.first()).toContainText("Schedule me");
+  await expect(cancelled).toHaveClass(/cancelled/);
+
+  await page.clock.fastForward(86400000);
+  await expect(completed).toHaveCount(0);
+  await expect(cancelled).toHaveCount(0);
+  await expect(scheduled).toBeVisible();
 });
 
 test("owner records observations and veterinarian reviews provisional triage", async ({ page }) => {
@@ -54,6 +100,7 @@ test("owner records observations and veterinarian reviews provisional triage", a
   const note = page.locator(".history-card", { hasText: "Eating less than usual" });
   await note.getByRole("button", { name: "Request triage" }).click();
   await expect(page.getByText(/veterinarian review is still required/)).toBeVisible();
+  await expect(page.locator(".hero .status-card[data-kind='review_pending']")).toContainText("Mimi");
   await expect(note.getByRole("button", { name: "Request triage" })).toHaveCount(0);
   await expect(note.getByText("Triage was requested.")).toBeVisible();
   const triageEvent = page.locator(".history-card", { hasText: "observation: Eating less than usual" });
@@ -68,6 +115,8 @@ test("owner records observations and veterinarian reviews provisional triage", a
   await expect(assessment.getByText("Mimi", { exact: true })).toBeVisible();
   await expect(assessment.getByText("Eating less than usual", { exact: true })).toBeVisible();
   await assessment.getByRole("button", { name: "Ask owner" }).click();
+  await assessment.getByLabel("Question for the owner").fill("Please share appetite and energy changes.");
+  await assessment.getByRole("button", { name: "Send question" }).click();
   await expect(assessment.getByText("Please share appetite and energy changes.")).toBeVisible();
   await page.getByRole("button", { name: "Log out" }).click();
   await page.waitForURL("/login");
@@ -102,7 +151,7 @@ test("primary navigation separates cats and data stewardship", async ({ page }) 
   await page.goto("/cats");
   await expect(page.getByRole("heading", { name: "One home, every cat." })).toBeVisible();
   await expect(page.getByRole("link", { name: "Cats", exact: true })).toHaveAttribute("aria-current", "page");
-  await page.locator(".cat-card", { hasText: "Mimi" }).click();
+  await page.locator(".cat-card", { hasText: "Mimi" }).locator(".cat-card-identity").click();
   await expect(page.getByRole("heading", { name: /About Mimi/ })).toBeVisible();
   await expect(page).toHaveURL(/\/cats\/cat-1$/);
   await page.getByRole("radio", { name: "Orange tabby" }).check();
@@ -120,27 +169,61 @@ test("owner handles multiple cats without switching dashboard context", async ({
   await page.goto("/cats");
   await page.getByPlaceholder("Cat name").fill("Nina");
   await page.getByRole("button", { name: "Add cat" }).click();
-  await page.waitForURL(/\/cats\/cat-2$/);
+  await page.waitForURL(/\/cats\/cat-\d+$/);
   await expect(page.getByRole("heading", { name: "About Nina" })).toBeVisible();
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "How are your cats doing?" })).toBeVisible();
-  await expect(page.locator(".status-label", { hasText: "Mimi" })).toBeVisible();
-  await expect(page.locator(".status-label", { hasText: "Nina" })).toBeVisible();
+  await expect(page.locator(".hero .status-card")).toHaveCount(1);
+  await expect(page.locator(".hero .status-label")).toHaveText("All calm");
   await expect(page.locator(".site-header select")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Add observation" }).click();
-  await expect(page.getByLabel("Cat", { exact: true })).toHaveValue(/cat-2/);
-  await page.getByLabel("Cat", { exact: true }).selectOption({ label: "Mimi" });
+  await expect(page.getByRole("radio", { name: /Nina/ })).toBeChecked();
+  await page.locator(".quick-cat-picker label", { hasText: "Mimi" }).click();
   await page.getByLabel("What did you notice?").fill("Mimi slept by the window");
   await page.getByRole("button", { name: "Add to history" }).click();
-  await expect(page.locator(".history-card", { hasText: "Mimi slept by the window" }).getByText("Observation · Mimi")).toBeVisible();
+  await expect(page.locator(".history-card", { hasText: "Mimi slept by the window" }).getByText("Mimi", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "Add responsibility" }).click();
-  await expect(page.getByLabel("Cat", { exact: true })).toHaveValue(/cat-1/);
-  await page.getByLabel("Cat", { exact: true }).selectOption({ label: "Nina" });
+  await expect(page.locator(".responsibility-form").getByRole("radio", { name: /Mimi/ })).toBeChecked();
+  await page.locator(".responsibility-form .quick-cat-picker label", { hasText: "Nina" }).click();
   await page.getByLabel("What needs to happen?").fill("Brush coat");
   await page.getByRole("button", { name: "Save responsibility" }).click();
   const responsibility = page.locator("article.responsibility", { hasText: "Brush coat" });
   await expect(responsibility.getByText("Nina", { exact: true })).toBeVisible();
+});
+
+test("Today groups matching issues and keeps different levels visible", async ({ page }) => {
+  await page.goto("/cats");
+  await page.getByPlaceholder("Cat name").fill("Pip");
+  await page.getByRole("button", { name: "Add cat" }).click();
+  await page.waitForURL(/\/cats\/cat-\d+$/);
+
+  await page.goto("/");
+  const addResponsibility = async (cat, title, dueAt) => {
+    await page.getByRole("button", { name: "Add responsibility" }).click();
+    await page.locator(".responsibility-form .quick-cat-picker label", { hasText: cat }).click();
+    await page.getByLabel("What needs to happen?").fill(title);
+    await page.getByLabel("Due date").fill(dueAt);
+    await page.getByRole("button", { name: "Save responsibility" }).click();
+  };
+  const overdue = new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 16);
+  const soon = new Date(Date.now() + 86400000).toISOString().slice(0, 16);
+  await addResponsibility("Mimi", "Mimi exam", overdue);
+  await addResponsibility("Luna", "Luna vaccine", overdue);
+  await addResponsibility("Pip", "Pip checkup", soon);
+
+  const attention = page.locator(".hero .status-card[data-kind='overdue']");
+  const comingUp = page.locator(".hero .status-card[data-kind='due_soon']");
+  await expect(page.locator(".hero .status-card")).toHaveCount(2);
+  await expect(attention.getByText("Mimi")).toBeVisible();
+  await expect(attention.getByText("Luna")).toBeHidden();
+  await expect(comingUp.getByText("Pip")).toBeVisible();
+  await attention.locator("summary").click();
+  await expect(attention.getByText("Luna")).toBeVisible();
+
+  await page.goto("/cats");
+  await page.locator(".cat-card", { hasText: "Pip" }).getByRole("link", { name: /View Today/ }).click();
+  await expect(page).toHaveURL(/\/$/);
 });
