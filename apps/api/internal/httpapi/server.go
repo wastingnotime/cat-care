@@ -35,6 +35,11 @@ func (server *Server) Handler() http.Handler {
 		mux.HandleFunc("GET /v1/cats", server.cats)
 		mux.HandleFunc("POST /v1/cats", server.createCat)
 		mux.HandleFunc("POST /v1/cats/{id}/select", server.selectCat)
+		mux.HandleFunc("PUT /v1/cats/{id}/veterinarian", server.assignVeterinarian)
+		mux.HandleFunc("GET /v1/veterinarians", server.veterinarians)
+		mux.HandleFunc("POST /v1/veterinarians/invitations", server.inviteVeterinarian)
+		mux.HandleFunc("GET /v1/invitations", server.invitations)
+		mux.HandleFunc("POST /v1/invitations/{ownerID}/accept", server.acceptInvitation)
 		mux.HandleFunc("POST /v1/dev/reset-seed", server.resetSeed)
 	}
 	mux.HandleFunc("GET /v1/cat", server.cat)

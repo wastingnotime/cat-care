@@ -1,5 +1,6 @@
 export type Cat = { name: string; birth_date: string | null; adoption_date: string | null; photo_ref?: string };
-export type CatAccount = { id:string; owner_id:string; profile:Cat };
+export type CatAccount = { id:string; owner_id:string; profile:Cat; veterinarian_id?:string };
+export type VetInvitation = { owner_id:string; owner_name:string; veterinarian_id:string; veterinarian_name:string; status:"pending"|"accepted" };
 export type Workspace = "owner"|"veterinarian";
 export type Session = { user:{id:string;name:string;email:string;mode:Workspace;roles:Workspace[]}; cats:CatAccount[]; active_cat_id:string };
 export type CareStatus = { kind: string; sentence: string; nearest_responsibility_id?: string; due_soon_days: number };

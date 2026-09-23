@@ -11,6 +11,7 @@ import (
 
 type State struct {
 	Profile             domain.Profile              `json:"cat"`
+	VeterinarianID      string                      `json:"veterinarian_id,omitempty"`
 	Responsibilities    []domain.Responsibility     `json:"responsibilities"`
 	Events              []domain.Event              `json:"events"`
 	Notes               []domain.Note               `json:"notes"`
@@ -29,9 +30,25 @@ type Repository interface {
 }
 
 type Cat struct {
-	ID      string         `json:"id"`
-	OwnerID string         `json:"owner_id"`
-	Profile domain.Profile `json:"profile"`
+	ID             string         `json:"id"`
+	OwnerID        string         `json:"owner_id"`
+	Profile        domain.Profile `json:"profile"`
+	VeterinarianID string         `json:"veterinarian_id,omitempty"`
+}
+
+type VetInvitation struct {
+	OwnerID          string `json:"owner_id"`
+	OwnerName        string `json:"owner_name"`
+	VeterinarianID   string `json:"veterinarian_id"`
+	VeterinarianName string `json:"veterinarian_name"`
+	Status           string `json:"status"`
+}
+
+type VetRelationshipRepository interface {
+	Invitations(context.Context, string, bool) ([]VetInvitation, error)
+	InviteVeterinarian(context.Context, VetInvitation) (VetInvitation, error)
+	AcceptInvitation(context.Context, string, string) (VetInvitation, error)
+	AssignVeterinarian(context.Context, string, string, string) (Cat, error)
 }
 
 type CatRepository interface {
@@ -82,6 +99,38 @@ func (service *Service) Cats(ctx context.Context, ownerID string, all bool) ([]C
 		return nil, domain.ErrInvalidTransition
 	}
 	return repository.Cats(ctx, ownerID, all)
+}
+
+func (service *Service) Invitations(ctx context.Context, accountID string, asVet bool) ([]VetInvitation, error) {
+	repository, ok := service.repository.(VetRelationshipRepository)
+	if !ok {
+		return nil, domain.ErrInvalidTransition
+	}
+	return repository.Invitations(ctx, accountID, asVet)
+}
+
+func (service *Service) InviteVeterinarian(ctx context.Context, invitation VetInvitation) (VetInvitation, error) {
+	repository, ok := service.repository.(VetRelationshipRepository)
+	if !ok {
+		return VetInvitation{}, domain.ErrInvalidTransition
+	}
+	return repository.InviteVeterinarian(ctx, invitation)
+}
+
+func (service *Service) AcceptInvitation(ctx context.Context, ownerID, vetID string) (VetInvitation, error) {
+	repository, ok := service.repository.(VetRelationshipRepository)
+	if !ok {
+		return VetInvitation{}, domain.ErrInvalidTransition
+	}
+	return repository.AcceptInvitation(ctx, ownerID, vetID)
+}
+
+func (service *Service) AssignVeterinarian(ctx context.Context, ownerID, catID, vetID string) (Cat, error) {
+	repository, ok := service.repository.(VetRelationshipRepository)
+	if !ok {
+		return Cat{}, domain.ErrInvalidTransition
+	}
+	return repository.AssignVeterinarian(ctx, ownerID, catID, vetID)
 }
 
 func (service *Service) CreateCat(ctx context.Context, ownerID string, profile domain.Profile) (Cat, error) {

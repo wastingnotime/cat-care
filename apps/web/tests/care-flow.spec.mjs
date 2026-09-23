@@ -107,6 +107,24 @@ test("owner records observations and veterinarian reviews provisional triage", a
   await expect(triageEvent.getByText("triage requested", { exact: true })).toBeVisible();
   await expect(triageEvent.getByText(/triage assessed: The observation merits timely professional review/)).toBeVisible();
 
+  await page.goto("/account");
+  await page.getByLabel("Veterinarian email").fill("vet@cat.care");
+  await page.getByRole("button", { name: "Send invitation" }).click();
+  await expect(page.getByText("Dr. Silva · pending")).toBeVisible();
+
+  await page.getByRole("button", { name: "Log out" }).click();
+  await page.waitForURL("/login");
+  await logOn(page, "veterinarian");
+  await expect(page.getByText("No assessments waiting.")).toBeVisible();
+  await page.getByRole("button", { name: "Accept invitation" }).click();
+  await expect(page.getByText("Alex · accepted")).toBeVisible();
+  await page.getByRole("button", { name: "Log out" }).click();
+  await page.waitForURL("/login");
+  await logOn(page);
+  await page.goto("/cats/cat-1");
+  await page.waitForLoadState("networkidle");
+  await page.getByLabel("Assigned veterinarian").selectOption("vet-local");
+  await expect(page.getByRole("status")).toHaveText("Cat veterinarian updated.");
   await page.getByRole("button", { name: "Log out" }).click();
   await page.waitForURL("/login");
   await logOn(page, "veterinarian");

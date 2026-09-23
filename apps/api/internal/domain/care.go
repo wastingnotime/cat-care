@@ -14,6 +14,9 @@ var (
 	ErrInvalidTransition        = errors.New("invalid care transition")
 	ErrRecordNotFound           = errors.New("care record not found")
 	ErrDataDeleted              = errors.New("cat data has been deleted")
+	ErrInvitationNotFound       = errors.New("invitation not found")
+	ErrInvitationConflict       = errors.New("invitation state conflicts with this action")
+	ErrVeterinarianUnavailable  = errors.New("veterinarian is not available to this owner")
 )
 
 type Responsibility struct {

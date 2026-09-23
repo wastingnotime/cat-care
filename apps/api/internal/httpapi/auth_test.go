@@ -78,11 +78,35 @@ func TestAuthenticationCatIsolationAndModes(t *testing.T) {
 		t.Fatalf("owner review status: %d", review.Code)
 	}
 	vet := login(t, handler, "vet@cat.care", "vet")
+	if cats := authRequest(t, handler, vet, http.MethodGet, "/v1/cats", nil); cats.Code != http.StatusOK || bytes.Contains(cats.Body.Bytes(), []byte("Mimi")) {
+		t.Fatalf("unassigned vet cats: %d %s", cats.Code, cats.Body.String())
+	}
+	if invitation := authRequest(t, handler, owner, http.MethodPost, "/v1/veterinarians/invitations", map[string]string{"email": "vet@cat.care"}); invitation.Code != http.StatusCreated {
+		t.Fatalf("invite vet: %d %s", invitation.Code, invitation.Body.String())
+	}
+	if premature := authRequest(t, handler, owner, http.MethodPut, "/v1/cats/cat-1/veterinarian", map[string]string{"veterinarian_id": "vet-local"}); premature.Code != http.StatusConflict {
+		t.Fatalf("premature assignment: %d %s", premature.Code, premature.Body.String())
+	}
+	if accepted := authRequest(t, handler, vet, http.MethodPost, "/v1/invitations/owner-local/accept", nil); accepted.Code != http.StatusOK {
+		t.Fatalf("accept invitation: %d %s", accepted.Code, accepted.Body.String())
+	}
+	if assigned := authRequest(t, handler, owner, http.MethodPut, "/v1/cats/cat-1/veterinarian", map[string]string{"veterinarian_id": "vet-local"}); assigned.Code != http.StatusOK {
+		t.Fatalf("assign cat: %d %s", assigned.Code, assigned.Body.String())
+	}
+	if cats := authRequest(t, handler, vet, http.MethodGet, "/v1/cats", nil); cats.Code != http.StatusOK || !bytes.Contains(cats.Body.Bytes(), []byte("Mimi")) || bytes.Contains(cats.Body.Bytes(), []byte("Luna")) {
+		t.Fatalf("vet assigned cats: %d %s", cats.Code, cats.Body.String())
+	}
+	if inaccessible := authRequest(t, handler, vet, http.MethodGet, "/v1/cat?cat_id=cat-2", nil); inaccessible.Code != http.StatusNotFound {
+		t.Fatalf("vet unassigned cat: %d %s", inaccessible.Code, inaccessible.Body.String())
+	}
 	if mutation := authRequest(t, handler, vet, http.MethodPost, "/v1/notes", map[string]string{"description": "not allowed"}); mutation.Code != http.StatusForbidden {
 		t.Fatalf("vet owner mutation status: %d", mutation.Code)
 	}
-	if cats := authRequest(t, handler, vet, http.MethodGet, "/v1/cats", nil); cats.Code != http.StatusOK || !bytes.Contains(cats.Body.Bytes(), []byte("Nina")) {
-		t.Fatalf("vet cats: %d %s", cats.Code, cats.Body.String())
+	if unassigned := authRequest(t, handler, owner, http.MethodPut, "/v1/cats/cat-1/veterinarian", map[string]string{"veterinarian_id": ""}); unassigned.Code != http.StatusOK {
+		t.Fatalf("unassign cat: %d %s", unassigned.Code, unassigned.Body.String())
+	}
+	if inaccessible := authRequest(t, handler, vet, http.MethodGet, "/v1/cat?cat_id=cat-1", nil); inaccessible.Code != http.StatusNotFound && inaccessible.Code != http.StatusConflict {
+		t.Fatalf("revoked vet cat: %d %s", inaccessible.Code, inaccessible.Body.String())
 	}
 	if switched := authRequest(t, handler, vet, http.MethodPost, "/v1/session/workspace", map[string]string{"mode": "owner"}); switched.Code != http.StatusOK || !bytes.Contains(switched.Body.Bytes(), []byte(`"mode":"owner"`)) {
 		t.Fatalf("switch to owner workspace: %d %s", switched.Code, switched.Body.String())

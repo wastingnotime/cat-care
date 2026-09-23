@@ -109,11 +109,31 @@ func (server *Server) currentSession(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 401, "unauthenticated", "Log on to continue")
 		return
 	}
-	if cats, err := server.service.Cats(r.Context(), session.User.ID, session.User.Mode == "veterinarian"); err == nil {
-		session.Cats = cats
-		server.identity.save(token, session)
-	}
+	session = server.refreshSession(r.Context(), token, session)
 	writeJSON(w, 200, session)
+}
+
+func (server *Server) refreshSession(ctx context.Context, token string, session Session) Session {
+	cats, err := server.service.Cats(ctx, session.User.ID, session.User.Mode == "veterinarian")
+	if err != nil {
+		return session
+	}
+	session.Cats = cats
+	active := false
+	for _, cat := range cats {
+		if cat.ID == session.ActiveCatID {
+			active = true
+			break
+		}
+	}
+	if !active {
+		session.ActiveCatID = ""
+		if len(cats) > 0 {
+			session.ActiveCatID = cats[0].ID
+		}
+	}
+	server.identity.save(token, session)
+	return session
 }
 func (server *Server) deleteSession(w http.ResponseWriter, r *http.Request) {
 	token, _, ok := server.identity.get(r)
@@ -207,20 +227,22 @@ func (server *Server) authenticate(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		_, session, ok := server.identity.get(r)
+		token, session, ok := server.identity.get(r)
 		if !ok {
 			writeError(w, 401, "unauthenticated", "Log on to continue")
 			return
 		}
-		if session.ActiveCatID == "" && !strings.HasPrefix(r.URL.Path, "/v1/cats") && r.URL.Path != "/v1/session" {
+		session = server.refreshSession(r.Context(), token, session)
+		accountPath := strings.HasPrefix(r.URL.Path, "/v1/cats") || strings.HasPrefix(r.URL.Path, "/v1/veterinarians") || strings.HasPrefix(r.URL.Path, "/v1/invitations") || strings.HasPrefix(r.URL.Path, "/v1/session")
+		if session.ActiveCatID == "" && !accountPath {
 			writeError(w, 409, "cat_required", "Select a cat to continue")
 			return
 		}
-		if session.User.Mode == "veterinarian" && r.Method != "GET" && !strings.Contains(r.URL.Path, "/review") && !strings.Contains(r.URL.Path, "/information-requests") && !strings.Contains(r.URL.Path, "/follow-up") && !strings.HasPrefix(r.URL.Path, "/v1/session") && !strings.HasSuffix(r.URL.Path, "/select") {
+		if session.User.Mode == "veterinarian" && r.Method != "GET" && !strings.Contains(r.URL.Path, "/review") && !strings.Contains(r.URL.Path, "/information-requests") && !strings.Contains(r.URL.Path, "/follow-up") && !strings.HasPrefix(r.URL.Path, "/v1/session") && !strings.HasSuffix(r.URL.Path, "/select") && !strings.HasPrefix(r.URL.Path, "/v1/invitations/") {
 			writeError(w, 403, "forbidden", "This action belongs to owner mode")
 			return
 		}
-		if session.User.Mode == "owner" && (strings.Contains(r.URL.Path, "/review") || strings.Contains(r.URL.Path, "/information-requests") || strings.Contains(r.URL.Path, "/follow-up")) {
+		if session.User.Mode == "owner" && (strings.Contains(r.URL.Path, "/review") || strings.Contains(r.URL.Path, "/information-requests") || strings.Contains(r.URL.Path, "/follow-up") || strings.HasPrefix(r.URL.Path, "/v1/invitations/")) {
 			writeError(w, 403, "forbidden", "Veterinarian mode is required")
 			return
 		}

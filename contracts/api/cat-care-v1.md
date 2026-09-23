@@ -16,6 +16,11 @@ owners do not need to switch a global cat context.
 | `POST`, `GET`, `DELETE` | `/session` | Log on, read the current session, or log out. |
 | `GET`, `POST` | `/cats` | List accessible cats or add a cat to the owner account. |
 | `POST` | `/cats/{id}/select` | Remember the last-used cat for future action forms. |
+| `GET` | `/veterinarians` | Owner lists invited veterinarians and their invitation status. |
+| `POST` | `/veterinarians/invitations` | Owner invites a veterinarian by account email. |
+| `GET` | `/invitations` | Veterinarian lists invitations addressed to their account. |
+| `POST` | `/invitations/{ownerID}/accept` | Veterinarian accepts a pending owner invitation. |
+| `PUT` | `/cats/{id}/veterinarian` | Owner assigns one accepted veterinarian to a cat, or clears the assignment. |
 | `GET` | `/cat` | Read one cat identity, using `cat_id` or the last-used cat. |
 | `GET` | `/status?due_soon_days=2` | Read calm status using an explicit threshold. |
 | `GET` | `/responsibilities` | List responsibilities in deterministic due-date order. |
@@ -48,7 +53,7 @@ outside this local contract.
 
 - `400`: malformed fields, missing RFC 3339 timezone, or invalid query policy.
 - `404`: responsibility identity is unknown.
-- `409`: the requested transition conflicts with current state.
+- `409`: the requested transition conflicts with current state, including assignment before invitation acceptance.
 
 ## Authentication
 
@@ -57,12 +62,13 @@ same-site sessions. `owner@cat.care` / `owner` opens owner mode and
 `vet@cat.care` / `vet` opens veterinarian mode. These are development fixtures,
 not production credentials.
 
-Every protected request is scoped to the session's selected cat. Owners list
+Every cat-scoped request is checked against current assignments, including requests from an existing session. Owners list
 and create cats only in their own account, operate care records, and may request
-provisional triage. Veterinarians may list all locally available cats and read
-their records, but only veterinarian mode may review triage, request more
+provisional triage. An owner may invite a veterinarian to their account; acceptance makes that veterinarian available for assignment, but does not itself grant cat access. Each cat has at most one assigned veterinarian. Veterinarians may list and read only assigned cats, and only veterinarian mode may review triage, request more
 information, or define a reviewed follow-up. The API derives veterinarian
 identity from the session rather than trusting a command field.
+
+The local demo resolves invitations against `vet@cat.care`. Invitations and assignments are in memory. Removing an assignment immediately removes that cat from the veterinarian workspace.
 
 No production issuer, discovery URL, audience, client registration, redirect
 URI, token validation, or refresh policy has been accepted. Production exposure

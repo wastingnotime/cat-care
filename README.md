@@ -21,3 +21,8 @@ The logon screen offers a local owner (`owner@cat.care` / `owner`) and a
 dual-role veterinarian (`vet@cat.care` / `vet`). Veterinarians can switch
 between their owner workspace and the role-limited review workspace. This local
 fixture is not production auth.
+
+To connect a veterinarian in the local demo, the owner sends an invitation from
+Account & data to `vet@cat.care`. The veterinarian accepts it in the review
+workspace. The owner can then assign Dr. Silva on an individual cat profile.
+Only assigned cats appear in the veterinarian workspace.

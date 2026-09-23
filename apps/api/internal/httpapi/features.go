@@ -20,9 +20,9 @@ func decode(writer http.ResponseWriter, request *http.Request, target any) bool 
 }
 func domainError(writer http.ResponseWriter, err error) {
 	switch {
-	case errors.Is(err, domain.ErrResponsibilityNotFound), errors.Is(err, domain.ErrRecordNotFound):
+	case errors.Is(err, domain.ErrResponsibilityNotFound), errors.Is(err, domain.ErrRecordNotFound), errors.Is(err, domain.ErrInvitationNotFound):
 		writeError(writer, http.StatusNotFound, "not_found", err.Error())
-	case errors.Is(err, domain.ErrResponsibilityNotPlanned), errors.Is(err, domain.ErrInvalidTransition), errors.Is(err, domain.ErrDataDeleted):
+	case errors.Is(err, domain.ErrResponsibilityNotPlanned), errors.Is(err, domain.ErrInvalidTransition), errors.Is(err, domain.ErrDataDeleted), errors.Is(err, domain.ErrInvitationConflict), errors.Is(err, domain.ErrVeterinarianUnavailable):
 		writeError(writer, http.StatusConflict, "conflict", err.Error())
 	case errors.Is(err, domain.ErrInvalidResponsibility):
 		writeError(writer, http.StatusBadRequest, "invalid_request", err.Error())
