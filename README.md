@@ -26,3 +26,11 @@ To connect a veterinarian in the local demo, the owner sends an invitation from
 Account & data to `vet@cat.care`. The veterinarian accepts it in the review
 workspace. The owner can then assign Dr. Silva on an individual cat profile.
 Only assigned cats appear in the veterinarian workspace.
+
+## Owner MVP scope and production status
+
+[ADR 0001](docs/adr/0001-owner-mvp.md) freezes the owner MVP and preserves
+assigned-veterinarian web continuity. The
+[production evidence register](docs/assessment/wnt-145-production-gaps.md)
+distinguishes the local prototype from unverified external services;
+[acceptance fixtures](contracts/acceptance/owner-mvp.md) define delivery gates.
