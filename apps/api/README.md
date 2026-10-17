@@ -14,8 +14,9 @@ air -c .air.toml
 
 The API listens on `http://127.0.0.1:8080`. Override the address with
 `CAT_CARE_API_ADDR`. Local state is deterministic and in-memory. Local
-development is intentionally unauthenticated; this is not a production identity
-contract.
+development uses fixed owner/veterinarian identities and in-memory cookie
+sessions. See the root README for demo logins. This is not production identity;
+see [ADR 0001](../../docs/adr/0001-owner-mvp.md) for release gates.
 
 Air rebuilds and restarts the service when Go source changes. Install it with
 `go install github.com/air-verse/air@latest` if it is not already available.
