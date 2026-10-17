@@ -40,8 +40,8 @@ owners do not need to switch a global cat context.
 | `POST` | `/triage/{id}/information-requests` | Ask the owner for more observations while review is pending. |
 | `POST` | `/triage/{id}/comments` | Add an owner reply to the shared triage thread. |
 | `POST` | `/triage/{id}/follow-up` | Create a veterinarian-linked follow-up after accepted/modified review. |
-| `GET` | `/export` | Export the complete current owner record. |
-| `DELETE` | `/data` | Terminally delete all locally owned care records and return counts. |
+| `GET` | `/export` | Export the request cat state; not an account export. |
+| `DELETE` | `/data` | Terminally delete the request cat state and return counts; other cats and account remain. |
 
 `GET /healthz` is the local readiness endpoint. Go request/response types and
 HTTP contract tests are the executable field and error schema. The synchronized
@@ -73,3 +73,12 @@ The local demo resolves invitations against `vet@cat.care`. Invitations and assi
 No production issuer, discovery URL, audience, client registration, redirect
 URI, token validation, or refresh policy has been accepted. Production exposure
 remains blocked until those mappings replace the local identity fixture.
+
+## MVP assessment
+
+Export/deletion use `cat_id` or the session active cat. Account lifecycle,
+transactional updates, retry identities and production sessions remain release
+gates in [ADR 0001](../../docs/adr/0001-owner-mvp.md) and the
+[baseline assessment](../../docs/assessment/wnt-145-production-gaps.md).
+The [acceptance fixtures](../acceptance/owner-mvp.md) distinguish current
+semantics from delivery requirements.
