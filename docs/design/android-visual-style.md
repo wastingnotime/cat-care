@@ -35,7 +35,7 @@ and may ellipsize on unusually narrow screens; accessibility descriptions keep
 the complete label. Decorative illustrations/icons are excluded from the
 accessibility reading order; navigation exposes button semantics.
 
-The cat illustration is drawn with Android Canvas and scales without external
+The cat illustration is drawn with Compose Canvas and scales without external
 assets. It appears in onboarding. Gatos uses smaller face avatars whose coat
 colors and markings match the eight web coat identifiers. Each card shows the
 avatar/name, a pending badge when needed, total responsibilities, total
@@ -62,3 +62,20 @@ for the planning and registration avatar forms and observation comments.
 
 See [Kotlin and Compose migration evidence](../../runs/android-compose-2026-10-23/evidence.md)
 for the current Compose screens, data compatibility, date picker and draft restoration.
+
+Care and history cards share a compact sage cat badge with the saved coat avatar
+and cat name. The identity badge is separate from scheduling status and category.
+
+Planning uses calendar selection followed by a separate time dialog. Numeric
+hour/minute entry is the default, with a clock toggle. Repetition uses a single
+mode and interval, daily/weekly/monthly presets, and a preview of the next due
+moment. Longer hints explain calendar-month behavior only when relevant.
+
+All copy is provided through English and Brazilian Portuguese resources. The
+Data language selector is available even before any cats exist. Dates, times,
+plural counts and accessibility labels follow that selection; time format also
+respects the device setting. Date/time displays include the device zone and offset.
+
+Below 360dp or above 120% text scale, date entry uses a compact calendar with
+month arrows, a year chooser, six equal calendar rows, and wrapping actions. The
+calendar stays within the window while preserving full spoken date labels.

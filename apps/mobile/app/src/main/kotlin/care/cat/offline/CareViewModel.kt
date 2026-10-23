@@ -18,28 +18,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-val Categories = listOf("Alimentação", "Higiene", "Medicação", "Veterinário", "Outro")
-val RecordTypes =
-    linkedMapOf(
-        "measurement" to "Medição",
-        "feeding" to "Alimentação",
-        "medication" to "Medicação",
-        "hygiene" to "Higiene",
-        "care" to "Cuidado",
-        "observation" to "Observação (não é diagnóstico)",
-    )
-
-fun typeLabel(type: String): String =
-    RecordTypes[type]
-        ?: mapOf(
-            "created" to "Planejamento",
-            "edited" to "Edição",
-            "completed" to "Conclusão",
-            "cancelled" to "Cancelamento",
-            "deferred" to "Adiamento",
-        )[type]
-        ?: "Perfil"
-
 /**
  * UI snapshots are immutable; SQLite work stays off the UI thread. Drafts survive process
  * recreation.
@@ -64,9 +42,9 @@ class CareViewModel(application: Application, private val saved: SavedStateHandl
     val draft = saved.getStateFlow("draft", Bundle())
     private val mutableBusy = MutableStateFlow(false)
     val busy = mutableBusy.asStateFlow()
-    private val mutableError = MutableStateFlow<String?>(null)
+    private val mutableError = MutableStateFlow<Int?>(null)
     val error = mutableError.asStateFlow()
-    private val mutableMessage = MutableStateFlow<String?>(null)
+    private val mutableMessage = MutableStateFlow<Int?>(null)
     val message = mutableMessage.asStateFlow()
     private val mutableReveal = MutableStateFlow<String?>(null)
     val reveal = mutableReveal.asStateFlow()
@@ -108,8 +86,7 @@ class CareViewModel(application: Application, private val saved: SavedStateHandl
                 throw cancelled
             } catch (error: Exception) {
                 mutableError.value =
-                    if (error is IllegalArgumentException) error.message
-                    else "Não foi possível acessar os dados. Tente novamente."
+                    if (error is CareValidation) issueLabel(error.issue) else R.string.error_storage
             } finally {
                 mutableBusy.value = false
             }
@@ -170,14 +147,10 @@ class CareViewModel(application: Application, private val saved: SavedStateHandl
                     putString("cat", task?.catId ?: state.cats.singleOrNull()?.id.orEmpty())
                     putString("title", task?.title.orEmpty())
                     putString("category", task?.category ?: Categories.first())
-                    putString(
-                        "due",
-                        task
-                            ?.due
-                            ?.takeIf { it.isNotEmpty() }
-                            ?.let { ZonedDateTime.parse(it).format(CareRules.INPUT) }
-                            .orEmpty(),
-                    )
+                    val scheduled =
+                        task?.due?.takeIf { it.isNotEmpty() }?.let { ZonedDateTime.parse(it) }
+                    putString("dueDate", scheduled?.toLocalDate()?.toString().orEmpty())
+                    putString("dueTime", scheduled?.toLocalTime()?.toString().orEmpty())
                     putString(
                         "zone",
                         task
@@ -185,10 +158,24 @@ class CareViewModel(application: Application, private val saved: SavedStateHandl
                             ?.takeIf { it.isNotEmpty() }
                             ?.let { ZonedDateTime.parse(it).zone.id } ?: ZoneId.systemDefault().id,
                     )
-                    putString("days", task?.days?.takeIf { it > 0 }?.toString().orEmpty())
-                    putString("months", task?.months?.takeIf { it > 0 }?.toString().orEmpty())
+                    putString(
+                        "repeatMode",
+                        if ((task?.months ?: 0) > 0) "months"
+                        else if ((task?.days ?: 0) > 0) "days" else "none",
+                    )
+                    putString(
+                        "interval",
+                        when {
+                            (task?.months ?: 0) > 0 -> task!!.months
+                            (task?.days ?: 0) > 0 -> task!!.days
+                            else -> 1
+                        }.toString(),
+                    )
                     putInt("version", task?.version ?: 0)
-                    if (kind == "defer") putString("due", "")
+                    if (kind == "defer") {
+                        putString("dueDate", "")
+                        putString("dueTime", "")
+                    }
                 }
                 if (kind == "record") {
                     putString("cat", selected.value)
@@ -201,15 +188,14 @@ class CareViewModel(application: Application, private val saved: SavedStateHandl
     fun saveEditor() {
         val values = Bundle(draft.value)
         fun value(key: String) = values.getString(key).orEmpty()
-        fun number(key: String): Int =
-            value(key).trim().let {
-                if (it.isEmpty()) 0
-                else
-                    it.toIntOrNull()
-                        ?: throw IllegalArgumentException(
-                            "Informe um número inteiro válido para a recorrência."
-                        )
-            }
+        fun interval(unit: String): Int {
+            if (value("repeatMode") != unit) return 0
+            val number = value("interval").toIntOrNull()
+            careRequire(number != null && number > 0, CareIssue.RECURRENCE)
+            return number!!
+        }
+        fun scheduled() =
+            CareRules.due(value("dueDate"), value("dueTime"), ZoneId.of(value("zone")))
         runAction {
             val result =
                 withContext(Dispatchers.IO) {
@@ -218,8 +204,8 @@ class CareViewModel(application: Application, private val saved: SavedStateHandl
                         target
                             ?.let { id -> store.tasks(null).find { it.id == id } }
                             ?.copy(version = values.getInt("version"))
-                    fun requireTask() = requireNotNull(task) { "Cuidado indisponível." }
-                    fun chosenCat(): String = CareRules.required(value("cat"), "o gato")
+                    fun requireTask() = task ?: throw CareValidation(CareIssue.TASK_MISSING)
+                    fun chosenCat(): String = CareRules.required(value("cat"), CareIssue.CAT)
                     when (value("kind")) {
                         "cat" ->
                             store.saveCat(
@@ -230,15 +216,15 @@ class CareViewModel(application: Application, private val saved: SavedStateHandl
                                 value("coat"),
                             )
                         "task" -> {
-                            require(target == null || task != null) { "Cuidado indisponível." }
+                            careRequire(target == null || task != null, CareIssue.TASK_MISSING)
                             store.saveTask(
                                 chosenCat(),
                                 task,
                                 value("title"),
                                 value("category"),
-                                CareRules.due(value("due"), ZoneId.of(value("zone"))),
-                                number("days"),
-                                number("months"),
+                                scheduled(),
+                                interval("days"),
+                                interval("months"),
                             )
                             null
                         }
@@ -251,11 +237,7 @@ class CareViewModel(application: Application, private val saved: SavedStateHandl
                             target
                         }
                         "defer" -> {
-                            store.transition(
-                                requireTask(),
-                                "deferred",
-                                CareRules.due(value("due"), ZoneId.of(value("zone"))),
-                            )
+                            store.transition(requireTask(), "deferred", scheduled())
                             null
                         }
                         "complete" -> {
@@ -276,8 +258,7 @@ class CareViewModel(application: Application, private val saved: SavedStateHandl
             // A committed mutation must not be resubmitted if refreshing the UI fails.
             saved["draft"] = Bundle()
             mutableMessage.value =
-                if (value("kind") == "delete") "Dados apagados deste app."
-                else "Salvo neste aparelho."
+                if (value("kind") == "delete") R.string.message_deleted else R.string.message_saved
             withContext(Dispatchers.IO) { reload() }
             when (value("kind")) {
                 "cat" -> {
@@ -317,7 +298,7 @@ class CareViewModel(application: Application, private val saved: SavedStateHandl
         saved["exportScope"] = null
         if (uri == null) return
         if (scope == null) {
-            mutableError.value = "Selecione novamente o escopo da exportação."
+            mutableError.value = R.string.error_export_scope
             return
         }
         runAction {
@@ -332,12 +313,11 @@ class CareViewModel(application: Application, private val saved: SavedStateHandl
                         )
                         .use { it.write(bytes) }
                 }
-                mutableMessage.value = "Exportação salva."
+                mutableMessage.value = R.string.message_exported
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
-                mutableError.value =
-                    "Não foi possível exportar. Um arquivo parcial pode precisar ser removido do destino."
+                mutableError.value = R.string.error_export
             }
         }
     }

@@ -25,10 +25,8 @@ val Rust = Color(0xff954c38)
 @Composable
 fun CatAvatar(coatId: String, modifier: Modifier = Modifier, describe: Boolean = true) {
     val coat = CatCoat.fromId(coatId)
-    Canvas(
-        if (describe) modifier.semantics { contentDescription = "Pelagem ${coat.label}" }
-        else modifier
-    ) {
+    val description = tr(R.string.coat_description, tr(coat.label))
+    Canvas(if (describe) modifier.semantics { contentDescription = description } else modifier) {
         val factor = size.minDimension / 100f
         withTransform({
             translate((size.width - 100 * factor) / 2, (size.height - 100 * factor) / 2)

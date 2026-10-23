@@ -91,8 +91,8 @@ chosen coat avatar, pending status, responsibility/observation counters and an
 edit button. Create/edit asks for name, optional birth/adoption dates and closest
 coat. Histórico shows the selected cat's records and lifecycle, offers comments
 on observations, and contains “Registrar” with an avatar cat picker. Dados exports or
-deletes one cat/all local care data after a scope preview. Dates are entered as
-`dd/mm/aaaa` and due times as `dd/mm/aaaa hh:mm`. Export is versioned JSON via
+deletes one cat/all local care data after a scope preview. Dates use calendar pickers and times use a numeric/clock dialog. Repetition
+offers none, every N days, or every N months with presets and a next-date preview. Export is versioned JSON via
 Android's document picker. No import/restore, automatic reminders or cloud sync
 is included. Automatic backup/device transfer of app data is disabled by app
 policy. Uninstall, storage clearing or device loss may permanently remove data;
@@ -112,11 +112,27 @@ Application and test sources live under `app/src/{main,test,androidTest}/kotlin`
 draws avatars and onboarding art with Compose Canvas. `CareViewModel` exposes
 immutable snapshots through StateFlow, runs SQLite work on the IO dispatcher, and
 keeps form fields, target IDs, selected cats and navigation in SavedStateHandle.
-`CareStore` retains the same database filename, schema 3, atomic mutations and
-JSON export version 2. Upgrading the Java app to this implementation requires
-no database migration or reset.
+`CareStore` retains the same database filename, atomic mutations and JSON export
+version 2. Schema 4 adds nullable metadata for localized automatic history;
+upgrading schema 3 preserves all existing cats, care records and comments.
 
 The build pins Kotlin/compiler plugin 2.2.21, Compose BOM 2025.04.01, Activity
 1.10.1 and Lifecycle 2.9.0 alongside the existing AGP/Gradle/SDK 35 toolchain.
 These are compatible stable dependencies rather than a simultaneous SDK upgrade.
 See [ADR 0003](../../docs/adr/0003-kotlin-compose-android.md) for the migration decision.
+
+## Language and date/time display
+
+Choose Português (Brasil), English (US), or the device language in Dados/Data.
+Android 13+ also supports the app-language setting in Android Settings. Both
+translations are bundled for offline use. App text and new automatic history
+follow the selected language; owner-entered text and old history prose are kept
+exactly as recorded.
+
+Dates use the selected locale’s order and times follow the device’s 12/24-hour
+setting. Due dates, history and recurrence previews show the current device
+timezone and UTC offset. Scheduling retains its stored zone; profile dates have
+no timezone conversion. Care and history cards identify their cat with an
+avatar/name badge. Only observations offer comment threads.
+
+Scheduling and localization verification: [evidence](../../runs/android-care-ux-2026-10-23/evidence.md).

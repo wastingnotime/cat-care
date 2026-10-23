@@ -30,6 +30,11 @@ unless a scenario explicitly says otherwise. The owner is the sole actor.
 
 | A20 | Install Kotlin/Compose APK over the Java schema-3 app | Existing cats, tasks, history and comments retain all IDs and values; core owner flows work offline; no reset or schema upgrade occurs |
 
+| A21 | Plan/edit/defer with calendar and numeric/clock time entry; rotate a weekly draft | ISO date/time and target survive; date without time rejected; stored zone retained; daily/weekly/monthly presets match custom interval and next-date preview |
+| A22 | Switch PT-BR/EN-US offline; inspect cards/forms/errors/history | App labels, plural counts, calendar/time controls and new system events translate; notes/comments and legacy prose stay unchanged; cat badges identify every care/history card |
+| A23 | Display one instant in PT-BR/EN-US and different device zones including DST | Date order/time convention follow locale/device preference; conversion preserves the instant; zone ID and UTC offset are visible; profile dates do not shift |
+| A24 | Upgrade schema 3 with existing observations and replies | All old values/IDs survive; nullable metadata added; new automatic events translate across language changes and retain export version-2 compatibility |
+
 Record build revision, device/Android version, clock/timezone, network state,
 actions and observed local state for release evidence. Document timezone and
 calendar recurrence behavior, export format, restore support and backup policy

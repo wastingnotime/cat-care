@@ -37,16 +37,15 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.time.*
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
-private data class Destination(val route: String, val label: String, val icon: Int)
+private data class Destination(val route: String, val label: Int, val icon: Int)
 
 private val destinations =
     listOf(
-        Destination("today", "Hoje", R.drawable.ic_nav_today),
-        Destination("cats", "Gatos", R.drawable.ic_nav_cats),
-        Destination("history", "Histórico", R.drawable.ic_nav_history),
-        Destination("data", "Dados", R.drawable.ic_nav_data),
+        Destination("today", R.string.nav_today, R.drawable.ic_nav_today),
+        Destination("cats", R.string.nav_cats, R.drawable.ic_nav_cats),
+        Destination("history", R.string.nav_history, R.drawable.ic_nav_history),
+        Destination("data", R.string.nav_data, R.drawable.ic_nav_data),
     )
 
 @Composable
@@ -65,8 +64,9 @@ fun CatCareApp(model: CareViewModel) {
             ActivityResultContracts.CreateDocument("application/json"),
             model::export,
         )
-    LaunchedEffect(message) {
-        message?.let {
+    val messageText = message?.let { tr(it) }
+    LaunchedEffect(messageText) {
+        messageText?.let {
             snackbar.showSnackbar(it)
             model.clearMessage()
         }
@@ -83,6 +83,10 @@ fun CatCareApp(model: CareViewModel) {
                 onBackground = Ink,
                 surface = Paper,
                 onSurface = Ink,
+                tertiary = Forest,
+                onTertiary = androidx.compose.ui.graphics.Color.White,
+                tertiaryContainer = Sage,
+                onTertiaryContainer = Forest,
                 secondary = Forest,
                 secondaryContainer = Sage,
                 onSecondaryContainer = Ink,
@@ -128,7 +132,7 @@ fun CatCareApp(model: CareViewModel) {
                             } >= 360.dp && LocalDensity.current.fontScale <= 1.2f
                         )
                             Text(
-                                "NO SEU RITMO",
+                                tr(R.string.brand_tagline),
                                 color = Muted,
                                 fontSize = 11.sp,
                                 letterSpacing = 1.sp,
@@ -147,7 +151,7 @@ fun CatCareApp(model: CareViewModel) {
                             },
                             label = {
                                 Text(
-                                    destination.label,
+                                    tr(destination.label),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
@@ -169,9 +173,9 @@ fun CatCareApp(model: CareViewModel) {
                 if (busy) LinearProgressIndicator(Modifier.fillMaxWidth().testTag("loading"))
                 if (error != null && draft.isEmpty) {
                     Column(Modifier.padding(horizontal = 24.dp)) {
-                        ErrorText(error!!)
-                        TextButton(onClick = model::retry) { Text("Tentar novamente") }
-                        TextButton(onClick = model::clearError) { Text("Fechar") }
+                        ErrorText(tr(error!!))
+                        TextButton(onClick = model::retry) { Text(tr(R.string.retry)) }
+                        TextButton(onClick = model::clearError) { Text(tr(R.string.close)) }
                     }
                 }
                 if (state.loaded)
@@ -226,22 +230,21 @@ private fun CareScreen(
         if (state.cats.isEmpty() && screen != "data") {
             item {
                 Heading(
-                    if (screen == "cats") "Seus gatos"
-                    else if (screen == "history") "Histórias de cuidado"
-                    else if (screen == "data") "Seus dados" else "Hoje, com carinho."
+                    if (screen == "cats") tr(R.string.cats_heading)
+                    else if (screen == "history") tr(R.string.history_heading)
+                    else if (screen == "data") tr(R.string.data_heading)
+                    else tr(R.string.today_heading)
                 )
                 CareCard {
                     CatIllustration(Modifier.fillMaxWidth().height(170.dp))
                     Text(
-                        "Uma rotina de carinho começa aqui.",
+                        tr(R.string.onboarding_title),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                     )
-                    Text(
-                        "Organize a rotina, acompanhe pequenas mudanças e guarde a história do seu gato."
-                    )
-                    Primary("Adicionar meu primeiro gato", !busy) { model.openEditor("cat") }
-                    Text("Só você e seus gatos. Até sem internet.", color = Muted)
+                    Text(tr(R.string.onboarding_body))
+                    Primary(tr(R.string.add_first_cat), !busy) { model.openEditor("cat") }
+                    Text(tr(R.string.offline_tagline), color = Muted)
                 }
             }
         } else
@@ -253,43 +256,37 @@ private fun CareScreen(
                             Text(
                                 LocalDate.now()
                                     .format(
-                                        DateTimeFormatter.ofPattern(
-                                            "EEEE, dd 'de' MMMM",
-                                            Locale("pt", "BR"),
-                                        )
+                                        DateTimeFormatter.ofLocalizedDate(
+                                                java.time.format.FormatStyle.FULL
+                                            )
+                                            .withLocale(careLocale())
                                     ),
                                 color = Muted,
                                 fontSize = 13.sp,
                             )
-                            Heading("Hoje, com carinho.")
+                            Heading(tr(R.string.today_heading))
                             Badge(
-                                if (planned.isEmpty()) "Tudo em dia por aqui"
-                                else
-                                    "${countLabel(planned.size, "cuidado planejado", "cuidados planejados")} · todos os gatos"
+                                if (planned.isEmpty()) tr(R.string.all_up_to_date)
+                                else quantity(R.plurals.planned_count, planned.size)
                             )
-                            Primary("+ Planejar cuidado", !busy) { model.openEditor("task") }
+                            Primary(tr(R.string.plan_care_action), !busy) {
+                                model.openEditor("task")
+                            }
                             Text(
-                                "Próximos cuidados",
+                                tr(R.string.upcoming_care),
                                 Modifier.padding(top = 8.dp).semantics { heading() },
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                             )
-                            Text(
-                                "Prazos de rotina, sem indicar urgência clínica.",
-                                color = Muted,
-                                fontSize = 12.sp,
-                            )
-                            if (planned.isEmpty())
-                                Text(
-                                    "Nenhum cuidado pendente. Aproveite a companhia.",
-                                    color = Muted,
-                                )
+                            Text(tr(R.string.routine_hint), color = Muted, fontSize = 12.sp)
+                            if (planned.isEmpty()) Text(tr(R.string.no_pending), color = Muted)
                         }
                     }
                     items(planned, key = { it.id }) { task ->
                         CareCard {
+                            CatBadge(state.cats.first { it.id == task.catId })
                             Text(
-                                "${state.cats.first { it.id == task.catId }.name} · ${task.category}",
+                                tr(categoryLabel(task.category)),
                                 color = Forest,
                                 fontWeight = FontWeight.Bold,
                             )
@@ -299,17 +296,11 @@ private fun CareScreen(
                                 fontWeight = FontWeight.Bold,
                             )
                             val status = CareRules.status(task.state, task.due, Instant.now())
-                            Badge(status, status == "Prazo passado")
-                            if (task.due.isNotEmpty())
-                                Text(CareRules.displayDue(task.due), color = Muted)
+                            Badge(tr(statusLabel(status)), status == "overdue")
+                            if (task.due.isNotEmpty()) Text(localMoment(task.due), color = Muted)
                             if (task.days > 0 || task.months > 0)
-                                Text(
-                                    "Repete a cada " +
-                                        if (task.months > 0) countLabel(task.months, "mês", "meses")
-                                        else countLabel(task.days, "dia", "dias"),
-                                    color = Muted,
-                                )
-                            Secondary("Ver ações · ${task.title}", !busy) {
+                                Text(repeatLabel(task.days, task.months), color = Muted)
+                            Secondary(tr(R.string.view_care_actions, task.title), !busy) {
                                 model.openEditor("actions", task.id)
                             }
                         }
@@ -318,9 +309,9 @@ private fun CareScreen(
                 "cats" -> {
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Heading("Seus gatos")
-                            Text("Cada história tem seu próprio espaço.", color = Muted)
-                            Primary("+ Adicionar gato", !busy) { model.openEditor("cat") }
+                            Heading(tr(R.string.cats_heading))
+                            Text(tr(R.string.cats_hint), color = Muted)
+                            Primary(tr(R.string.add_cat_action), !busy) { model.openEditor("cat") }
                         }
                     }
                     items(state.cats, key = { it.id }) { cat ->
@@ -340,21 +331,15 @@ private fun CareScreen(
                             }
                             if (summary.pending > 0)
                                 Badge(
-                                    countLabel(summary.pending, "pendente", "pendentes") +
+                                    quantity(R.plurals.pending_count, summary.pending) +
                                         if (summary.overdue > 0)
-                                            " · ${countLabel(summary.overdue, "atrasado", "atrasados")}"
+                                            " · ${quantity(R.plurals.overdue_count, summary.overdue)}"
                                         else "",
                                     summary.overdue > 0,
                                 )
-                            Text(
-                                countLabel(
-                                    summary.responsibilities,
-                                    "responsabilidade",
-                                    "responsabilidades",
-                                )
-                            )
-                            Text(countLabel(summary.observations, "observação", "observações"))
-                            Secondary("Editar perfil de ${cat.name}", !busy) {
+                            Text(quantity(R.plurals.responsibility_count, summary.responsibilities))
+                            Text(quantity(R.plurals.observation_count, summary.observations))
+                            Secondary(tr(R.string.edit_cat_profile, cat.name), !busy) {
                                 model.openEditor("cat", cat.id)
                             }
                         }
@@ -363,30 +348,34 @@ private fun CareScreen(
                 "history" -> {
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Heading("Histórias de cuidado")
-                            Text("Os pequenos gestos também ficam na memória.", color = Muted)
+                            Heading(tr(R.string.history_heading))
+                            Text(tr(R.string.history_hint), color = Muted)
                             CatFilter(state.cats, selected, model::selectCat)
-                            Primary("Registrar cuidado ou observação", !busy) {
+                            Primary(tr(R.string.register_action), !busy) {
                                 model.openEditor("record")
                             }
-                            if (history.isEmpty())
-                                Text("Nenhum registro por aqui ainda.", color = Muted)
+                            if (history.isEmpty()) Text(tr(R.string.no_history), color = Muted)
                         }
                     }
                     items(history, key = { it.id }) { entry ->
                         CareCard {
+                            state.cats.find { it.id == entry.catId }?.let { CatBadge(it) }
                             Text(
-                                "${selectedCat?.name.orEmpty()} · ${typeLabel(entry.type)}",
+                                tr(typeLabel(entry.type)),
                                 color = Forest,
                                 fontWeight = FontWeight.Bold,
                             )
-                            Text(entry.description, fontSize = 17.sp)
-                            Text(historyTime(entry.at), color = Muted, fontSize = 13.sp)
+                            HistoryDescription(entry)
+                            Text(
+                                tr(R.string.recorded_at, historyTime(entry.at)),
+                                color = Muted,
+                                fontSize = 13.sp,
+                            )
                             if (entry.type == "observation") {
                                 val comments = state.comments[entry.id].orEmpty()
                                 Text(
-                                    if (comments.isEmpty()) "Sem comentários"
-                                    else "Comentários · ${comments.size}",
+                                    if (comments.isEmpty()) tr(R.string.no_comments)
+                                    else quantity(R.plurals.comment_count, comments.size),
                                     color = Forest,
                                     fontWeight = FontWeight.Bold,
                                 )
@@ -409,16 +398,17 @@ private fun CareScreen(
                                         }
                                     }
                                 }
+                                val commentLabel =
+                                    tr(R.string.comment_observation, entry.description)
                                 OutlinedButton(
                                     onClick = { model.openEditor("comment", entry.id) },
                                     enabled = !busy,
                                     modifier =
                                         Modifier.fillMaxWidth().semantics {
-                                            contentDescription =
-                                                "Comentar observação: ${entry.description}"
+                                            contentDescription = commentLabel
                                         },
                                 ) {
-                                    Text("Comentar")
+                                    Text(tr(R.string.comment_action))
                                 }
                             }
                         }
@@ -427,42 +417,46 @@ private fun CareScreen(
                 "data" ->
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Heading("Seus dados")
-                            Badge("Salvos neste aparelho")
-                            Text("Você escolhe o que guardar e o que apagar.")
+                            Heading(tr(R.string.data_heading))
+                            LanguageChoice()
+                            Badge(tr(R.string.local_data))
+                            Text(tr(R.string.data_hint))
                             CareCard {
                                 Text(
-                                    "Guarde uma cópia",
+                                    tr(R.string.backup_heading),
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
                                 )
-                                Text(
-                                    "Exporte um arquivo para consulta. A importação e a restauração ainda não estão disponíveis."
-                                )
-                                Secondary("Como os dados são guardados", !busy) {
+                                Text(tr(R.string.export_hint))
+                                Secondary(tr(R.string.storage_action), !busy) {
                                     model.openEditor("storage")
                                 }
                             }
-                            if (state.cats.isEmpty())
-                                Text("Nenhum dado de gato salvo.", color = Muted)
+                            if (state.cats.isEmpty()) Text(tr(R.string.no_cat_data), color = Muted)
                             else {
                                 CatFilter(state.cats, selected, model::selectCat)
-                                Primary("Exportar ${selectedCat?.name.orEmpty()}", !busy) {
+                                Primary(
+                                    tr(R.string.export_cat, selectedCat?.name.orEmpty()),
+                                    !busy,
+                                ) {
                                     model.openEditor("export", selected)
                                 }
-                                Secondary("Exportar todos os gatos", !busy) {
+                                Secondary(tr(R.string.export_all), !busy) {
                                     model.openEditor("export")
                                 }
                                 Text(
-                                    "Excluir dados",
+                                    tr(R.string.delete_heading),
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
                                 )
-                                Text("A exclusão é permanente neste app.", color = Muted)
-                                Danger("Apagar dados de ${selectedCat?.name.orEmpty()}", !busy) {
+                                Text(tr(R.string.delete_hint), color = Muted)
+                                Danger(
+                                    tr(R.string.delete_cat_data, selectedCat?.name.orEmpty()),
+                                    !busy,
+                                ) {
                                     model.openEditor("delete", selected)
                                 }
-                                Danger("Apagar todos os dados locais", !busy) {
+                                Danger(tr(R.string.delete_all), !busy) {
                                     model.openEditor("delete")
                                 }
                             }
@@ -562,7 +556,7 @@ private fun ErrorText(message: String) =
 
 @Composable
 private fun CatFilter(cats: List<CareStore.Cat>, selected: String, choose: (String) -> Unit) {
-    Text("CUIDANDO DE", color = Muted, fontSize = 11.sp)
+    Text(tr(R.string.filter_label), color = Muted, fontSize = 11.sp)
     Row(
         Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -583,7 +577,7 @@ private fun CareEditor(
     draft: Bundle,
     state: CareSnapshot,
     busy: Boolean,
-    error: String?,
+    error: Int?,
     model: CareViewModel,
     export: (String?) -> Unit,
 ) {
@@ -595,20 +589,20 @@ private fun CareEditor(
     val observation = state.history.values.flatten().find { it.id == target }
     val title =
         when (kind) {
-            "cat" -> if (target == null) "Adicionar gato" else "Editar perfil"
-            "task" -> if (target == null) "Planejar cuidado" else "Editar cuidado"
-            "record" -> "Registrar cuidado"
-            "comment" -> "Comentar observação"
-            "actions" -> "Ações do cuidado"
-            "complete" -> "Concluir cuidado?"
-            "cancel" -> "Cancelar cuidado?"
-            "defer" -> "Adiar cuidado"
+            "cat" -> if (target == null) tr(R.string.add_cat) else tr(R.string.edit_profile)
+            "task" -> if (target == null) tr(R.string.plan_care) else tr(R.string.edit_care)
+            "record" -> tr(R.string.register_care)
+            "comment" -> tr(R.string.comment_heading)
+            "actions" -> tr(R.string.care_actions)
+            "complete" -> tr(R.string.complete_question)
+            "cancel" -> tr(R.string.cancel_question)
+            "defer" -> tr(R.string.defer_care)
             "delete" ->
-                if (target == null) "Apagar todos os dados locais?"
-                else "Apagar ${cat?.name.orEmpty()}?"
-            "export" -> "Exportar dados locais?"
-            "export-unavailable" -> "Seletor de arquivos indisponível"
-            else -> "Seus dados, neste aparelho"
+                if (target == null) tr(R.string.delete_all_question)
+                else tr(R.string.delete_cat_question, cat?.name.orEmpty())
+            "export" -> tr(R.string.export_question)
+            "export-unavailable" -> tr(R.string.export_unavailable_title)
+            else -> tr(R.string.storage_heading)
         }
     val editable = kind in listOf("cat", "task", "record", "comment", "defer")
     Dialog(onDismissRequest = model::closeEditor) {
@@ -641,21 +635,27 @@ private fun CareEditor(
                 ) {
                     when (kind) {
                         "cat" -> {
-                            FormField("Nome", value("name"), "name", model, singleLine = true)
-                            DateField("Nascimento (opcional)", value("birth")) {
+                            FormField(
+                                tr(R.string.name),
+                                value("name"),
+                                "name",
+                                model,
+                                singleLine = true,
+                            )
+                            DateField(tr(R.string.birth), value("birth")) {
                                 model.field("birth", it)
                             }
-                            DateField("Adoção (opcional)", value("adoption")) {
+                            DateField(tr(R.string.adoption), value("adoption")) {
                                 model.field("adoption", it)
                             }
                             Text(
-                                "Pelagem mais parecida",
+                                tr(R.string.coat_heading),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                             )
-                            Text("Escolha o rostinho que mais parece com seu gato.", color = Muted)
+                            Text(tr(R.string.coat_hint), color = Muted)
                             AvatarGrid(
-                                CatCoat.entries.map { AvatarOption(it.id, it.label, it.id) },
+                                CatCoat.entries.map { AvatarOption(it.id, tr(it.label), it.id) },
                                 value("coat"),
                             ) {
                                 model.field("coat", it)
@@ -670,76 +670,57 @@ private fun CareEditor(
                                     color = Forest,
                                     fontWeight = FontWeight.Bold,
                                 )
-                            FormField("Título", value("title"), "title", model, singleLine = true)
+                            FormField(
+                                tr(R.string.title),
+                                value("title"),
+                                "title",
+                                model,
+                                singleLine = true,
+                            )
                             Choice(
-                                "Categoria",
-                                Categories.associateWith { it },
+                                tr(R.string.category),
+                                Categories.associateWith { tr(categoryLabel(it)) },
                                 value("category"),
                             ) {
                                 model.field("category", it)
                             }
-                            Text(
-                                "Horário em ${value("zone")}. Em uma hora repetida por mudança de fuso, vale a primeira ocorrência.",
-                                color = Muted,
-                                fontSize = 13.sp,
-                            )
-                            FormField(
-                                "Prazo · dd/mm/aaaa hh:mm (opcional)",
-                                value("due"),
-                                "due",
-                                model,
-                                singleLine = true,
-                            )
-                            Text(
-                                "Recorrência: preencha dias OU meses. Deixe ambos vazios para não repetir. Meses usam o último dia disponível; o próximo parte dessa nova data.",
-                                color = Muted,
-                                fontSize = 13.sp,
-                            )
-                            FormField(
-                                "A cada quantos dias?",
-                                value("days"),
-                                "days",
-                                model,
-                                singleLine = true,
-                                number = true,
-                            )
-                            FormField(
-                                "A cada quantos meses?",
-                                value("months"),
-                                "months",
-                                model,
-                                singleLine = true,
-                                number = true,
-                            )
+                            ScheduleFields(draft, model)
+                            RepeatFields(draft, model)
                         }
                         "record" -> {
                             FormCatPicker(state.cats, value("cat")) { model.field("cat", it) }
-                            Choice("Tipo de registro", RecordTypes, value("type")) {
+                            Choice(
+                                tr(R.string.record_type),
+                                RecordTypes.associateWith { tr(typeLabel(it)) },
+                                value("type"),
+                            ) {
                                 model.field("type", it)
                             }
                             FormField(
-                                "Descrição (inclua valor e unidade nas medições)",
+                                tr(R.string.description),
                                 value("description"),
                                 "description",
                                 model,
                             )
-                            Text(
-                                "Registra o momento atual. Observações não são diagnósticos. Este registro não conclui cuidados planejados.",
-                                color = Muted,
-                                fontSize = 13.sp,
-                            )
+                            Text(tr(R.string.record_hint), color = Muted, fontSize = 13.sp)
                         }
                         "comment" -> {
+                            state.cats.find { it.id == observation?.catId }?.let { CatBadge(it) }
                             Text(
-                                "${state.cats.find { it.id == observation?.catId }?.name.orEmpty()} · Observação",
+                                tr(R.string.type_observation_short),
                                 color = Forest,
                                 fontWeight = FontWeight.Bold,
                             )
-                            Text(observation?.description ?: "Observação indisponível.")
+                            Text(observation?.description ?: tr(R.string.error_observation))
                             observation?.let {
                                 Text(historyTime(it.at), color = Muted, fontSize = 13.sp)
                             }
-                            FormField("Comentário", value("description"), "description", model)
+                            FormField(
+                                tr(R.string.comment),
+                                value("description"),
+                                "description",
+                                model,
+                            )
                         }
                         "actions",
                         "complete",
@@ -752,68 +733,62 @@ private fun CareEditor(
                             )
                             when (kind) {
                                 "actions" -> {
-                                    Primary("Concluir", !busy) {
+                                    Primary(tr(R.string.complete), !busy) {
                                         model.openEditor("complete", target)
                                     }
-                                    Secondary("Editar", !busy) { model.openEditor("task", target) }
-                                    Secondary("Adiar", !busy) { model.openEditor("defer", target) }
-                                    Danger("Cancelar cuidado", !busy) {
+                                    Secondary(tr(R.string.edit), !busy) {
+                                        model.openEditor("task", target)
+                                    }
+                                    Secondary(tr(R.string.defer), !busy) {
+                                        model.openEditor("defer", target)
+                                    }
+                                    Danger(tr(R.string.cancel_care), !busy) {
                                         model.openEditor("cancel", target)
                                     }
                                 }
                                 "complete" ->
                                     if (task != null && (task.days > 0 || task.months > 0))
-                                        Text("Um próximo cuidado será criado pela recorrência.")
-                                "cancel" -> Text("O histórico será mantido.")
+                                        Text(tr(R.string.successor_hint))
+                                "cancel" -> Text(tr(R.string.history_kept))
                                 "defer" -> {
                                     Text(
-                                        "Prazo anterior: ${CareRules.displayDue(task?.due.orEmpty())}\nNovo horário em ${value("zone")}",
+                                        tr(R.string.previous_due, localMoment(task?.due.orEmpty())),
                                         color = Muted,
                                     )
-                                    FormField(
-                                        "Nova data · dd/mm/aaaa hh:mm",
-                                        value("due"),
-                                        "due",
-                                        model,
-                                        singleLine = true,
-                                    )
+                                    ScheduleFields(draft, model, optional = false)
                                 }
                             }
                         }
                         "delete",
                         "export" -> {
                             Text(
-                                "Gatos: " +
+                                tr(
+                                    R.string.cats_scope,
                                     if (target == null) state.cats.joinToString { it.name }
                                     else cat?.name.orEmpty(),
+                                ),
                                 fontWeight = FontWeight.Bold,
                             )
                             Text(
-                                if (kind == "delete")
-                                    "Perfis, cuidados, registros, históricos e comentários deste escopo serão removidos deste app. Não há recuperação pelo app. Arquivos já exportados não serão apagados."
-                                else
-                                    "Inclui perfis, cuidados, registros, histórico e comentários apenas deste escopo, em JSON. O arquivo pode conter informações pessoais. Não há restauração pelo app nesta versão."
+                                if (kind == "delete") tr(R.string.delete_scope_hint)
+                                else tr(R.string.export_scope_hint)
                             )
                         }
-                        "export-unavailable" ->
-                            Text("Nenhum seletor de arquivos disponível neste aparelho.")
-                        "storage" ->
-                            Text(
-                                "Funciona sem internet e sem conta. Não há sincronização nem lembretes automáticos nesta versão.\n\nA exportação cria um arquivo JSON para consulta. Esta versão não importa nem restaura arquivos. Desinstalar, limpar os dados ou perder o aparelho pode apagar seus registros. O backup e a transferência automáticos estão desativados para os dados do app; alguns fabricantes podem aplicar regras próprias.\n\nArquivos exportados ficam no destino escolhido e não são apagados pelo app. Se escolher um provedor de nuvem, ele pode exigir internet. Use uma pasta local para exportar offline."
-                            )
+                        "export-unavailable" -> Text(tr(R.string.export_unavailable))
+                        "storage" -> Text(tr(R.string.storage_body))
                     }
                 }
                 // Keep validation visible alongside the actions, even in a long scrolled form.
                 if (error != null) {
                     Spacer(Modifier.height(12.dp))
-                    ErrorText(error)
+                    ErrorText(tr(error))
                 }
                 Row(
                     Modifier.fillMaxWidth().padding(top = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
                 ) {
                     TextButton(onClick = model::closeEditor, enabled = !busy) {
-                        Text(if (kind == "storage") "Entendi" else "Voltar")
+                        Text(if (kind == "storage") tr(R.string.understood) else tr(R.string.back))
                     }
                     if (editable || kind in listOf("complete", "cancel", "delete"))
                         TextButton(
@@ -823,17 +798,19 @@ private fun CareEditor(
                         ) {
                             Text(
                                 when (kind) {
-                                    "complete" -> "Concluir"
-                                    "cancel" -> "Cancelar cuidado"
-                                    "delete" -> if (target == null) "Apagar tudo" else "Apagar gato"
-                                    else -> "Salvar"
+                                    "complete" -> tr(R.string.complete)
+                                    "cancel" -> tr(R.string.cancel_care)
+                                    "delete" ->
+                                        if (target == null) tr(R.string.delete_everything)
+                                        else tr(R.string.delete_cat)
+                                    else -> tr(R.string.save)
                                 },
                                 color = if (kind in listOf("delete", "cancel")) Rust else Forest,
                             )
                         }
                     if (kind == "export")
                         TextButton(onClick = { export(target) }, enabled = !busy) {
-                            Text("Escolher destino")
+                            Text(tr(R.string.choose_destination))
                         }
                 }
             }
@@ -842,7 +819,7 @@ private fun CareEditor(
 }
 
 @Composable
-private fun FormField(
+internal fun FormField(
     label: String,
     value: String,
     key: String,
@@ -865,7 +842,7 @@ private fun FormField(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Choice(
+internal fun Choice(
     label: String,
     options: Map<String, String>,
     selected: String,
@@ -899,19 +876,29 @@ private fun Choice(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DateField(label: String, value: String, change: (String) -> Unit) {
+internal fun DateField(
+    label: String,
+    value: String,
+    tag: String = "date-$label",
+    change: (String) -> Unit,
+) {
     var open by rememberSaveable { mutableStateOf(false) }
     OutlinedButton(
         onClick = { open = true },
-        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag(tag),
         shape = RoundedCornerShape(12.dp),
     ) {
         Column(Modifier.fillMaxWidth()) {
             Text(label, color = Muted, fontSize = 12.sp)
-            Text(CareRules.displayDate(value).ifEmpty { "Escolher data" })
+            Text(localDate(value).ifEmpty { tr(R.string.choose_date) })
         }
     }
-    if (open) {
+    val compact =
+        with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() } <
+            360.dp || LocalDensity.current.fontScale > 1.2f
+    if (open && compact) {
+        CompactDateDialog(value, change) { open = false }
+    } else if (open) {
         val picker =
             rememberDatePickerState(
                 initialSelectedDateMillis =
@@ -938,9 +925,10 @@ private fun DateField(label: String, value: String, change: (String) -> Unit) {
                             )
                         }
                         open = false
-                    }
+                    },
+                    enabled = picker.selectedDateMillis != null,
                 ) {
-                    Text("Confirmar")
+                    Text(tr(R.string.confirm))
                 }
             },
             dismissButton = {
@@ -951,9 +939,9 @@ private fun DateField(label: String, value: String, change: (String) -> Unit) {
                             open = false
                         }
                     ) {
-                        Text("Limpar data")
+                        Text(tr(R.string.clear_date))
                     }
-                    TextButton(onClick = { open = false }) { Text("Voltar") }
+                    TextButton(onClick = { open = false }) { Text(tr(R.string.back)) }
                 }
             },
         ) {
@@ -967,11 +955,11 @@ private data class AvatarOption(val id: String, val label: String, val coat: Str
 @Composable
 private fun FormCatPicker(cats: List<CareStore.Cat>, selected: String, choose: (String) -> Unit) {
     Text(
-        "Para qual gato?",
+        tr(R.string.choose_cat_heading),
         style = MaterialTheme.typography.titleLarge,
         fontWeight = FontWeight.Bold,
     )
-    Text("Toque no avatar para escolher.", color = Muted)
+    Text(tr(R.string.choose_cat_hint), color = Muted)
     AvatarGrid(cats.map { AvatarOption(it.id, it.name, it.coat) }, selected, choose)
 }
 
@@ -1019,9 +1007,3 @@ private fun AvatarGrid(options: List<AvatarOption>, selected: String, choose: (S
         }
     }
 }
-
-private fun countLabel(count: Int, singular: String, plural: String) =
-    "$count ${if (count == 1) singular else plural}"
-
-private fun historyTime(at: String) =
-    Instant.parse(at).atZone(ZoneId.systemDefault()).format(CareRules.INPUT)

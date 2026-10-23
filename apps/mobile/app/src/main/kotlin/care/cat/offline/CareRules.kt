@@ -5,8 +5,41 @@ import java.time.format.DateTimeFormatter
 import java.time.format.ResolverStyle
 import java.util.Locale
 
-/** Care semantics independent of Android and storage. Due times retain their named zone. */
+enum class CareIssue {
+    NAME,
+    TITLE,
+    CATEGORY,
+    DESCRIPTION,
+    COMMENT,
+    CAT,
+    DATE,
+    TIME,
+    DATETIME,
+    ADOPTION,
+    DST,
+    RECURRENCE,
+    RECURRENCE_DATE,
+    DEFER,
+    CAT_MISSING,
+    CAT_INCORRECT,
+    TASK_MISSING,
+    STALE,
+    ACTION,
+    TYPE,
+    OBSERVATION,
+    COAT,
+    VERSION,
+}
+
+class CareValidation(val issue: CareIssue) : IllegalArgumentException(issue.name)
+
+fun careRequire(condition: Boolean, issue: CareIssue) {
+    if (!condition) throw CareValidation(issue)
+}
+
+/** Language-independent scheduling rules. Stored due times retain their named zone. */
 object CareRules {
+    // Legacy textual timestamps are retained only for exported historical descriptions.
     val DATE: DateTimeFormatter =
         DateTimeFormatter.ofPattern("dd/MM/uuuu", Locale("pt", "BR"))
             .withResolverStyle(ResolverStyle.STRICT)
@@ -14,52 +47,58 @@ object CareRules {
         DateTimeFormatter.ofPattern("dd/MM/uuuu HH:mm", Locale("pt", "BR"))
             .withResolverStyle(ResolverStyle.STRICT)
 
-    fun required(value: String?, field: String): String {
-        require(!value.isNullOrBlank()) { "Informe $field." }
-        return value.trim()
+    fun required(value: String?, field: CareIssue): String {
+        careRequire(!value.isNullOrBlank(), field)
+        return value!!.trim()
     }
 
-    fun date(text: String): String {
-        if (text.isBlank()) return ""
-        return try {
-            LocalDate.parse(text.trim(), DATE).toString()
+    fun date(text: String): String =
+        try {
+            if (text.isBlank()) "" else LocalDate.parse(text.trim(), DATE).toString()
         } catch (_: DateTimeException) {
-            throw IllegalArgumentException("Use uma data válida: dd/mm/aaaa.")
+            throw CareValidation(CareIssue.DATE)
         }
-    }
 
     fun profile(name: String, birth: String, adoption: String) {
-        required(name, "o nome")
+        required(name, CareIssue.NAME)
         if (birth.isNotEmpty()) LocalDate.parse(birth)
         if (adoption.isNotEmpty()) LocalDate.parse(adoption)
-        require(birth.isEmpty() || adoption.isEmpty() || adoption >= birth) {
-            "A adoção não pode ser anterior ao nascimento."
-        }
+        careRequire(birth.isEmpty() || adoption.isEmpty() || adoption >= birth, CareIssue.ADOPTION)
     }
 
     fun due(text: String, zone: ZoneId): String {
         if (text.isBlank()) return ""
         return try {
-            val local = LocalDateTime.parse(text.trim(), INPUT)
-            require(zone.rules.getValidOffsets(local).isNotEmpty()) {
-                "Horário inexistente por mudança de fuso. Escolha outro horário."
-            }
-            local.atZone(zone).toString()
+            zoned(LocalDateTime.parse(text.trim(), INPUT), zone)
         } catch (_: DateTimeException) {
-            throw IllegalArgumentException("Use data e hora válidas: dd/mm/aaaa hh:mm.")
+            throw CareValidation(CareIssue.DATETIME)
         }
     }
 
-    fun recurrence(days: Int, months: Int) {
-        require(days >= 0 && months >= 0 && (days == 0 || months == 0)) {
-            "Escolha apenas uma recorrência positiva: dias ou meses."
+    fun due(date: String, time: String, zone: ZoneId): String {
+        if (date.isEmpty() && time.isEmpty()) return ""
+        careRequire(date.isNotEmpty(), CareIssue.DATE)
+        careRequire(time.isNotEmpty(), CareIssue.TIME)
+        return try {
+            zoned(LocalDate.parse(date).atTime(LocalTime.parse(time)), zone)
+        } catch (_: DateTimeException) {
+            throw CareValidation(CareIssue.DATETIME)
         }
+    }
+
+    private fun zoned(local: LocalDateTime, zone: ZoneId): String {
+        careRequire(zone.rules.getValidOffsets(local).isNotEmpty(), CareIssue.DST)
+        return local.atZone(zone).toString()
+    }
+
+    fun recurrence(days: Int, months: Int) {
+        careRequire(days >= 0 && months >= 0 && (days == 0 || months == 0), CareIssue.RECURRENCE)
     }
 
     fun successor(due: String, days: Int, months: Int): String {
         recurrence(days, months)
         if (days == 0 && months == 0) return ""
-        require(due.isNotEmpty()) { "A recorrência precisa de data e hora." }
+        careRequire(due.isNotEmpty(), CareIssue.RECURRENCE_DATE)
         val current = ZonedDateTime.parse(due)
         return (if (months > 0) current.plusMonths(months.toLong())
             else current.plusDays(days.toLong()))
@@ -67,25 +106,23 @@ object CareRules {
     }
 
     fun defer(oldDue: String, nextDue: String, now: Instant) {
-        require(nextDue.isNotEmpty()) { "Informe a nova data e hora." }
+        careRequire(nextDue.isNotEmpty(), CareIssue.DATETIME)
         val next = ZonedDateTime.parse(nextDue).toInstant()
-        require(
+        careRequire(
             next.isAfter(now) &&
-                (oldDue.isEmpty() || next.isAfter(ZonedDateTime.parse(oldDue).toInstant()))
-        ) {
-            "A nova data deve ser posterior à atual e ao prazo anterior."
-        }
+                (oldDue.isEmpty() || next.isAfter(ZonedDateTime.parse(oldDue).toInstant())),
+            CareIssue.DEFER,
+        )
     }
 
     fun status(state: String, due: String, now: Instant): String =
         when {
-            state == "completed" -> "Concluído"
-            state == "cancelled" -> "Cancelado"
-            due.isEmpty() -> "Sem data definida"
-            ZonedDateTime.parse(due).toInstant().isBefore(now) -> "Prazo passado"
-            !ZonedDateTime.parse(due).toInstant().isAfter(now.plus(Duration.ofDays(2))) ->
-                "Em breve"
-            else -> "Planejado"
+            state == "completed" -> "completed"
+            state == "cancelled" -> "cancelled"
+            due.isEmpty() -> "unknown"
+            ZonedDateTime.parse(due).toInstant().isBefore(now) -> "overdue"
+            !ZonedDateTime.parse(due).toInstant().isAfter(now.plus(Duration.ofDays(2))) -> "soon"
+            else -> "planned"
         }
 
     fun displayDue(due: String): String =
@@ -94,7 +131,4 @@ object CareRules {
             val date = ZonedDateTime.parse(due)
             "${date.format(INPUT)} · ${date.zone.id}"
         }
-
-    fun displayDate(value: String): String =
-        if (value.isEmpty()) "" else LocalDate.parse(value).format(DATE)
 }

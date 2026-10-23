@@ -93,7 +93,7 @@ class CareStoreTest {
         }
         store = CareStore(context, DB)
         assertTrue(store.cats().isEmpty())
-        assertEquals(3, store.readableDatabase.version)
+        assertEquals(4, store.readableDatabase.version)
         store.saveCat(null, "Luna", "", "", "siamese")
         assertEquals("siamese", store.cats().first().coat)
     }
@@ -157,7 +157,58 @@ class CareStoreTest {
         assertEquals(3, store.history(mimi).size)
         store.comment(observation, "Ainda brincando")
         assertEquals(1, store.comments(observation).size)
-        assertEquals(3, store.readableDatabase.version)
+        assertEquals(4, store.readableDatabase.version)
+    }
+
+    @Test
+    fun schemaThreeUpgradePreservesLegacyRowsAndAddsLocalizedDetails() {
+        store.close()
+        context.deleteDatabase(DB)
+        context.openOrCreateDatabase(DB, 0, null).use { db ->
+            db.execSQL(
+                "CREATE TABLE cats(id TEXT PRIMARY KEY, name TEXT NOT NULL, birth TEXT NOT NULL, adoption TEXT NOT NULL, coat TEXT NOT NULL)"
+            )
+            db.execSQL(
+                "CREATE TABLE tasks(id TEXT PRIMARY KEY, cat_id TEXT NOT NULL REFERENCES cats(id) ON DELETE CASCADE, title TEXT, category TEXT, due TEXT, state TEXT, days INTEGER, months INTEGER, version INTEGER)"
+            )
+            db.execSQL(
+                "CREATE TABLE history(id TEXT PRIMARY KEY, cat_id TEXT NOT NULL REFERENCES cats(id) ON DELETE CASCADE, task_id TEXT, type TEXT NOT NULL, description TEXT NOT NULL, at TEXT NOT NULL, is_diagnosis INTEGER NOT NULL DEFAULT 0)"
+            )
+            db.execSQL(
+                "CREATE TABLE observation_comments(id TEXT PRIMARY KEY, observation_id TEXT NOT NULL REFERENCES history(id) ON DELETE CASCADE, description TEXT NOT NULL, at TEXT NOT NULL)"
+            )
+            db.execSQL("INSERT INTO cats VALUES('mimi','Mimi','','','calico')")
+            db.execSQL(
+                "INSERT INTO history VALUES('old-note','mimi',NULL,'observation','Nota original','2026-10-23T12:00:00Z',0)"
+            )
+            db.execSQL(
+                "INSERT INTO observation_comments VALUES('old-comment','old-note','Comentário original','2026-10-23T12:01:00Z')"
+            )
+            db.version = 3
+        }
+        store = CareStore(context, DB)
+        assertEquals("Nota original", store.history("mimi").single().description)
+        assertNull(store.history("mimi").single().details)
+        assertEquals("Comentário original", store.comments("old-note").single().description)
+        store.saveTask(
+            "mimi",
+            null,
+            "Water · every day",
+            "Outro",
+            "2026-10-24T09:30-03:00[America/Sao_Paulo]",
+            1,
+            0,
+        )
+        val details = JSONObject(store.history("mimi").first { it.type == "created" }.details!!)
+        assertEquals("Water · every day", details.getString("title"))
+        assertEquals(1, details.getInt("days"))
+        assertEquals(4, store.readableDatabase.version)
+        val export = JSONObject(store.export("mimi"))
+        assertTrue(
+            (0 until export.getJSONArray("history").length()).any {
+                export.getJSONArray("history").getJSONObject(it).getString("id") == "old-note"
+            }
+        )
     }
 
     @Test

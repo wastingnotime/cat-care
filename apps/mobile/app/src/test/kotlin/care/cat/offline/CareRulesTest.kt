@@ -31,10 +31,10 @@ class CareRulesTest {
     @Test
     fun statusDistinguishesUncertaintyFromScheduling() {
         val now = Instant.parse("2026-10-22T12:00:00Z")
-        assertEquals("Sem data definida", CareRules.status("planned", "", now))
-        assertEquals("Em breve", CareRules.status("planned", "2026-10-24T12:00Z", now))
-        assertEquals("Prazo passado", CareRules.status("planned", "2026-10-22T11:59Z", now))
-        assertEquals("Concluído", CareRules.status("completed", "", now))
+        assertEquals("unknown", CareRules.status("planned", "", now))
+        assertEquals("soon", CareRules.status("planned", "2026-10-24T12:00Z", now))
+        assertEquals("overdue", CareRules.status("planned", "2026-10-22T11:59Z", now))
+        assertEquals("completed", CareRules.status("completed", "", now))
     }
 
     @Test
@@ -54,6 +54,63 @@ class CareRulesTest {
         reject { CareRules.defer("2026-10-24T12:00Z", "2026-10-24T12:00Z", now) }
         reject { CareRules.defer("", "2026-10-22T12:00Z", now) }
         CareRules.defer("2026-10-24T12:00Z", "2026-10-25T12:00Z", now)
+    }
+
+    @Test
+    fun schedulePartsValidateTimeAndDstWithoutLocaleParsing() {
+        val zone = ZoneId.of("America/New_York")
+        assertEquals("", CareRules.due("", "", zone))
+        assertEquals(
+            CareIssue.TIME,
+            assertThrows(CareValidation::class.java) { CareRules.due("2026-10-23", "", zone) }.issue,
+        )
+        assertEquals(
+            CareIssue.DST,
+            assertThrows(CareValidation::class.java) { CareRules.due("2026-03-08", "02:30", zone) }
+                .issue,
+        )
+        assertEquals(
+            "2026-11-01T01:30-04:00[America/New_York]",
+            CareRules.due("2026-11-01", "01:30", zone),
+        )
+        assertEquals(
+            "2026-10-23T09:30-03:00[America/Sao_Paulo]",
+            CareRules.due("2026-10-23", "09:30", ZoneId.of("America/Sao_Paulo")),
+        )
+    }
+
+    @Test
+    fun localizedDatesUseDeviceZoneAndExplicitOffset() {
+        val instant = Instant.parse("2026-10-24T01:30:00Z")
+        val zone = ZoneId.of("America/Sao_Paulo")
+        assertEquals(
+            "23/10/2026 22:30 · America/Sao_Paulo (UTC-03:00)",
+            CareDates.moment(instant, java.util.Locale("pt", "BR"), zone, true),
+        )
+        assertEquals(
+            "10/23/2026 10:30 PM · America/Sao_Paulo (UTC-03:00)",
+            CareDates.moment(instant, java.util.Locale.US, zone, false),
+        )
+        assertEquals("01/02/2026", CareDates.date("2026-02-01", java.util.Locale("pt", "BR")))
+        assertEquals("02/01/2026", CareDates.date("2026-02-01", java.util.Locale.US))
+        assertTrue(
+            CareDates.moment(
+                    Instant.parse("2026-11-01T05:30:00Z"),
+                    java.util.Locale.US,
+                    ZoneId.of("America/New_York"),
+                    false,
+                )
+                .endsWith("(UTC-04:00)")
+        )
+        assertTrue(
+            CareDates.moment(
+                    Instant.parse("2026-11-01T06:30:00Z"),
+                    java.util.Locale.US,
+                    ZoneId.of("America/New_York"),
+                    false,
+                )
+                .endsWith("(UTC-05:00)")
+        )
     }
 
     private fun reject(action: () -> Unit) =

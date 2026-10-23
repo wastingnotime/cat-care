@@ -14,7 +14,7 @@ import org.json.JSONObject
 
 /** Database name, schema, identifiers and transaction boundaries survive the UI migration. */
 class CareStore(context: Context, name: String = "cat-care.db") :
-    SQLiteOpenHelper(context, name, null, 3) {
+    SQLiteOpenHelper(context, name, null, 4) {
     data class Cat(
         val id: String,
         val name: String,
@@ -41,6 +41,7 @@ class CareStore(context: Context, name: String = "cat-care.db") :
         val at: String,
         val id: String,
         val catId: String,
+        val details: String?,
     )
 
     data class Comment(val description: String, val at: String)
@@ -65,7 +66,7 @@ class CareStore(context: Context, name: String = "cat-care.db") :
         )
         db.execSQL("CREATE INDEX task_cat ON tasks(cat_id)")
         db.execSQL(
-            "CREATE TABLE history(id TEXT PRIMARY KEY, cat_id TEXT NOT NULL REFERENCES cats(id) ON DELETE CASCADE, task_id TEXT, type TEXT NOT NULL, description TEXT NOT NULL, at TEXT NOT NULL, is_diagnosis INTEGER NOT NULL DEFAULT 0 CHECK(is_diagnosis=0))"
+            "CREATE TABLE history(id TEXT PRIMARY KEY, cat_id TEXT NOT NULL REFERENCES cats(id) ON DELETE CASCADE, task_id TEXT, type TEXT NOT NULL, description TEXT NOT NULL, at TEXT NOT NULL, is_diagnosis INTEGER NOT NULL DEFAULT 0 CHECK(is_diagnosis=0), details TEXT)"
         )
         db.execSQL("CREATE INDEX history_cat ON history(cat_id,at)")
         createComments(db)
@@ -80,15 +81,25 @@ class CareStore(context: Context, name: String = "cat-care.db") :
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         when {
-            oldVersion == 1 && newVersion == 3 -> {
+            oldVersion == 1 && newVersion == 4 -> {
                 // Retain the explicitly authorized legacy reset for coat selection.
                 db.execSQL("DROP TABLE history")
                 db.execSQL("DROP TABLE tasks")
                 db.execSQL("DROP TABLE cats")
                 onCreate(db)
             }
-            oldVersion == 2 && newVersion == 3 -> createComments(db)
-            else -> error("Versão de dados não suportada. Nenhum dado foi apagado.")
+            oldVersion in 2..3 && newVersion == 4 -> {
+                if (oldVersion == 2) createComments(db)
+                val hasDetails =
+                    db.rawQuery("PRAGMA table_info(history)", null).use { columns ->
+                        var exists = false
+                        while (columns.moveToNext()) if (columns.getString(1) == "details")
+                            exists = true
+                        exists
+                    }
+                if (!hasDetails) db.execSQL("ALTER TABLE history ADD COLUMN details TEXT")
+            }
+            else -> throw CareValidation(CareIssue.VERSION)
         }
     }
 
@@ -107,7 +118,14 @@ class CareStore(context: Context, name: String = "cat-care.db") :
 
     private fun timestamp() = HISTORY_TIME.format(Instant.now())
 
-    private fun event(db: SQLiteDatabase, cat: String, task: String?, type: String, text: String) {
+    private fun event(
+        db: SQLiteDatabase,
+        cat: String,
+        task: String?,
+        type: String,
+        text: String,
+        details: JSONObject? = null,
+    ) {
         db.insertOrThrow(
             "history",
             null,
@@ -118,6 +136,7 @@ class CareStore(context: Context, name: String = "cat-care.db") :
                 put("type", type)
                 put("description", text)
                 put("at", timestamp())
+                put("details", details?.toString())
             },
         )
     }
@@ -134,7 +153,7 @@ class CareStore(context: Context, name: String = "cat-care.db") :
 
     private fun requireCat(db: SQLiteDatabase, cat: String) {
         db.rawQuery("SELECT id FROM cats WHERE id=?", arrayOf(cat)).use {
-            require(it.moveToFirst()) { "Este gato não está mais disponível." }
+            careRequire(it.moveToFirst(), CareIssue.CAT_MISSING)
         }
     }
 
@@ -160,15 +179,19 @@ class CareStore(context: Context, name: String = "cat-care.db") :
                 values.put("id", cat)
                 db.insertOrThrow("cats", null, values)
             } else
-                require(db.update("cats", values, "id=?", arrayOf(cat)) == 1) {
-                    "Gato indisponível."
-                }
+                careRequire(
+                    db.update("cats", values, "id=?", arrayOf(cat)) == 1,
+                    CareIssue.CAT_MISSING,
+                )
             event(
                 db,
                 cat,
                 null,
                 "profile",
                 (if (existing == null) "Perfil criado: " else "Perfil atualizado: ") + name.trim(),
+                JSONObject()
+                    .put("event", if (existing == null) "profile_created" else "profile_edited")
+                    .put("name", name.trim()),
             )
         }
         return cat
@@ -224,12 +247,12 @@ class CareStore(context: Context, name: String = "cat-care.db") :
         days: Int,
         months: Int,
     ) {
-        val cleanTitle = CareRules.required(title, "o título")
-        CareRules.required(category, "a categoria")
+        val cleanTitle = CareRules.required(title, CareIssue.TITLE)
+        CareRules.required(category, CareIssue.CATEGORY)
         CareRules.recurrence(days, months)
         if (due.isNotEmpty()) ZonedDateTime.parse(due)
         CareRules.successor(due, days, months)
-        require(existing == null || existing.catId == cat) { "Gato incorreto." }
+        careRequire(existing == null || existing.catId == cat, CareIssue.CAT_INCORRECT)
         transaction { db ->
             requireCat(db, cat)
             val values =
@@ -258,25 +281,30 @@ class CareStore(context: Context, name: String = "cat-care.db") :
                 (if (existing == null) "Cuidado criado: " else "Cuidado editado: ") +
                     cleanTitle +
                     " · ${CareRules.displayDue(due)} · recorrência: $days dias / $months meses",
+                JSONObject()
+                    .put("event", if (existing == null) "task_created" else "task_edited")
+                    .put("title", cleanTitle)
+                    .put("due", due)
+                    .put("days", days)
+                    .put("months", months),
             )
         }
     }
 
     private fun updatePlanned(db: SQLiteDatabase, task: Task, values: ContentValues) {
-        require(
+        careRequire(
             db.update(
                 "tasks",
                 values,
                 "id=? AND cat_id=? AND state='planned' AND version=?",
                 arrayOf(task.id, task.catId, task.version.toString()),
-            ) == 1
-        ) {
-            "O cuidado mudou. Feche e abra novamente antes de tentar."
-        }
+            ) == 1,
+            CareIssue.STALE,
+        )
     }
 
     fun transition(task: Task, action: String, newDue: String) {
-        require(action in listOf("completed", "cancelled", "deferred")) { "Ação inválida." }
+        careRequire(action in listOf("completed", "cancelled", "deferred"), CareIssue.ACTION)
         if (action == "deferred") CareRules.defer(task.due, newDue, Instant.now())
         val next =
             if (action == "completed") CareRules.successor(task.due, task.days, task.months) else ""
@@ -303,6 +331,11 @@ class CareStore(context: Context, name: String = "cat-care.db") :
                     if (action == "deferred")
                         " · ${CareRules.displayDue(task.due)} → ${CareRules.displayDue(newDue)}"
                     else "",
+                JSONObject()
+                    .put("event", "task_$action")
+                    .put("title", task.title)
+                    .put("from_due", task.due)
+                    .put("due", if (action == "deferred") newDue else task.due),
             )
             if (next.isNotEmpty()) {
                 val successor = id()
@@ -326,18 +359,20 @@ class CareStore(context: Context, name: String = "cat-care.db") :
                     successor,
                     "created",
                     "Próximo cuidado: ${task.title} · ${CareRules.displayDue(next)}",
+                    JSONObject()
+                        .put("event", "task_next")
+                        .put("title", task.title)
+                        .put("due", next)
+                        .put("days", task.days)
+                        .put("months", task.months),
                 )
             }
         }
     }
 
     fun record(cat: String, type: String, description: String) {
-        require(
-            type in listOf("measurement", "feeding", "medication", "hygiene", "care", "observation")
-        ) {
-            "Tipo inválido."
-        }
-        val text = CareRules.required(description, "a descrição")
+        careRequire(type in RecordTypes, CareIssue.TYPE)
+        val text = CareRules.required(description, CareIssue.DESCRIPTION)
         transaction { db ->
             requireCat(db, cat)
             event(db, cat, null, type, text)
@@ -345,18 +380,25 @@ class CareStore(context: Context, name: String = "cat-care.db") :
     }
 
     private fun readHistory(c: Cursor) =
-        History(c.getString(0), c.getString(1), c.getString(2), c.getString(3), c.getString(4))
+        History(
+            c.getString(0),
+            c.getString(1),
+            c.getString(2),
+            c.getString(3),
+            c.getString(4),
+            c.getString(5),
+        )
 
     fun history(cat: String): List<History> =
         query(
-            "SELECT type,description,at,id,cat_id FROM history WHERE cat_id=? ORDER BY at DESC,id DESC",
+            "SELECT type,description,at,id,cat_id,details FROM history WHERE cat_id=? ORDER BY at DESC,id DESC",
             arrayOf(cat),
             ::readHistory,
         )
 
     fun historyEntry(id: String): History? =
         query(
-                "SELECT type,description,at,id,cat_id FROM history WHERE id=?",
+                "SELECT type,description,at,id,cat_id,details FROM history WHERE id=?",
                 arrayOf(id),
                 ::readHistory,
             )
@@ -371,9 +413,9 @@ class CareStore(context: Context, name: String = "cat-care.db") :
         }
 
     fun comment(observation: String, description: String) {
-        val clean = CareRules.required(description, "o comentário")
+        val clean = CareRules.required(description, CareIssue.COMMENT)
         transaction { db ->
-            require(historyEntry(observation)?.type == "observation") { "Observação indisponível." }
+            careRequire(historyEntry(observation)?.type == "observation", CareIssue.OBSERVATION)
             db.insertOrThrow(
                 "observation_comments",
                 null,
@@ -390,7 +432,7 @@ class CareStore(context: Context, name: String = "cat-care.db") :
     fun delete(cat: String?) {
         transaction { db ->
             if (cat == null) db.delete("cats", null, null)
-            else require(db.delete("cats", "id=?", arrayOf(cat)) == 1) { "Gato indisponível." }
+            else careRequire(db.delete("cats", "id=?", arrayOf(cat)) == 1, CareIssue.CAT_MISSING)
         }
     }
 

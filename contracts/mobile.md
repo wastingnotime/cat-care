@@ -19,7 +19,7 @@ category. Clinical triage and reminders are excluded from version 0.1.
 
 ## Persistence and transitions
 
-SQLite schema version 3 stores cats (including `coat`), tasks, immutable history entries
+SQLite schema version 4 stores cats (including `coat`), tasks, immutable history entries
 and observation comments. Care mutations and their history commit in a single transaction.
 Comments are append-only, timestamped replies linked to an existing observation ID;
 blank text and non-observation parents are rejected. They do not add history entries
@@ -31,13 +31,16 @@ transaction. A missing or changed record produces a visible error and requires
 reopening the action. There are no stale server records or ambiguous network
 commands. Successful care writes survive process/device restart.
 
-Dates use strict Gregorian `dd/MM/yyyy` entry. Due times use `dd/MM/yyyy HH:mm`
-and retain the creation zone ID; editing/deferral retains that zone. Recurrence
+Profile and due dates use calendar pickers. A separate time dialog offers numeric
+entry and a clock, using the device’s 12/24-hour preference. Drafts store ISO
+date/time parts; saving combines them with the named creation zone. A selected
+date requires a time. An undated, non-repeating task remains supported. Editing
+and deferral retain the stored scheduling zone. Recurrence
 uses local wall time in that zone, calculated from the previous scheduled due
 time (even when completing early/late). Calendar-month overflow clamps to the
 last day, and subsequent recurrence starts from that clamped day. Daily
 recurrence uses calendar days. Platform timezone rules resolve recurrence across
-DST; manually entered nonexistent times are rejected, and repeated times use the
+DST; selected nonexistent times are rejected, and repeated times use the
 earlier offset. History timestamps are UTC instants, displayed in device time.
 Changing device time changes derived scheduling labels, never clinical urgency.
 
@@ -85,8 +88,7 @@ only), and an edit button. Pending badges count only planned responsibilities;
 o badge appears when that count is zero. Overdue counts use task deadlines,
 not clinical urgency. New/edit forms use optional birth/adoption date pickers
 and a labeled coat grid. Saving returns to Gatos and reveals the saved card. Android
-8.0/API 26 is the minimum; compile/target API is 35. PT-BR is the current
-presentation language. Native controls provide focus, labels and touch targets;
+8.0/API 26 is the minimum; compile/target API is 35. PT-BR and EN-US are supported presentation languages. Native controls provide focus, labels and touch targets;
 TalkBack, large-font and physical-device acceptance require recorded evidence.
 Emulators require no host URL, server credentials or seeded account. Release
 acceptance is in `contracts/acceptance/android-owner-offline.md`.
@@ -109,5 +111,41 @@ export destination boundary. `CareViewModel` owns StateFlow snapshots and
 SavedStateHandle drafts, including fixed mutation targets and version guards.
 SQLite reads, writes and exports run on the IO dispatcher. Busy actions disable
 repeat submissions; errors retain form values. The Compose migration preserves
-`care.cat.offline`, `cat-care.db`, schema 3, export version 2 and existing rows.
-It does not trigger an upgrade callback for an existing schema-3 database.
+`care.cat.offline`, `cat-care.db` and export version 2 remain stable. Schema 3 → 4
+adds a nullable `history.details` column without changing existing IDs or text.
+Schema 2 → 4 also adds comments; the bounded schema-1 reset remains explicit.
+
+## Scheduling and localized presentation
+
+Planning and rescheduling use calendar and time controls. Repetition is one choice:
+none, every N days or every N calendar months, with a positive integer interval.
+Daily, weekly and monthly presets are shortcuts. A next-occurrence preview uses
+the same rule as actual completion. The form explains the month-end clamp and
+that repeats are scheduled from the previous due date rather than completion.
+Changing a repeat to none saves zero days and zero months.
+
+Each Hoje task card and Histórico entry shows a coat-avatar/name cat badge, even
+when history is already filtered to that cat. Observation comments remain scoped
+to their immutable observation ID and survive language changes.
+
+Data offers device language, Português (Brasil), and English (US). Android 13+
+also exposes the supported languages in per-app system settings; older versions
+use the saved app preference. Both language resources ship together for offline
+use, including app bundles. Navigation, forms, categories, coat labels, plural
+counters, validation, accessibility labels and new generated history are localized.
+Owner-entered names, titles, observations and comments are never translated.
+Legacy history descriptions remain in their original language. New automatic
+events additionally store language-neutral JSON text in nullable `details`:
+`event`, name/title, ISO due/from_due, and recurrence days/months as relevant.
+The original description is retained for readable exports and fallback. Export
+version 2 gains this optional field; existing fields/arrays keep their semantics.
+
+PT-BR dates use day/month/year; EN-US uses month/day/year. Times follow the device
+12/24-hour preference. Due moments, history timestamps and repeat previews are
+converted to the current device timezone and show its ID and UTC offset, including
+DST distinctions. Birth/adoption are calendar dates and never shift with timezone.
+Scheduling retains the creation zone even when display uses a different device zone.
+
+Narrow windows (below 360dp) and enlarged text use a compact calendar with month
+and year navigation and a wrapping action row, avoiding Material’s fixed-width
+dialog clipping. Its selected date and displayed month survive restoration.

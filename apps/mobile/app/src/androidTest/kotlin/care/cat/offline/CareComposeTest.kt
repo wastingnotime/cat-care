@@ -22,6 +22,15 @@ class CareComposeTest {
         object : ExternalResource() {
             override fun before() {
                 val context = ApplicationProvider.getApplicationContext<Context>()
+                context
+                    .getSharedPreferences("appearance", 0)
+                    .edit()
+                    .putString("language", "pt-BR")
+                    .commit()
+                if (android.os.Build.VERSION.SDK_INT >= 33)
+                    context
+                        .getSystemService(android.app.LocaleManager::class.java)
+                        .applicationLocales = android.os.LocaleList.forLanguageTags("pt-BR")
                 context.deleteDatabase("cat-care.db")
                 context.getSharedPreferences("MainActivity", 0).edit().clear().commit()
                 store = CareStore(context)
@@ -116,9 +125,11 @@ class CareComposeTest {
         compose.onNodeWithTag("avatar-$mimi").assertIsSelected()
         save()
         compose.onNodeWithText("Registro da Mimi").assertExists()
+        // Let the save snackbar leave the touch area before opening the comment form.
+        compose.mainClock.advanceTimeBy(5000)
         val comment = hasContentDescription("Comentar observação: Mimi brincou")
         compose.onNodeWithTag("care-list").performScrollToNode(comment)
-        compose.onNode(comment).performClick()
+        compose.onNode(comment).performScrollTo().performClick()
         field("description", "Brincou à tarde")
         compose.activityRule.scenario.recreate()
         save()
@@ -175,10 +186,115 @@ class CareComposeTest {
     }
 
     @Test
+    fun careAndHistoryCardsExposeTheirCatBadges() {
+        ready()
+        compose.onNodeWithTag("care-list").performScrollToNode(hasTestTag("cat-badge-$mimi"))
+        compose.onNodeWithTag("cat-badge-$mimi").assertContentDescriptionEquals("Gato: Mimi")
+        nav("history")
+        compose.onNodeWithTag("filter-$mimi").performClick()
+        compose.onAllNodesWithTag("cat-badge-$mimi").onFirst().assertExists()
+    }
+
+    @Test
+    fun localeChoiceSwitchesLabelsAndLeavesOwnerTextUnchanged() {
+        ready()
+        nav("data")
+        click("Português (Brasil)")
+        click("English (US)")
+        compose.waitUntil(10000) {
+            compose.onAllNodesWithText("Your data").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("Language").assertExists()
+        nav("today")
+        click("+ Plan care")
+        field("title", "Owner text stays exactly the same")
+        compose.onNodeWithTag("save-editor").performClick()
+        compose.onNodeWithTag("validation-error").assertTextContains("Choose a cat.")
+        compose.onNodeWithTag("avatar-$mimi").performClick()
+        save()
+        nav("history")
+        compose.onNodeWithTag("filter-$mimi").performClick()
+        compose
+            .onNodeWithTag("care-list")
+            .performScrollToNode(hasText("Care planned: Owner text stays exactly the same"))
+        compose.onNodeWithText("Care planned: Owner text stays exactly the same").assertExists()
+        nav("data")
+        click("English (US)")
+        click("Português (Brasil)")
+        compose.waitUntil(10000) {
+            compose.onAllNodesWithText("Seus dados").fetchSemanticsNodes().isNotEmpty()
+        }
+        nav("history")
+        compose.onNodeWithTag("filter-$mimi").performClick()
+        compose
+            .onNodeWithTag("care-list")
+            .performScrollToNode(hasText("Cuidado criado: Owner text stays exactly the same"))
+        compose.onNodeWithText("Cuidado criado: Owner text stays exactly the same").assertExists()
+    }
+
+    @Test
+    fun calendarTimeAndWeeklyRepeatSurviveRecreation() {
+        ready()
+        click("+ Planejar cuidado")
+        compose.onNodeWithTag("avatar-$mimi").performClick()
+        field("title", "Cuidado semanal")
+        compose.onNodeWithTag("due-date").performScrollTo().performClick()
+        // The Today header has the same full date, so select only inside the calendar dialog.
+        val today = java.time.LocalDate.now()
+        val dateLabel =
+            today.format(
+                java.time.format.DateTimeFormatter.ofPattern(
+                    "EEEE, d 'de' MMMM 'de' uuuu",
+                    java.util.Locale("pt", "BR"),
+                )
+            )
+        val day =
+            compose.onAllNodes(
+                (hasText(dateLabel, substring = true) or
+                    hasContentDescription(dateLabel, substring = true)) and
+                    hasAnyAncestor(isDialog()),
+                useUnmergedTree = true,
+            )
+        day.onFirst().performClick()
+        click("Confirmar")
+        compose
+            .onNodeWithTag("due-time")
+            .performScrollTo()
+            .assertIsEnabled()
+            .assertIsDisplayed()
+            .performClick()
+        val inputs =
+            compose.onAllNodes(
+                hasSetTextAction() and hasAnyAncestor(hasTestTag("time-dialog")),
+                useUnmergedTree = true,
+            )
+        inputs[0].performTextReplacement("09")
+        inputs.onLast().performTextReplacement("30")
+        compose.onNodeWithTag("toggle-time-input").performScrollTo().performClick()
+        compose.onNodeWithTag("toggle-time-input").performScrollTo().performClick()
+        compose.onNodeWithTag("confirm-time").performClick()
+        compose.onNodeWithText("Toda semana").performScrollTo().performClick()
+        compose
+            .onNodeWithTag("repeat-preview")
+            .performScrollTo()
+            .assertTextContains("Próximo cuidado:", substring = true)
+        compose.activityRule.scenario.recreate()
+        save()
+        val task = store.tasks(mimi).single { it.title == "Cuidado semanal" }
+        assertEquals(7, task.days)
+        assertEquals(0, task.months)
+        assertEquals(
+            java.time.LocalTime.of(9, 30),
+            java.time.ZonedDateTime.parse(task.due).toLocalTime(),
+        )
+        assertEquals(today, java.time.ZonedDateTime.parse(task.due).toLocalDate())
+    }
+
+    @Test
     fun dataScopesExportAndConfirmsDeletion() {
         ready()
         nav("data")
-        click("Exportar Luna")
+        compose.onNodeWithText("Exportar Luna").performScrollTo().performClick()
         compose.onNodeWithText("Gatos: Luna").assertExists()
         click("Voltar")
         compose.onNodeWithTag("care-list").performScrollToNode(hasText("Apagar dados de Luna"))
