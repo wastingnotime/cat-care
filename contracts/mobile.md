@@ -179,3 +179,16 @@ update, clock/timezone/locale changes and app resume reconcile the schedule.
 Force-stopping the app suppresses Android alarms until it is reopened. Reminder
 text follows the app language and device timezone. Tapping opens Today; it never
 completes care automatically.
+
+
+## Imported dates without a time
+
+A date-only historical record can include `details.date_precision="day"` and
+`details.occurred_on="YYYY-MM-DD"`, with the actual import timestamp in
+`details.recorded_at`. `at` remains a UTC chronological sort anchor at the start
+of that source date in `details.source_zone`; it does not assert an exact event
+time. Cards, comment context and shared text display the reported calendar date
+with “time not provided,” without timezone conversion or an invented clock time.
+Ordinary timestamped records and comment timestamps retain their existing local
+datetime presentation. Invalid/missing date metadata falls back to the normal
+recorded timestamp. Original source notes can be retained in `details.source_line`.

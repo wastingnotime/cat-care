@@ -149,3 +149,9 @@ keep their local wall time across DST. Editors and cards display device-local
 datetime. JSON export version 3 carries UTC deadlines and the recurrence zone.
 
 Theme, reminders, UTC and sharing verification: [evidence](../../runs/android-reminders-theme-2026-10-23/evidence.md).
+
+
+Imported historical records may retain a reported calendar date without a known
+time. Optional date-precision metadata makes cards and shared text display only
+that date, with an explicit “time not provided” label; the stored UTC instant is
+then a chronological anchor. Ordinary entries retain their full local timestamp.

@@ -241,4 +241,5 @@
     <string name="reminder_due">Care due · %1$s</string>
     <string name="share_card">Share card</string>
     <string name="theme_system">Device theme</string>
+    <string name="historical_date">Reported date: %1$s (time not provided)</string>
 </resources>

@@ -361,11 +361,7 @@ private fun CareScreen(
                                 ?.let { CardIdentity(it, tr(typeLabel(entry.type))) }
                             val description = historyDescriptionText(entry)
                             description.lineSequence().forEach { Text(it) }
-                            Text(
-                                tr(R.string.recorded_at, historyTime(entry.at)),
-                                color = Muted,
-                                fontSize = 13.sp,
-                            )
+                            Text(historyDateLabel(entry), color = Muted, fontSize = 13.sp)
                             run {
                                 val comments = state.comments[entry.id].orEmpty()
                                 Text(
@@ -411,7 +407,7 @@ private fun CareScreen(
                                     state.cats.first { it.id == entry.catId }.name,
                                     tr(typeLabel(entry.type)),
                                     description,
-                                    historyTime(entry.at),
+                                    historyDateLabel(entry),
                                     state.comments[entry.id].orEmpty(),
                                 )
                             OutlinedButton(
@@ -743,7 +739,7 @@ private fun CareEditor(
                             )
                             Text(observation?.description ?: tr(R.string.error_observation))
                             observation?.let {
-                                Text(historyTime(it.at), color = Muted, fontSize = 13.sp)
+                                Text(historyDateLabel(it), color = Muted, fontSize = 13.sp)
                             }
                             FormField(
                                 tr(R.string.comment),

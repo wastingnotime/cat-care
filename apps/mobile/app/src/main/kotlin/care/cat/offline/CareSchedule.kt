@@ -297,11 +297,10 @@ internal fun historyShareText(
     cat: String,
     type: String,
     description: String,
-    at: String,
+    dateLabel: String,
     comments: List<CareStore.Comment>,
 ): String {
-    val lines =
-        mutableListOf("Cat Care • $cat", type, "", description, "", tr(R.string.recorded_at, at))
+    val lines = mutableListOf("Cat Care • $cat", type, "", description, "", dateLabel)
     if (comments.isNotEmpty()) {
         lines += ""
         lines += quantity(R.plurals.comment_count, comments.size)

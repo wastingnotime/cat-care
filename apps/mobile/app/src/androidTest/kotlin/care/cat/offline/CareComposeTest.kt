@@ -417,4 +417,31 @@ class CareComposeTest {
             .assertTextContains("Ações do cuidado")
         compose.onNodeWithText("Ver ações · Exame atrasado").assertDoesNotExist()
     }
+
+    @Test
+    fun importedCalendarDateNeverDisplaysAnInventedTimeOrShiftsWithUtcAnchor() {
+        val entry = store.history(mimi).first { it.type == "observation" }
+        store.writableDatabase.execSQL(
+            "UPDATE history SET at=?,details=? WHERE id=?",
+            arrayOf(
+                "2023-11-18T00:00:00Z",
+                org.json
+                    .JSONObject()
+                    .put("occurred_on", "2023-11-18")
+                    .put("date_precision", "day")
+                    .toString(),
+                entry.id,
+            ),
+        )
+        compose.activityRule.scenario.recreate()
+        ready()
+        nav("history")
+        compose.onNodeWithTag("filter-$mimi").performClick()
+        val date = "Data informada: 18/11/2023 (horário não informado)"
+        compose.onNodeWithTag("care-list").performScrollToNode(hasText(date))
+        compose.onNodeWithText(date).assertIsDisplayed()
+        assertEquals("2023-11-18", historySourceDate(store.historyEntry(entry.id)!!.details))
+        assertNull(historySourceDate("{broken"))
+        assertNull(historySourceDate("{}"))
+    }
 }

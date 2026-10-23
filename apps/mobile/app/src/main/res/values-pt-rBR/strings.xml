@@ -249,4 +249,5 @@
     <string name="reminder_due">Cuidado pendente · %1$s</string>
     <string name="share_card">Compartilhar cartão</string>
     <string name="theme_system">Tema do aparelho</string>
+    <string name="historical_date">Data informada: %1$s (horário não informado)</string>
 </resources>

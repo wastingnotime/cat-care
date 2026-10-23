@@ -16,6 +16,7 @@ import androidx.core.content.edit
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import org.json.JSONObject
 
 object AppLanguage {
     fun choice(context: Context): String =
@@ -85,6 +86,22 @@ fun historyTime(value: String): String =
         ZoneId.systemDefault(),
         DateFormat.is24HourFormat(LocalContext.current),
     )
+
+/** Imported calendar dates have no time or timezone conversion; `at` is only a sort anchor. */
+@Composable
+internal fun historyDateLabel(entry: CareStore.History): String {
+    val date = historySourceDate(entry.details)
+    return if (date != null) tr(R.string.historical_date, localDate(date))
+    else tr(R.string.recorded_at, historyTime(entry.at))
+}
+
+internal fun historySourceDate(details: String?): String? =
+    runCatching {
+            val metadata = details?.let(::JSONObject) ?: return null
+            if (metadata.optString("date_precision") != "day") return null
+            LocalDate.parse(metadata.getString("occurred_on")).toString()
+        }
+        .getOrNull()
 
 /** Locale controls presentation; all persisted dates/times remain ISO with explicit zones. */
 object CareDates {
