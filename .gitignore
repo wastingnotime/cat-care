@@ -11,8 +11,7 @@ playwright-report/
 .air/
 
 # Android/Gradle local state and build outputs
-/apps/mobile/.gradle/
-/apps/mobile/.kotlin/
-/apps/mobile/local.properties
-/apps/mobile/build/
-/apps/mobile/app/build/
+.gradle/
+.kotlin/
+apps/mobile/local.properties
+apps/mobile/**/build/

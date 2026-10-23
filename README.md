@@ -2,12 +2,13 @@
 
 Cat Care is a calm care companion for individual cat owners.
 
-The planned Android version works offline and has one actor: the owner.
+The Android version works offline and has one actor: the owner.
 Care data is stored on the device; core use requires no server or sign-in.
 Veterinarian workspaces and collaboration are outside its scope. See
 [ADR 0002](docs/adr/0002-offline-owner-android.md) and the
 [Android acceptance contract](contracts/acceptance/android-owner-offline.md).
-The Android application is not implemented yet.
+The native application lives in [`apps/mobile/`](apps/mobile/). Build a debug
+APK with `make mobile-apk` (JDK 21 and Android SDK 35 required).
 
 The domain is being discovered through the repository-owned simulation under
 [`sandboxes/simulation/`](sandboxes/simulation/). The simulation is separate

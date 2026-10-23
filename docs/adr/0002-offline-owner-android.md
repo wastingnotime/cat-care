@@ -1,6 +1,6 @@
 # ADR 0002: Offline Android application for the owner
 
-Status: accepted scope; implementation pending.
+Status: accepted scope; initial implementation in `apps/mobile/`.
 Date: 2026-10-22 (America/Sao_Paulo).
 
 ## Context
@@ -51,9 +51,13 @@ server persistence, network retry and veterinarian acceptance gates do not gate
 this Android release. Existing API/web behavior remains separately scoped.
 
 The simulation and existing domain rules provide semantic references; Android
-does not require the Go API to run. Android toolkit, minimum OS version, local
-database and packaging choices remain implementation decisions. No Android
-runtime or release readiness is established by this ADR.
+does not require the Go API to run. The initial implementation uses native Java
+Android views and SQLite, with Android 8.0/API 26 as its minimum and API 35 as
+its compile/target level. Java 17 language features are built using JDK 21 and a
+pinned Gradle wrapper. The app declares no internet permission. Reminders,
+import/restore and cloud sync are excluded from version 0.1. Implementation
+details and data policies are in [the mobile contract](../../contracts/mobile.md).
+This ADR does not establish production release readiness.
 
 Delivery scenarios are defined in the
 [Android acceptance contract](../../contracts/acceptance/android-owner-offline.md).

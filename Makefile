@@ -1,4 +1,4 @@
-.PHONY: dev dev-api dev-web setup reset-seed test
+.PHONY: dev dev-api dev-web setup reset-seed test mobile-test mobile-build mobile-apk mobile-device-test
 
 dev: setup
 	@command -v air >/dev/null || { echo "air is required: go install github.com/air-verse/air@latest" >&2; exit 1; }
@@ -26,3 +26,14 @@ test:
 	@cd apps/api && go vet ./...
 	@cd apps/web && npm run typecheck
 	@cd apps/web && npm run build
+
+mobile-test:
+	@cd apps/mobile && ./gradlew testDebugUnitTest
+
+mobile-build:
+	@cd apps/mobile && ./gradlew lintDebug assembleDebug
+
+mobile-apk: mobile-test mobile-build
+
+mobile-device-test:
+	@cd apps/mobile && ./gradlew connectedDebugAndroidTest
