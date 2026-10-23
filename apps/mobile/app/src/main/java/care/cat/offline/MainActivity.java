@@ -2,13 +2,17 @@ package care.cat.offline;
 
 import android.app.*;
 import android.content.*;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.net.Uri;
 import android.os.*;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.view.*;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -17,10 +21,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class MainActivity extends Activity {
-  private static final int GREEN = 0xff276653,
-      INK = 0xff243c33,
-      MUTED = 0xff53675e,
-      PAPER = 0xfff7f6f0;
+  private static final int GREEN = 0xff285345,
+      INK = 0xff243c32,
+      MUTED = 0xff5c6b60,
+      PAPER = 0xfff8f7f2,
+      SAGE = 0xffe9eee4,
+      LINE = 0xffdfe5da,
+      RUST = 0xff954c38;
   private static final int EXPORT = 41;
   private CareStore store;
   private LinearLayout page, content;
@@ -126,36 +133,89 @@ public class MainActivity extends Activity {
     t.setText(value);
     t.setTextSize(size);
     t.setTextColor(color);
-    t.setPadding(0, dp(5), 0, dp(5));
-    if (bold) t.setTypeface(null, Typeface.BOLD);
+    t.setIncludeFontPadding(false);
+    t.setLineSpacing(dp(3), 1f);
+    t.setPadding(0, dp(4), 0, dp(4));
+    t.setTypeface(Typeface.create(bold ? "sans-serif-medium" : "sans-serif", Typeface.NORMAL));
     parent.addView(t);
     return t;
   }
 
   private void heading(LinearLayout parent, String value) {
-    TextView t = text(parent, value, 23, INK, true);
+    TextView t = text(parent, value, 28, INK, true);
+    t.setLetterSpacing(-0.025f);
+    t.setPadding(0, dp(10), 0, dp(8));
     if (Build.VERSION.SDK_INT >= 28) t.setAccessibilityHeading(true);
+  }
+
+  private RippleDrawable surface(int color, int radius, boolean border) {
+    GradientDrawable shape = background(color, radius);
+    if (border) shape.setStroke(dp(1), LINE);
+    return new RippleDrawable(
+        ColorStateList.valueOf(0x243f6954), shape, background(Color.WHITE, radius));
+  }
+
+  private void styleButton(Button b, boolean primary, boolean danger) {
+    b.setAllCaps(false);
+    b.setTextSize(15);
+    b.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+    b.setTextColor(primary ? Color.WHITE : danger ? RUST : GREEN);
+    b.setBackgroundTintList(null);
+    b.setBackground(
+        surface(primary ? GREEN : danger ? 0xfffbefea : Color.WHITE, 16, !primary && !danger));
+    b.setStateListAnimator(null);
+    b.setElevation(0);
+    b.setMinHeight(dp(50));
+    b.setMinimumHeight(dp(50));
+    b.setPadding(dp(16), dp(12), dp(16), dp(12));
   }
 
   private Button button(LinearLayout parent, String value, Runnable action) {
     Button b = new Button(this);
     b.setText(value);
-    b.setAllCaps(false);
-    b.setTextColor(GREEN);
-    b.setMinHeight(dp(48));
+    styleButton(b, false, false);
     b.setOnClickListener(v -> action.run());
-    parent.addView(b, new LinearLayout.LayoutParams(-1, -2));
+    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
+    lp.setMargins(0, dp(8), 0, dp(2));
+    parent.addView(b, lp);
+    return b;
+  }
+
+  private Button primaryButton(LinearLayout parent, String value, Runnable action) {
+    Button b = button(parent, value, action);
+    styleButton(b, true, false);
+    return b;
+  }
+
+  private Button dangerButton(LinearLayout parent, String value, Runnable action) {
+    Button b = button(parent, value, action);
+    styleButton(b, false, true);
     return b;
   }
 
   private LinearLayout card(LinearLayout parent) {
     LinearLayout c = column();
-    c.setPadding(dp(18), dp(14), dp(18), dp(14));
-    c.setBackground(background(Color.WHITE, 20));
+    c.setPadding(dp(20), dp(18), dp(20), dp(18));
+    GradientDrawable shape = background(Color.WHITE, 24);
+    shape.setStroke(dp(1), LINE);
+    c.setBackground(shape);
     LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
-    lp.setMargins(0, dp(10), 0, dp(4));
+    lp.setMargins(0, dp(12), 0, dp(4));
     parent.addView(c, lp);
     return c;
+  }
+
+  private void pill(LinearLayout parent, String label, int color, int fill) {
+    TextView t = text(parent, label, 12, color, true);
+    t.setBackground(background(fill, 20));
+    t.setPadding(dp(11), dp(6), dp(11), dp(6));
+    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, -2);
+    lp.setMargins(0, dp(8), 0, dp(8));
+    t.setLayoutParams(lp);
+  }
+
+  private void illustration(LinearLayout parent, int height) {
+    parent.addView(new CatIllustration(this), new LinearLayout.LayoutParams(-1, dp(height)));
   }
 
   private void error(Exception e) {
@@ -217,101 +277,149 @@ public class MainActivity extends Activity {
           return insets.consumeSystemWindowInsets();
         });
     page.requestApplyInsets();
-    LinearLayout brand = column();
-    brand.setPadding(dp(22), dp(10), dp(22), dp(6));
+    LinearLayout brand = new LinearLayout(this);
+    brand.setGravity(Gravity.CENTER_VERTICAL);
+    brand.setPadding(dp(24), dp(12), dp(24), dp(10));
     page.addView(brand);
-    text(brand, "CAT CARE  /  NO SEU RITMO", 13, GREEN, true);
+    ImageView logo = new ImageView(this);
+    logo.setImageResource(R.drawable.ic_nav_cats);
+    logo.setColorFilter(GREEN);
+    logo.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+    brand.addView(logo, new LinearLayout.LayoutParams(dp(26), dp(26)));
+    TextView wordmark = text(brand, "cat care", 20, GREEN, true);
+    LinearLayout.LayoutParams wordmarkParams = new LinearLayout.LayoutParams(0, -2, 1);
+    wordmarkParams.setMargins(dp(8), 0, 0, 0);
+    wordmark.setLayoutParams(wordmarkParams);
+    TextView offline = text(brand, "NO SEU RITMO", 10, MUTED, true);
+    offline.setLetterSpacing(0.12f);
     ScrollView scroll = new ScrollView(this);
     scroll.setFillViewport(true);
+    scroll.setVerticalScrollBarEnabled(false);
     page.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
     content = column();
-    content.setPadding(dp(22), dp(8), dp(22), dp(24));
+    content.setPadding(dp(24), dp(8), dp(24), dp(28));
     scroll.addView(content);
     if (screen.equals("today")) today();
     else if (screen.equals("cats")) catList();
     else if (screen.equals("history")) history();
     else data();
     LinearLayout nav = new LinearLayout(this);
-    nav.setPadding(dp(4), dp(4), dp(4), dp(4));
+    nav.setPadding(dp(16), dp(10), dp(16), dp(8));
     nav.setBackgroundColor(Color.WHITE);
     page.addView(nav);
-    String[] labels = {"Hoje", "Gatos", "Histórico", "Dados"},
-        routes = {"today", "cats", "history", "data"};
+    String[] labels = {"Hoje", "Gatos", "Histórico", "Dados"};
+    String[] routes = {"today", "cats", "history", "data"};
+    int[] icons = {
+      R.drawable.ic_nav_today,
+      R.drawable.ic_nav_cats,
+      R.drawable.ic_nav_history,
+      R.drawable.ic_nav_data
+    };
     for (int i = 0; i < labels.length; i++) {
       String route = routes[i];
-      Button b = new Button(this);
-      b.setText(labels[i]);
-      b.setAllCaps(false);
-      b.setTextSize(13);
-      b.setMinWidth(0);
-      b.setMinimumWidth(0);
-      b.setPadding(0, 0, 0, 0);
-      b.setTextColor(screen.equals(route) ? GREEN : MUTED);
-      b.setTypeface(null, screen.equals(route) ? Typeface.BOLD : Typeface.NORMAL);
-      b.setContentDescription(labels[i] + (screen.equals(route) ? ", aba selecionada" : ""));
-      b.setOnClickListener(
+      boolean active = screen.equals(route);
+      LinearLayout tab = column();
+      tab.setGravity(Gravity.CENTER);
+      tab.setPadding(dp(3), dp(7), dp(3), dp(7));
+      tab.setMinimumHeight(dp(60));
+      tab.setBackground(surface(active ? SAGE : Color.WHITE, 20, false));
+      tab.setFocusable(true);
+      tab.setClickable(true);
+      tab.setSelected(active);
+      tab.setAccessibilityDelegate(
+          new View.AccessibilityDelegate() {
+            @Override
+            public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+              super.onInitializeAccessibilityNodeInfo(host, info);
+              info.setClassName(Button.class.getName());
+            }
+          });
+      tab.setContentDescription(labels[i] + (active ? ", aba selecionada" : ""));
+      ImageView icon = new ImageView(this);
+      icon.setImageResource(icons[i]);
+      icon.setColorFilter(active ? GREEN : MUTED);
+      icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+      tab.addView(icon, new LinearLayout.LayoutParams(dp(23), dp(23)));
+      TextView label = text(tab, labels[i], 12, active ? GREEN : MUTED, active);
+      label.setGravity(Gravity.CENTER);
+      label.setSingleLine(true);
+      label.setEllipsize(TextUtils.TruncateAt.END);
+      label.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+      tab.setOnClickListener(
           v -> {
             screen = route;
             render();
           });
-      b.setMinHeight(dp(56));
-      nav.addView(b, new LinearLayout.LayoutParams(0, -2, 1));
+      float weight =
+          getResources().getConfiguration().fontScale > 1.2f
+              ? label.getPaint().measureText(labels[i]) + dp(20)
+              : 1;
+      LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -2, weight);
+      lp.setMargins(dp(3), 0, dp(3), 0);
+      nav.addView(tab, lp);
     }
   }
 
   private void empty() {
     LinearLayout c = card(content);
-    heading(c, "Uma rotina mais tranquila");
+    c.setBackground(background(SAGE, 28));
+    illustration(c, 172);
+    TextView title = text(c, "Uma vida juntos.\nUm cuidado de cada vez.", 25, INK, true);
+    title.setLetterSpacing(-0.025f);
     text(
         c,
-        "Comece pelo perfil do seu gato. Os cuidados ficam salvos neste aparelho, mesmo sem"
-            + " internet.",
-        17,
+        "Organize a rotina, acompanhe pequenas mudanças e guarde a história do seu gato.",
+        16,
         MUTED,
         false);
-    button(c, "Adicionar meu primeiro gato", () -> catForm(null));
+    primaryButton(c, "Adicionar meu primeiro gato", () -> catForm(null));
+    TextView foot = text(c, "Só você e seus gatos. Até sem internet.", 12, MUTED, false);
+    foot.setGravity(Gravity.CENTER);
+    foot.setPadding(0, dp(14), 0, dp(2));
   }
 
   private void selectCat() {
     if (cats.isEmpty()) return;
-    Spinner spinner = new Spinner(this);
-    List<CareStore.Cat> list = new ArrayList<>(cats.values());
-    List<String> names = new ArrayList<>();
-    int position = 0;
-    for (int i = 0; i < list.size(); i++) {
-      names.add(list.get(i).name);
-      if (list.get(i).id.equals(selected)) position = i;
+    TextView label = text(content, "CUIDANDO DE", 11, MUTED, true);
+    label.setLetterSpacing(0.1f);
+    label.setPadding(0, dp(12), 0, dp(8));
+    HorizontalScrollView scroll = new HorizontalScrollView(this);
+    scroll.setHorizontalScrollBarEnabled(false);
+    LinearLayout row = new LinearLayout(this);
+    scroll.addView(row);
+    content.addView(scroll);
+    for (CareStore.Cat cat : cats.values()) {
+      boolean active = cat.id.equals(selected);
+      Button chip = new Button(this);
+      chip.setText(cat.name);
+      styleButton(chip, active, false);
+      chip.setMinHeight(dp(48));
+      chip.setMinimumHeight(dp(48));
+      chip.setMinWidth(dp(80));
+      chip.setBackground(surface(active ? GREEN : Color.WHITE, 24, !active));
+      chip.setSelected(active);
+      chip.setContentDescription(cat.name + (active ? ", gato selecionado" : ", selecionar gato"));
+      chip.setOnClickListener(
+          v -> {
+            selected = cat.id;
+            render();
+          });
+      LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, -2);
+      lp.setMargins(0, 0, dp(8), dp(4));
+      row.addView(chip, lp);
+      if (active) scroll.post(() -> scroll.smoothScrollTo(chip.getLeft(), 0));
     }
-    text(content, "Gato selecionado", 14, MUTED, true);
-    spinner.setAdapter(
-        new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, names));
-    spinner.setSelection(position);
-    spinner.setContentDescription("Selecionar gato");
-    spinner.setMinimumHeight(dp(56));
-    content.addView(spinner, new LinearLayout.LayoutParams(-1, -2));
-    spinner.setOnItemSelectedListener(
-        new android.widget.AdapterView.OnItemSelectedListener() {
-          public void onNothingSelected(android.widget.AdapterView<?> p) {}
-
-          public void onItemSelected(android.widget.AdapterView<?> p, View v, int pos, long id) {
-            String next = list.get(pos).id;
-            if (!next.equals(selected)) {
-              selected = next;
-              render();
-            }
-          }
-        });
   }
 
   private void today() {
-    heading(content, "Pequenos cuidados, todos os dias.");
     text(
         content,
         LocalDate.now()
             .format(DateTimeFormatter.ofPattern("EEEE, dd 'de' MMMM", new Locale("pt", "BR"))),
-        15,
+        13,
         MUTED,
         false);
+    heading(content, "Hoje, com carinho.");
     if (cats.isEmpty()) {
       empty();
       return;
@@ -319,38 +427,54 @@ public class MainActivity extends Activity {
     List<CareStore.Task> planned = new ArrayList<>();
     for (CareStore.Task task : store.tasks(null))
       if (task.state.equals("planned")) planned.add(task);
-    text(
+    pill(
         content,
         planned.isEmpty()
-            ? "Tudo em dia por aqui."
+            ? "Tudo em dia por aqui"
             : (planned.size() == 1
                     ? "1 cuidado planejado"
                     : planned.size() + " cuidados planejados")
                 + " · todos os gatos",
-        17,
         GREEN,
-        true);
-    text(
-        content,
-        "Os prazos ajudam a organizar a rotina. Não indicam urgência clínica.",
-        14,
-        MUTED,
-        false);
+        SAGE);
     selectCat();
-    button(content, "+ Planejar cuidado para " + cats.get(selected).name, () -> taskForm(null));
-    button(content, "+ Registrar cuidado ou observação", this::recordForm);
+    LinearLayout actions = new LinearLayout(this);
+    boolean stacked =
+        getResources().getConfiguration().fontScale > 1.2f
+            || getResources().getConfiguration().screenWidthDp < 360;
+    actions.setOrientation(stacked ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
+    content.addView(actions);
+    Button plan = primaryButton(actions, "+ Planejar cuidado", () -> taskForm(null));
+    plan.setContentDescription("Planejar cuidado para " + cats.get(selected).name);
+    Button record = button(actions, "Registrar", this::recordForm);
+    record.setContentDescription("Registrar cuidado ou observação de " + cats.get(selected).name);
+    if (!stacked) {
+      LinearLayout.LayoutParams planParams = new LinearLayout.LayoutParams(0, -2, 1.3f);
+      planParams.setMargins(0, dp(8), dp(8), dp(2));
+      plan.setLayoutParams(planParams);
+      LinearLayout.LayoutParams recordParams = new LinearLayout.LayoutParams(0, -2, 1);
+      recordParams.setMargins(0, dp(8), 0, dp(2));
+      record.setLayoutParams(recordParams);
+    }
+    TextView section = text(content, "Próximos cuidados", 20, INK, true);
+    section.setPadding(0, dp(20), 0, dp(2));
+    if (Build.VERSION.SDK_INT >= 28) section.setAccessibilityHeading(true);
+    text(content, "Prazos de rotina, sem indicar urgência clínica.", 12, MUTED, false);
     for (CareStore.Task task : planned) taskCard(task);
     if (planned.isEmpty())
-      text(content, "Adicione o próximo cuidado quando quiser.", 16, MUTED, false);
+      text(content, "Nenhum cuidado pendente. Aproveite a companhia.", 15, MUTED, false);
   }
 
   private void taskCard(CareStore.Task task) {
     LinearLayout c = card(content);
     CareStore.Cat cat = cats.get(task.catId);
     text(c, cat.name + " · " + task.category, 14, GREEN, true);
-    heading(c, task.title);
-    text(c, CareRules.status(task.state, task.due, Instant.now()), 16, INK, true);
-    text(c, CareRules.displayDue(task.due), 14, MUTED, false);
+    TextView title = text(c, task.title, 21, INK, true);
+    if (Build.VERSION.SDK_INT >= 28) title.setAccessibilityHeading(true);
+    String status = CareRules.status(task.state, task.due, Instant.now());
+    boolean late = status.equals("Prazo passado");
+    pill(c, status, late ? RUST : GREEN, late ? 0xfff8e9e1 : SAGE);
+    if (!task.due.isEmpty()) text(c, CareRules.displayDue(task.due), 13, MUTED, false);
     if (task.days > 0 || task.months > 0)
       text(
           c,
@@ -399,14 +523,15 @@ public class MainActivity extends Activity {
   private void catList() {
     heading(content, "Seus gatos");
     text(content, "Cada história tem seu próprio espaço.", 16, MUTED, false);
-    button(content, "+ Adicionar gato", () -> catForm(null));
     if (cats.isEmpty()) {
       empty();
       return;
     }
+    button(content, "+ Adicionar gato", () -> catForm(null));
     selectCat();
     CareStore.Cat cat = cats.get(selected);
     LinearLayout c = card(content);
+    illustration(c, 115);
     heading(c, cat.name);
     text(
         c,
@@ -449,13 +574,14 @@ public class MainActivity extends Activity {
   }
 
   private void history() {
-    heading(content, "Uma história de cuidado");
+    heading(content, "Histórias de cuidado");
+    text(content, "Os pequenos gestos também ficam na memória.", 15, MUTED, false);
     if (cats.isEmpty()) {
       empty();
       return;
     }
     selectCat();
-    button(content, "+ Registrar cuidado ou observação", this::recordForm);
+    primaryButton(content, "Registrar cuidado ou observação", this::recordForm);
     for (CareStore.History item : store.history(selected)) {
       LinearLayout c = card(content);
       text(c, cats.get(selected).name + " · " + typeLabel(item.type), 15, GREEN, true);
@@ -470,42 +596,49 @@ public class MainActivity extends Activity {
   }
 
   private void data() {
-    heading(content, "Seus dados, neste aparelho");
-    text(
-        content,
-        "Funciona sem internet e sem conta. Não há sincronização nem lembretes automáticos nesta"
-            + " versão.",
-        16,
-        MUTED,
-        false);
+    heading(content, "Seus dados");
+    pill(content, "Salvos neste aparelho", GREEN, SAGE);
+    text(content, "Você escolhe o que guardar e o que apagar.", 16, MUTED, false);
     LinearLayout info = card(content);
-    text(info, "Guarde uma cópia quando precisar", 18, INK, true);
+    text(info, "Guarde uma cópia", 20, INK, true);
     text(
         info,
-        "A exportação cria um arquivo JSON para consulta. Esta versão não importa nem restaura"
-            + " arquivos. Desinstalar, limpar os dados ou perder o aparelho pode apagar seus"
-            + " registros. O backup e a transferência automáticos estão desativados para os dados"
-            + " do app; alguns fabricantes podem aplicar regras próprias.",
+        "Exporte um arquivo para consulta. A importação e a restauração ainda não estão"
+            + " disponíveis.",
         15,
         MUTED,
         false);
-    text(
+    button(
         info,
-        "Arquivos exportados ficam no destino escolhido e não são apagados pelo app. Se escolher um"
-            + " provedor de nuvem, ele pode exigir internet. Use uma pasta local para exportar"
-            + " offline.",
-        15,
-        MUTED,
-        false);
+        "Como os dados são guardados",
+        () ->
+            new AlertDialog.Builder(this)
+                .setTitle("Seus dados, neste aparelho")
+                .setMessage(
+                    "Funciona sem internet e sem conta. Não há sincronização nem lembretes"
+                        + " automáticos nesta versão.\n\n"
+                        + "A exportação cria um arquivo JSON para consulta. Esta versão não importa"
+                        + " nem restaura arquivos. Desinstalar, limpar os dados ou perder o"
+                        + " aparelho pode apagar seus registros. O backup e a transferência"
+                        + " automáticos estão desativados para os dados do app; alguns fabricantes"
+                        + " podem aplicar regras próprias.\n\n"
+                        + "Arquivos exportados ficam no destino escolhido e não são apagados pelo"
+                        + " app. Se escolher um provedor de nuvem, ele pode exigir internet. Use"
+                        + " uma pasta local para exportar offline.")
+                .setPositiveButton("Entendi", null)
+                .show());
     if (cats.isEmpty()) {
       text(content, "Nenhum dado de gato salvo.", 16, MUTED, false);
       return;
     }
     selectCat();
     CareStore.Cat cat = cats.get(selected);
-    button(content, "Exportar " + cat.name, () -> previewExport(cat.id));
+    primaryButton(content, "Exportar " + cat.name, () -> previewExport(cat.id));
     button(content, "Exportar todos os gatos", () -> previewExport(null));
-    button(
+    TextView deletion = text(content, "Excluir dados", 18, INK, true);
+    deletion.setPadding(0, dp(24), 0, dp(4));
+    text(content, "A exclusão é permanente neste app.", 13, MUTED, false);
+    dangerButton(
         content,
         "Apagar dados de " + cat.name,
         () ->
@@ -518,7 +651,7 @@ public class MainActivity extends Activity {
                   store.delete(cat.id);
                   toast("Dados de " + cat.name + " apagados deste app.");
                 }));
-    button(
+    dangerButton(
         content,
         "Apagar todos os dados locais",
         () ->
@@ -657,8 +790,13 @@ public class MainActivity extends Activity {
     edit.setText(value);
     edit.setTextSize(16);
     edit.setInputType(inputType);
-    edit.setMinHeight(dp(48));
-    form.addView(edit, new LinearLayout.LayoutParams(-1, -2));
+    edit.setMinHeight(dp(52));
+    edit.setTextColor(INK);
+    edit.setPadding(dp(14), dp(12), dp(14), dp(12));
+    edit.setBackground(surface(PAPER, 12, true));
+    LinearLayout.LayoutParams fieldParams = new LinearLayout.LayoutParams(-1, -2);
+    fieldParams.setMargins(0, dp(4), 0, dp(14));
+    form.addView(edit, fieldParams);
     draftFields.add(edit);
     return edit;
   }
@@ -720,6 +858,9 @@ public class MainActivity extends Activity {
                       }
                     }));
     d.show();
+    if (d.getWindow() != null) d.getWindow().setBackgroundDrawable(background(Color.WHITE, 28));
+    d.getButton(AlertDialog.BUTTON_POSITIVE).setAllCaps(false);
+    d.getButton(AlertDialog.BUTTON_NEGATIVE).setAllCaps(false);
   }
 
   private void catForm(CareStore.Cat cat) {
