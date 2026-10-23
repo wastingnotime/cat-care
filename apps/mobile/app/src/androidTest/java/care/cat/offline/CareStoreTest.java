@@ -24,17 +24,82 @@ public class CareStoreTest extends AndroidTestCase {
   }
 
   private String cat(String name) {
-    store.saveCat(null, name, "", "");
+    store.saveCat(null, name, "", "", "gray");
     for (CareStore.Cat cat : store.cats()) if (cat.name.equals(name)) return cat.id;
     throw new AssertionError();
   }
 
-  public void testProfilesPersistAndRemainIsolated() {
-    String mimi = cat("Mimi"), luna = cat("Luna");
-    store.saveCat(mimi, "Mimi", "2020-01-01", "2020-02-01");
+  public void testCoatPersistsOnCreateEditReopenAndExport() throws Exception {
+    String mimi = store.saveCat(null, "Mimi", "2020-01-01", "2020-02-01", "calico");
+    String luna = cat("Luna");
+    store.saveCat(mimi, "Mimi", "2020-01-01", "2020-02-01", "tuxedo");
+    store.close();
+    store = new CareStore(getContext(), DB);
+    for (CareStore.Cat profile : store.cats())
+      assertEquals(profile.id.equals(mimi) ? "tuxedo" : "gray", profile.coat);
+    JSONObject profile = new JSONObject(store.export(mimi)).getJSONArray("cats").getJSONObject(0);
+    assertEquals("tuxedo", profile.getString("coat"));
+    assertEquals("2020-01-01", profile.getString("birth"));
     int before = store.history(mimi).size();
     try {
-      store.saveCat(mimi, "Mimi", "2020-02-01", "2020-01-01");
+      store.saveCat(mimi, "Mimi", "", "", "unknown-coat");
+      fail("Unknown coat accepted");
+    } catch (IllegalArgumentException expected) {
+    }
+    assertEquals(before, store.history(mimi).size());
+    assertEquals(1, store.history(luna).size());
+  }
+
+  public void testCardSummarySeparatesTotalsPendingAndObservations() {
+    String mimi = cat("Mimi"), luna = cat("Luna");
+    store.saveTask(mimi, null, "Past", "Outro", "2020-01-01T09:00Z", 0, 0);
+    store.saveTask(mimi, null, "Undated", "Outro", "", 0, 0);
+    store.saveTask(mimi, null, "Future", "Outro", "2090-01-01T09:00Z", 0, 0);
+    store.saveTask(mimi, null, "Done", "Outro", "", 0, 0);
+    store.saveTask(mimi, null, "Cancelled", "Outro", "", 0, 0);
+    for (CareStore.Task task : store.tasks(mimi)) {
+      if (task.title.equals("Done")) store.transition(task, "completed", "");
+      if (task.title.equals("Cancelled")) store.transition(task, "cancelled", "");
+    }
+    store.record(mimi, "observation", "Appetite");
+    store.record(mimi, "measurement", "4 kg");
+    store.record(luna, "observation", "Playful");
+    java.time.Instant now = java.time.Instant.parse("2026-10-23T12:00:00Z");
+    CareStore.CatSummary summary = store.summary(mimi, now);
+    assertEquals(5, summary.responsibilities);
+    assertEquals(3, summary.pending);
+    assertEquals(1, summary.overdue);
+    assertEquals(1, summary.observations);
+    assertEquals(0, store.summary(luna, now).responsibilities);
+    assertEquals(0, store.summary(luna, now).pending);
+    assertEquals(1, store.summary(luna, now).observations);
+  }
+
+  public void testAuthorizedVersionOneResetCreatesCoatSchema() {
+    store.close();
+    getContext().deleteDatabase(DB);
+    android.database.sqlite.SQLiteDatabase old = getContext().openOrCreateDatabase(DB, 0, null);
+    old.execSQL("CREATE TABLE cats(id TEXT PRIMARY KEY, name TEXT, birth TEXT, adoption TEXT)");
+    old.execSQL("CREATE TABLE tasks(id TEXT PRIMARY KEY, cat_id TEXT REFERENCES cats(id))");
+    old.execSQL("CREATE TABLE history(id TEXT PRIMARY KEY, cat_id TEXT REFERENCES cats(id))");
+    old.execSQL("INSERT INTO cats VALUES('old-cat','Mimi','','')");
+    old.execSQL("INSERT INTO tasks VALUES('old-task','old-cat')");
+    old.execSQL("INSERT INTO history VALUES('old-event','old-cat')");
+    old.setVersion(1);
+    old.close();
+    store = new CareStore(getContext(), DB);
+    assertTrue(store.cats().isEmpty());
+    assertEquals(2, store.getReadableDatabase().getVersion());
+    store.saveCat(null, "Luna", "", "", "siamese");
+    assertEquals("siamese", store.cats().get(0).coat);
+  }
+
+  public void testProfilesPersistAndRemainIsolated() {
+    String mimi = cat("Mimi"), luna = cat("Luna");
+    store.saveCat(mimi, "Mimi", "2020-01-01", "2020-02-01", "gray");
+    int before = store.history(mimi).size();
+    try {
+      store.saveCat(mimi, "Mimi", "2020-02-01", "2020-01-01", "gray");
       fail("Invalid profile dates accepted");
     } catch (IllegalArgumentException expected) {
     }

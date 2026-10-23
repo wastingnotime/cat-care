@@ -20,6 +20,9 @@ unless a scenario explicitly says otherwise. The owner is the sole actor.
 | A10 | Navigate every owner flow | No veterinarian login, workspace, invitation, assignment or review dependency; owner can record a veterinary appointment |
 | A11 | Use PT-BR and Android accessibility services for Today and care entry | Cat, date, type, confirmation and error states are understandable and operable |
 | A12 | If reminders are shipped, deny permission and later trigger a local reminder offline | Permission/delivery limits visible; no false delivery claim; task remains planned until owner completes it |
+| A13 | Open Gatos with multiple cats and mixed task states | One avatar/name card per cat; total responsibility and observation counts are scoped correctly; only planned tasks count as pending; no badge for zero pending |
+| A14 | Create/edit a cat with dates and each available coat | Labeled visual choices match card avatars; saving updates the correct cat and reveals its card; dates and coat persist after restart and appear in export |
+| A15 | Choose a coat and type a name, then rotate before saving | Name/date/coat draft survives; saving applies the selected coat without creating duplicate cats |
 
 Record build revision, device/Android version, clock/timezone, network state,
 actions and observed local state for release evidence. Document timezone and

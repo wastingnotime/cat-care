@@ -15,13 +15,14 @@ public final class CareStore extends SQLiteOpenHelper {
       new DateTimeFormatterBuilder().appendInstant(9).toFormatter();
 
   public static final class Cat {
-    public final String id, name, birth, adoption;
+    public final String id, name, birth, adoption, coat;
 
     Cat(Cursor c) {
       id = c.getString(0);
       name = c.getString(1);
       birth = c.getString(2);
       adoption = c.getString(3);
+      coat = c.getString(4);
     }
   }
 
@@ -61,7 +62,7 @@ public final class CareStore extends SQLiteOpenHelper {
   }
 
   CareStore(Context context, String name) {
-    super(context, name, null, 1);
+    super(context, name, null, 2);
   }
 
   @Override
@@ -73,7 +74,7 @@ public final class CareStore extends SQLiteOpenHelper {
   public void onCreate(SQLiteDatabase db) {
     db.execSQL(
         "CREATE TABLE cats(id TEXT PRIMARY KEY, name TEXT NOT NULL, birth TEXT NOT NULL, adoption"
-            + " TEXT NOT NULL)");
+            + " TEXT NOT NULL, coat TEXT NOT NULL DEFAULT 'gray')");
     db.execSQL(
         "CREATE TABLE tasks(id TEXT PRIMARY KEY, cat_id TEXT NOT NULL REFERENCES cats(id) ON DELETE"
             + " CASCADE, title TEXT NOT NULL, category TEXT NOT NULL, due TEXT NOT NULL, state TEXT"
@@ -90,6 +91,14 @@ public final class CareStore extends SQLiteOpenHelper {
 
   @Override
   public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    // Explicitly authorized development reset for the coat field. Future upgrades must migrate.
+    if (oldVersion == 1 && newVersion == 2) {
+      db.execSQL("DROP TABLE history");
+      db.execSQL("DROP TABLE tasks");
+      db.execSQL("DROP TABLE cats");
+      onCreate(db);
+      return;
+    }
     throw new IllegalStateException("Versão de dados não suportada. Nenhum dado foi apagado.");
   }
 
@@ -124,7 +133,8 @@ public final class CareStore extends SQLiteOpenHelper {
     try (Cursor c =
         getReadableDatabase()
             .rawQuery(
-                "SELECT id,name,birth,adoption FROM cats ORDER BY name COLLATE NOCASE,id", null)) {
+                "SELECT id,name,birth,adoption,coat FROM cats ORDER BY name COLLATE NOCASE,id",
+                null)) {
       while (c.moveToNext()) rows.add(new Cat(c));
     }
     return rows;
@@ -137,8 +147,9 @@ public final class CareStore extends SQLiteOpenHelper {
     }
   }
 
-  public void saveCat(String existing, String name, String birth, String adoption) {
+  public String saveCat(String existing, String name, String birth, String adoption, String coat) {
     CareRules.profile(name, birth, adoption);
+    CatCoat.fromId(coat);
     String cat = existing == null ? id() : existing;
     transaction(
         db -> {
@@ -146,6 +157,7 @@ public final class CareStore extends SQLiteOpenHelper {
           v.put("name", name.trim());
           v.put("birth", birth);
           v.put("adoption", adoption);
+          v.put("coat", coat);
           if (existing == null) {
             v.put("id", cat);
             db.insertOrThrow("cats", null, v);
@@ -160,6 +172,25 @@ public final class CareStore extends SQLiteOpenHelper {
                   ? "Perfil criado: " + name.trim()
                   : "Perfil atualizado: " + name.trim());
         });
+    return cat;
+  }
+
+  public static final class CatSummary {
+    public int responsibilities, observations, pending, overdue;
+  }
+
+  public CatSummary summary(String cat, Instant now) {
+    CatSummary summary = new CatSummary();
+    for (Task task : tasks(cat)) {
+      summary.responsibilities++;
+      if (task.state.equals("planned")) {
+        summary.pending++;
+        if (!task.due.isEmpty() && ZonedDateTime.parse(task.due).toInstant().isBefore(now))
+          summary.overdue++;
+      }
+    }
+    for (History item : history(cat)) if (item.type.equals("observation")) summary.observations++;
+    return summary;
   }
 
   public List<Task> tasks(String cat) {

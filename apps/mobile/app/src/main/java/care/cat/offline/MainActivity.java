@@ -38,6 +38,8 @@ public class MainActivity extends Activity {
   private String draftKind, draftTarget;
   private Spinner draftSpinner;
   private Bundle restoredDraft;
+  private String draftCoat, revealCat;
+  private final Map<CatCoat, LinearLayout> coatOptions = new LinkedHashMap<>();
   private final String[] categories = {
     "Alimentação", "Higiene", "Medicação", "Veterinário", "Outro"
   };
@@ -81,6 +83,7 @@ public class MainActivity extends Activity {
       Bundle draft = new Bundle();
       draft.putString("kind", draftKind);
       draft.putString("target", draftTarget);
+      draft.putString("coat", draftCoat);
       ArrayList<String> values = new ArrayList<>();
       for (EditText field : draftFields) values.add(field.getText().toString());
       draft.putStringArrayList("values", values);
@@ -109,6 +112,7 @@ public class MainActivity extends Activity {
       for (int i = 0; i < Math.min(values.size(), draftFields.size()); i++)
         draftFields.get(i).setText(values.get(i));
     if (draftSpinner != null) draftSpinner.setSelection(draft.getInt("choice", 0));
+    if ("cat".equals(kind)) selectCoat(draft.getString("coat", "gray"));
   }
 
   private int dp(float n) {
@@ -520,6 +524,10 @@ public class MainActivity extends Activity {
     }
   }
 
+  private String countLabel(int count, String singular, String plural) {
+    return count + " " + (count == 1 ? singular : plural);
+  }
+
   private void catList() {
     heading(content, "Seus gatos");
     text(content, "Cada história tem seu próprio espaço.", 16, MUTED, false);
@@ -527,32 +535,44 @@ public class MainActivity extends Activity {
       empty();
       return;
     }
-    button(content, "+ Adicionar gato", () -> catForm(null));
-    selectCat();
-    CareStore.Cat cat = cats.get(selected);
-    LinearLayout c = card(content);
-    illustration(c, 115);
-    heading(c, cat.name);
-    text(
-        c,
-        "Nascimento: " + (cat.birth.isEmpty() ? "não informado" : CareRules.displayDate(cat.birth)),
-        16,
-        MUTED,
-        false);
-    text(
-        c,
-        "Adoção: "
-            + (cat.adoption.isEmpty() ? "não informada" : CareRules.displayDate(cat.adoption)),
-        16,
-        MUTED,
-        false);
-    button(c, "Editar perfil de " + cat.name, () -> catForm(cat));
-    button(c, "Registrar cuidado de " + cat.name, this::recordForm);
-    button(c, "Planejar cuidado de " + cat.name, () -> taskForm(null));
-    heading(content, "Cuidados de " + cat.name);
-    List<CareStore.Task> tasks = store.tasks(selected);
-    for (CareStore.Task task : tasks) taskCard(task);
-    if (tasks.isEmpty()) text(content, "Nenhum cuidado planejado ainda.", 16, MUTED, false);
+    primaryButton(content, "+ Adicionar gato", () -> catForm(null));
+    Instant now = Instant.now();
+    for (CareStore.Cat cat : cats.values()) {
+      CareStore.CatSummary summary = store.summary(cat.id, now);
+      LinearLayout c = card(content);
+      LinearLayout identity = new LinearLayout(this);
+      identity.setGravity(Gravity.CENTER_VERTICAL);
+      c.addView(identity);
+      CatAvatar avatar = new CatAvatar(this, cat.coat);
+      identity.addView(avatar, new LinearLayout.LayoutParams(dp(64), dp(64)));
+      TextView name = text(identity, cat.name, 24, INK, true);
+      if (Build.VERSION.SDK_INT >= 28) name.setAccessibilityHeading(true);
+      LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(0, -2, 1);
+      nameParams.setMargins(dp(16), 0, 0, 0);
+      name.setLayoutParams(nameParams);
+      if (summary.pending > 0) {
+        String status = countLabel(summary.pending, "pendente", "pendentes");
+        if (summary.overdue > 0)
+          status += " · " + countLabel(summary.overdue, "atrasado", "atrasados");
+        pill(
+            c, status, summary.overdue > 0 ? RUST : GREEN, summary.overdue > 0 ? 0xfff8e9e1 : SAGE);
+      }
+      text(
+          c,
+          countLabel(summary.responsibilities, "responsabilidade", "responsabilidades"),
+          16,
+          INK,
+          false);
+      text(c, countLabel(summary.observations, "observação", "observações"), 16, INK, false);
+      button(c, "Editar perfil de " + cat.name, () -> catForm(cat));
+      if (cat.id.equals(revealCat)) {
+        revealCat = null;
+        c.post(
+            () ->
+                c.requestRectangleOnScreen(
+                    new android.graphics.Rect(0, 0, c.getWidth(), dp(120)), true));
+      }
+    }
   }
 
   private String typeLabel(String type) {
@@ -777,6 +797,8 @@ public class MainActivity extends Activity {
     draftKind = kind;
     draftTarget = target;
     draftSpinner = null;
+    draftCoat = null;
+    coatOptions.clear();
     LinearLayout f = column();
     f.setPadding(dp(24), dp(6), dp(24), dp(12));
     return f;
@@ -838,6 +860,8 @@ public class MainActivity extends Activity {
           draftTarget = null;
           draftFields.clear();
           draftSpinner = null;
+          draftCoat = null;
+          coatOptions.clear();
         });
     d.setOnShowListener(
         ignored ->
@@ -871,27 +895,118 @@ public class MainActivity extends Activity {
             "Nome",
             cat == null ? "" : cat.name,
             InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
-    EditText birth =
-        field(
-            f,
-            "Nascimento · dd/mm/aaaa (opcional)",
-            cat == null ? "" : CareRules.displayDate(cat.birth),
-            InputType.TYPE_CLASS_DATETIME | InputType.TYPE_DATETIME_VARIATION_DATE);
-    EditText adoption =
-        field(
-            f,
-            "Adoção · dd/mm/aaaa (opcional)",
-            cat == null ? "" : CareRules.displayDate(cat.adoption),
-            InputType.TYPE_CLASS_DATETIME | InputType.TYPE_DATETIME_VARIATION_DATE);
+    EditText birth = dateField(f, "Nascimento (opcional)", cat == null ? "" : cat.birth);
+    EditText adoption = dateField(f, "Adoção (opcional)", cat == null ? "" : cat.adoption);
+    coatPicker(f, cat == null ? "gray" : cat.coat);
     dialog(
         cat == null ? "Adicionar gato" : "Editar " + cat.name,
         f,
-        () ->
-            store.saveCat(
-                cat == null ? null : cat.id,
-                value(name),
-                CareRules.date(value(birth)),
-                CareRules.date(value(adoption))));
+        () -> {
+          String id =
+              store.saveCat(
+                  cat == null ? null : cat.id,
+                  value(name),
+                  CareRules.date(value(birth)),
+                  CareRules.date(value(adoption)),
+                  draftCoat);
+          revealCat = id;
+          if (cat == null) selected = id;
+          screen = "cats";
+        });
+  }
+
+  private EditText dateField(LinearLayout form, String label, String isoDate) {
+    EditText field = field(form, label, CareRules.displayDate(isoDate), InputType.TYPE_NULL);
+    field.setHint("Escolher data");
+    field.setKeyListener(null);
+    field.setFocusable(true);
+    field.setShowSoftInputOnFocus(false);
+    field.setCursorVisible(false);
+    field.setClickable(true);
+    field.setAccessibilityDelegate(
+        new View.AccessibilityDelegate() {
+          @Override
+          public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+            super.onInitializeAccessibilityNodeInfo(host, info);
+            info.setClassName(Button.class.getName());
+          }
+        });
+    field.setOnClickListener(
+        view -> {
+          LocalDate date =
+              value(field).isEmpty()
+                  ? LocalDate.now()
+                  : LocalDate.parse(value(field), CareRules.DATE);
+          DatePickerDialog picker =
+              new DatePickerDialog(
+                  this,
+                  (v, year, month, day) ->
+                      field.setText(LocalDate.of(year, month + 1, day).format(CareRules.DATE)),
+                  date.getYear(),
+                  date.getMonthValue() - 1,
+                  date.getDayOfMonth());
+          picker.setTitle(label);
+          picker.setButton(
+              DialogInterface.BUTTON_NEUTRAL, "Limpar data", (d, which) -> field.setText(""));
+          picker.show();
+        });
+    return field;
+  }
+
+  private void coatPicker(LinearLayout form, String initial) {
+    text(form, "Pelagem mais parecida", 18, INK, true);
+    text(form, "Escolha o rostinho que mais parece com seu gato.", 14, MUTED, false);
+    int columns = getResources().getConfiguration().fontScale > 1.2f ? 1 : 2;
+    LinearLayout row = null;
+    CatCoat[] coats = CatCoat.values();
+    for (int i = 0; i < coats.length; i++) {
+      CatCoat coat = coats[i];
+      if (i % columns == 0) {
+        row = new LinearLayout(this);
+        form.addView(row);
+      }
+      LinearLayout option = column();
+      option.setGravity(Gravity.CENTER);
+      option.setPadding(dp(8), dp(10), dp(8), dp(10));
+      option.setFocusable(true);
+      option.setClickable(true);
+      option.setOnClickListener(v -> selectCoat(coat.id));
+      option.setAccessibilityDelegate(
+          new View.AccessibilityDelegate() {
+            @Override
+            public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+              super.onInitializeAccessibilityNodeInfo(host, info);
+              info.setClassName(RadioButton.class.getName());
+              info.setCheckable(true);
+              info.setChecked(coat.id.equals(draftCoat));
+            }
+          });
+      CatAvatar avatar = new CatAvatar(this, coat.id);
+      avatar.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+      option.addView(avatar, new LinearLayout.LayoutParams(dp(56), dp(56)));
+      TextView label = text(option, coat.label, 14, GREEN, true);
+      label.setGravity(Gravity.CENTER);
+      label.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+      LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -1, 1);
+      lp.setMargins(dp(3), dp(4), dp(3), dp(4));
+      row.addView(option, lp);
+      coatOptions.put(coat, option);
+    }
+    selectCoat(initial);
+  }
+
+  private void selectCoat(String id) {
+    draftCoat = id;
+    for (Map.Entry<CatCoat, LinearLayout> entry : coatOptions.entrySet()) {
+      CatCoat coat = entry.getKey();
+      LinearLayout option = entry.getValue();
+      boolean active = coat.id.equals(id);
+      option.setSelected(active);
+      option.setBackground(surface(active ? SAGE : Color.WHITE, 16, true));
+      option.setContentDescription(
+          coat.label + (active ? ", selecionada" : ", selecionar pelagem"));
+      ((TextView) option.getChildAt(1)).setText((active ? "✓ " : "") + coat.label);
+    }
   }
 
   private int number(EditText e) {

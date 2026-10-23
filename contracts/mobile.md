@@ -8,7 +8,7 @@ BFF, synchronization boundary or network permission. ADR 0002 governs scope.
 
 | Released semantics | Owner use case and visible state | Local boundary |
 | --- | --- | --- |
-| Cat profile/history | Gatos: name, birth/adoption dates, selected cat | `CareStore.saveCat`, `cats`, `history` |
+| Cat profile/history | Gatos: all-cat cards, coat avatar, pending badge, responsibility/observation totals; edit name, birth/adoption dates and coat | `CareStore.saveCat`, `cats`, `history` |
 | Responsibility status | Hoje across cats: identity, category, deadline, planned/soon/overdue/unknown | `tasks`, `CareRules.status`; two-day soon threshold |
 | Responsibility lifecycle | Create/edit/complete/cancel/defer, optional days OR calendar months recurrence | `saveTask`, `transition`; state/version guard and atomic successor/history |
 | Direct care and observation | Typed record with description, timestamp, explicit non-diagnosis observation | `record`; never completes a task |
@@ -19,7 +19,7 @@ category. Clinical triage and reminders are excluded from version 0.1.
 
 ## Persistence and transitions
 
-SQLite schema version 1 stores cats, tasks and immutable history entries. Every
+SQLite schema version 2 stores cats (including `coat`), tasks and immutable history entries. Every
 mutation and its history commit in a single transaction. Completion and its
 recurrence successor also commit together. Tasks use a version and planned-state
 predicate so a repeated/stale completion cannot create another successor.
@@ -42,7 +42,9 @@ Changing device time changes derived scheduling labels, never clinical urgency.
 
 Export format: UTF-8 JSON, `format=cat-care-offline`, `version=1`, `exported_at`
 UTC timestamp, `scope=cat|all_local_data`, and arrays `cats`, `tasks`, `history`.
-Rows retain stable UUID identifiers and cat references. History includes typed
+Rows retain stable UUID identifiers and cat references. Cat rows include `coat`,
+one of `orange-tabby`, `brown-tabby`, `gray`, `black`, `white`, `tuxedo`, `calico`
+or `siamese`; a new form defaults to `gray`. History includes typed
 care, observations with `is_diagnosis=0`, profile/lifecycle changes and UTC
 occurrence timestamps. Task rows include recurrence, state and stored zone-aware
 deadline. Nullable task links in history are expected for direct care/profile
@@ -62,14 +64,23 @@ copies exist. Exports are outside app ownership and must be deleted separately.
 Automatic app backup is disabled; Android 12+ extraction rules exclude app data
 from cloud backup and device transfer. Manufacturer behavior may vary. App data
 loss, clearing storage or uninstalling may permanently remove care data; there
-is no recovery service or retained app backup. Database upgrades must implement
-explicit migrations; no destructive fallback is permitted.
+is no recovery service or retained app backup. For this development change, the
+owner explicitly authorized recreating the database: upgrading schema 1 → 2
+clears cats, tasks and history, then creates the coat-aware schema. This is a
+bounded exception; future upgrades must migrate explicitly, and unsupported
+versions fail without a generic destructive fallback.
 
 ## Error and device assumptions
 
 Validation errors keep entered values in the form and announce the error.
 SQLite/storage errors show failure without claiming success or silently resetting
-data. Dialog drafts and selected cat/tab survive activity recreation. Android
+data. Dialog drafts (including the chosen coat) and selected cat/tab survive
+activity recreation. Gatos shows one card per cat with an avatar and name,
+responsibility totals (all states), observation totals (`observation` entries
+only), and an edit button. Pending badges count only planned responsibilities;
+o badge appears when that count is zero. Overdue counts use task deadlines,
+not clinical urgency. New/edit forms use optional birth/adoption date pickers
+and a labeled coat grid. Saving returns to Gatos and reveals the saved card. Android
 8.0/API 26 is the minimum; compile/target API is 35. PT-BR is the current
 presentation language. Native controls provide focus, labels and touch targets;
 TalkBack, large-font and physical-device acceptance require recorded evidence.

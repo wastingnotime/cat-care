@@ -33,12 +33,22 @@ the complete label. Decorative illustrations/icons are excluded from the
 accessibility reading order; navigation exposes button semantics.
 
 The cat illustration is drawn with Android Canvas and scales without external
-assets. It appears in onboarding and profiles. Form fields use filled cream
+assets. It appears in onboarding. Gatos uses smaller face avatars whose coat
+colors and markings match the eight web coat identifiers. Each card shows the
+avatar/name, a pending badge when needed, total responsibilities, total
+observations, and an edit button. The screen lists all cats and has an add action.
+
+New/edit forms use native date pickers and a coat grid with labeled faces,
+selected styling and radio-button accessibility semantics. Coat options use two
+columns at normal text size and one above 120% font scale. Saved cards are brought
+into view on return to the list. Form fields use filled cream
 surfaces and persistent labels. Storage details are available from Dados in a
 readable dialog; the export/restore limitation remains visible on the page.
 
-Implementation: `MainActivity.java`, `CatIllustration.java`, native vector
+Implementation: `MainActivity.java`, `CatAvatar.java`, `CatCoat.java`,
+`CatIllustration.java`, native vector
 resources and `styles.xml` under `apps/mobile/app/src/main/`.
 
-See [visual evidence](../../runs/android-visual-2026-10-22/evidence.md) for
-screenshots and checks.
+See [cat-card evidence](../../runs/android-cat-cards-2026-10-23/evidence.md) for
+the current Gatos screen and form, and the earlier
+[visual evidence](../../runs/android-visual-2026-10-22/evidence.md) for other screens.

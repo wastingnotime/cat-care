@@ -48,7 +48,8 @@ mode, disable Wi-Fi and mobile data, and run:
 
 Use a device with no valuable Cat Care data: Gradle installs and uninstalls the
 target app during instrumentation, which can clear its existing local data.
-The tests themselves use a separate disposable database and Android's real SQLite engine.
+Store tests use a separate disposable database and Android's real SQLite engine.
+Cat-card UI tests reset app data and check cards, editing and coat draft restoration.
 They cover persistence after close/reopen, atomic recurrence completion, stale
 writes, invalid create rollback, scoped export, direct records, deferral,
 cancellation and cascading deletion. JVM tests cover dates, DST, recurrence,
@@ -62,8 +63,10 @@ with unsaved forms. No simulator account or external API is needed.
 
 ## Data and current limits
 
-Hoje shows planned tasks across cats; Gatos shows one selected profile and all
-its tasks; Histórico shows that cat's records and lifecycle; Dados exports or
+Hoje shows planned tasks across cats; Gatos lists cards for every cat, with the
+chosen coat avatar, pending status, responsibility/observation counters and an
+edit button. Create/edit asks for name, optional birth/adoption dates and closest
+coat. Histórico shows the selected cat's records and lifecycle; Dados exports or
 deletes one cat/all local care data after a scope preview. Dates are entered as
 `dd/mm/aaaa` and due times as `dd/mm/aaaa hh:mm`. Export is versioned JSON via
 Android's document picker. No import/restore, automatic reminders or cloud sync
@@ -73,3 +76,7 @@ exported files remain in the destination chosen by the owner.
 
 See `contracts/mobile.md` for persistence, timezone, recurrence, export and
 error semantics, and ADR 0002 for scope. Existing web/API fixtures stay separate.
+
+For this development revision, the authorized schema 1 → 2 upgrade recreates the
+local database to add coat selection, clearing existing cats and care records.
+Future schema upgrades require explicit migrations.
