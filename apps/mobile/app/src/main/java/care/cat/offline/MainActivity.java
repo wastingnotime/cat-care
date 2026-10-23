@@ -38,7 +38,8 @@ public class MainActivity extends Activity {
   private String draftKind, draftTarget;
   private Spinner draftSpinner;
   private Bundle restoredDraft;
-  private String draftCoat, revealCat;
+  private String draftCoat, revealCat, draftCat, revealHistory;
+  private final Map<String, LinearLayout> catOptions = new LinkedHashMap<>();
   private final Map<CatCoat, LinearLayout> coatOptions = new LinkedHashMap<>();
   private final String[] categories = {
     "Alimentação", "Higiene", "Medicação", "Veterinário", "Outro"
@@ -84,6 +85,7 @@ public class MainActivity extends Activity {
       draft.putString("kind", draftKind);
       draft.putString("target", draftTarget);
       draft.putString("coat", draftCoat);
+      draft.putString("cat", draftCat);
       ArrayList<String> values = new ArrayList<>();
       for (EditText field : draftFields) values.add(field.getText().toString());
       draft.putStringArrayList("values", values);
@@ -107,6 +109,11 @@ public class MainActivity extends Activity {
     } else if ("defer".equals(kind) && cats.containsKey(selected)) {
       for (CareStore.Task task : store.tasks(null)) if (task.id.equals(target)) deferForm(task);
     }
+    if ("comment".equals(kind)) {
+      CareStore.History item = store.historyEntry(target);
+      if (item != null && item.type.equals("observation")) commentForm(item);
+    }
+    if ("task".equals(kind) || "record".equals(kind)) selectFormCat(draft.getString("cat"));
     ArrayList<String> values = draft.getStringArrayList("values");
     if (values != null)
       for (int i = 0; i < Math.min(values.size(), draftFields.size()); i++)
@@ -441,25 +448,7 @@ public class MainActivity extends Activity {
                 + " · todos os gatos",
         GREEN,
         SAGE);
-    selectCat();
-    LinearLayout actions = new LinearLayout(this);
-    boolean stacked =
-        getResources().getConfiguration().fontScale > 1.2f
-            || getResources().getConfiguration().screenWidthDp < 360;
-    actions.setOrientation(stacked ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
-    content.addView(actions);
-    Button plan = primaryButton(actions, "+ Planejar cuidado", () -> taskForm(null));
-    plan.setContentDescription("Planejar cuidado para " + cats.get(selected).name);
-    Button record = button(actions, "Registrar", this::recordForm);
-    record.setContentDescription("Registrar cuidado ou observação de " + cats.get(selected).name);
-    if (!stacked) {
-      LinearLayout.LayoutParams planParams = new LinearLayout.LayoutParams(0, -2, 1.3f);
-      planParams.setMargins(0, dp(8), dp(8), dp(2));
-      plan.setLayoutParams(planParams);
-      LinearLayout.LayoutParams recordParams = new LinearLayout.LayoutParams(0, -2, 1);
-      recordParams.setMargins(0, dp(8), 0, dp(2));
-      record.setLayoutParams(recordParams);
-    }
+    primaryButton(content, "+ Planejar cuidado", () -> taskForm(null));
     TextView section = text(content, "Próximos cuidados", 20, INK, true);
     section.setPadding(0, dp(20), 0, dp(2));
     if (Build.VERSION.SDK_INT >= 28) section.setAccessibilityHeading(true);
@@ -606,13 +595,64 @@ public class MainActivity extends Activity {
       LinearLayout c = card(content);
       text(c, cats.get(selected).name + " · " + typeLabel(item.type), 15, GREEN, true);
       text(c, item.description, 17, INK, false);
-      text(
-          c,
-          Instant.parse(item.at).atZone(ZoneId.systemDefault()).format(CareRules.INPUT),
-          14,
-          MUTED,
-          false);
+      text(c, historyTime(item.at), 14, MUTED, false);
+      if (item.type.equals("observation")) {
+        List<CareStore.Comment> comments = store.comments(item.id);
+        text(
+            c,
+            comments.isEmpty() ? "Sem comentários" : "Comentários · " + comments.size(),
+            14,
+            GREEN,
+            true);
+        for (CareStore.Comment comment : comments) {
+          LinearLayout reply = column();
+          reply.setPadding(dp(12), dp(8), dp(12), dp(8));
+          reply.setBackground(surface(PAPER, 12, false));
+          LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
+          lp.setMargins(0, dp(6), 0, dp(6));
+          c.addView(reply, lp);
+          text(reply, comment.description, 16, INK, false);
+          text(reply, historyTime(comment.at), 12, MUTED, false);
+        }
+        Button add = button(c, "Comentar", () -> commentForm(item));
+        add.setContentDescription("Comentar observação: " + item.description);
+      }
+      if (item.id.equals(revealHistory)) {
+        revealHistory = null;
+        c.post(
+            () ->
+                c.requestRectangleOnScreen(
+                    new android.graphics.Rect(0, 0, c.getWidth(), c.getHeight()), true));
+      }
     }
+  }
+
+  private String historyTime(String at) {
+    return Instant.parse(at).atZone(ZoneId.systemDefault()).format(CareRules.INPUT);
+  }
+
+  private void commentForm(CareStore.History item) {
+    LinearLayout f = form("comment", item.id);
+    text(f, cats.get(item.catId).name + " · Observação", 16, GREEN, true);
+    text(f, item.description, 17, INK, false);
+    text(f, historyTime(item.at), 14, MUTED, false);
+    EditText comment =
+        field(
+            f,
+            "Comentário",
+            "",
+            InputType.TYPE_CLASS_TEXT
+                | InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+    comment.setMinLines(3);
+    dialog(
+        "Comentar observação",
+        f,
+        () -> {
+          store.comment(item.id, value(comment));
+          selected = item.catId;
+          revealHistory = item.id;
+        });
   }
 
   private void data() {
@@ -664,8 +704,9 @@ public class MainActivity extends Activity {
         () ->
             confirm(
                 "Apagar " + cat.name + "?",
-                "Perfil, cuidados, registros e histórico deste gato serão removidos deste app. Os"
-                    + " outros gatos serão preservados. Arquivos já exportados não serão apagados.",
+                "Perfil, cuidados, registros, histórico e comentários deste gato serão removidos"
+                    + " deste app. Os outros gatos serão preservados. Arquivos já exportados não"
+                    + " serão apagados.",
                 "Apagar gato",
                 () -> {
                   store.delete(cat.id);
@@ -680,8 +721,9 @@ public class MainActivity extends Activity {
                 "Gatos: "
                     + names()
                     + ".\n"
-                    + "Todos os perfis, cuidados, registros e históricos serão removidos deste app."
-                    + " Não há recuperação pelo app. Arquivos já exportados não serão apagados.",
+                    + "Todos os perfis, cuidados, registros, históricos e comentários serão"
+                    + " removidos deste app. Não há recuperação pelo app. Arquivos já exportados"
+                    + " não serão apagados.",
                 "Apagar tudo",
                 () -> {
                   store.delete(null);
@@ -704,9 +746,9 @@ public class MainActivity extends Activity {
             "Gatos: "
                 + (cat == null ? names() : cats.get(cat).name)
                 + ".\n"
-                + "Inclui perfis, cuidados, registros e histórico apenas deste escopo, em JSON. O"
-                + " arquivo pode conter informações pessoais. Não há restauração pelo app nesta"
-                + " versão.")
+                + "Inclui perfis, cuidados, registros, histórico e comentários apenas deste escopo,"
+                + " em JSON. O arquivo pode conter informações pessoais. Não há restauração pelo"
+                + " app nesta versão.")
         .setNegativeButton("Voltar", null)
         .setPositiveButton(
             "Escolher destino",
@@ -798,6 +840,8 @@ public class MainActivity extends Activity {
     draftTarget = target;
     draftSpinner = null;
     draftCoat = null;
+    draftCat = null;
+    catOptions.clear();
     coatOptions.clear();
     LinearLayout f = column();
     f.setPadding(dp(24), dp(6), dp(24), dp(12));
@@ -861,6 +905,8 @@ public class MainActivity extends Activity {
           draftFields.clear();
           draftSpinner = null;
           draftCoat = null;
+          draftCat = null;
+          catOptions.clear();
           coatOptions.clear();
         });
     d.setOnShowListener(
@@ -1005,8 +1051,69 @@ public class MainActivity extends Activity {
       option.setBackground(surface(active ? SAGE : Color.WHITE, 16, true));
       option.setContentDescription(
           coat.label + (active ? ", selecionada" : ", selecionar pelagem"));
-      ((TextView) option.getChildAt(1)).setText((active ? "✓ " : "") + coat.label);
+      ((TextView) option.getChildAt(1))
+          .setText(active ? getString(R.string.selected_avatar_label, coat.label) : coat.label);
     }
+  }
+
+  private void catPicker(LinearLayout form, String initial) {
+    text(form, "Para qual gato?", 18, INK, true);
+    text(form, "Toque no avatar para escolher.", 14, MUTED, false);
+    int columns = getResources().getConfiguration().fontScale > 1.2f ? 1 : 2;
+    LinearLayout row = null;
+    int i = 0;
+    for (CareStore.Cat cat : cats.values()) {
+      if (i++ % columns == 0) {
+        row = new LinearLayout(this);
+        form.addView(row);
+      }
+      LinearLayout option = column();
+      option.setGravity(Gravity.CENTER);
+      option.setPadding(dp(8), dp(10), dp(8), dp(10));
+      option.setFocusable(true);
+      option.setOnClickListener(v -> selectFormCat(cat.id));
+      option.setAccessibilityDelegate(
+          new View.AccessibilityDelegate() {
+            @Override
+            public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+              super.onInitializeAccessibilityNodeInfo(host, info);
+              info.setClassName(RadioButton.class.getName());
+              info.setCheckable(true);
+              info.setChecked(cat.id.equals(draftCat));
+            }
+          });
+      CatAvatar avatar = new CatAvatar(this, cat.coat);
+      avatar.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+      option.addView(avatar, new LinearLayout.LayoutParams(dp(56), dp(56)));
+      TextView label = text(option, cat.name, 14, GREEN, true);
+      label.setGravity(Gravity.CENTER);
+      label.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+      LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -1, 1);
+      lp.setMargins(dp(3), dp(4), dp(3), dp(4));
+      row.addView(option, lp);
+      catOptions.put(cat.id, option);
+    }
+    selectFormCat(initial);
+  }
+
+  private void selectFormCat(String id) {
+    draftCat = cats.containsKey(id) ? id : null;
+    for (Map.Entry<String, LinearLayout> entry : catOptions.entrySet()) {
+      boolean active = entry.getKey().equals(draftCat);
+      LinearLayout option = entry.getValue();
+      String name = cats.get(entry.getKey()).name;
+      option.setSelected(active);
+      option.setBackground(surface(active ? SAGE : Color.WHITE, 16, true));
+      option.setContentDescription(name + (active ? ", selecionado" : ", selecionar gato"));
+      ((TextView) option.getChildAt(1))
+          .setText(active ? getString(R.string.selected_avatar_label, name) : name);
+    }
+  }
+
+  private String formCat() {
+    if (draftCat == null || !cats.containsKey(draftCat))
+      throw new IllegalArgumentException("Escolha um gato.");
+    return draftCat;
   }
 
   private int number(EditText e) {
@@ -1020,9 +1127,9 @@ public class MainActivity extends Activity {
 
   private void taskForm(CareStore.Task task) {
     if (selected == null) return;
-    final String cat = task == null ? selected : task.catId;
     LinearLayout f = form("task", task == null ? null : task.id);
-    text(f, cats.get(cat).name, 16, GREEN, true);
+    if (task == null) catPicker(f, cats.size() == 1 ? selected : null);
+    else text(f, cats.get(task.catId).name, 16, GREEN, true);
     EditText title =
         field(
             f,
@@ -1078,7 +1185,7 @@ public class MainActivity extends Activity {
         f,
         () ->
             store.saveTask(
-                cat,
+                task == null ? formCat() : task.catId,
                 task,
                 value(title),
                 categories[category.getSelectedItemPosition()],
@@ -1107,9 +1214,8 @@ public class MainActivity extends Activity {
 
   private void recordForm() {
     if (selected == null) return;
-    final String cat = selected;
-    LinearLayout f = form("record", cat);
-    text(f, cats.get(cat).name, 16, GREEN, true);
+    LinearLayout f = form("record", null);
+    catPicker(f, selected);
     Spinner type = choice(f, "Tipo de registro", types, 0);
     EditText description =
         field(
@@ -1130,7 +1236,11 @@ public class MainActivity extends Activity {
     dialog(
         "Registrar cuidado",
         f,
-        () -> store.record(cat, typeKeys[type.getSelectedItemPosition()], value(description)));
+        () -> {
+          String cat = formCat();
+          store.record(cat, typeKeys[type.getSelectedItemPosition()], value(description));
+          selected = cat;
+        });
   }
 
   @Override

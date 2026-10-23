@@ -89,9 +89,73 @@ public class CareStoreTest extends AndroidTestCase {
     old.close();
     store = new CareStore(getContext(), DB);
     assertTrue(store.cats().isEmpty());
-    assertEquals(2, store.getReadableDatabase().getVersion());
+    assertEquals(3, store.getReadableDatabase().getVersion());
     store.saveCat(null, "Luna", "", "", "siamese");
     assertEquals("siamese", store.cats().get(0).coat);
+  }
+
+  public void testCommentsPersistScopeAndCascadeWithoutIncreasingObservations() throws Exception {
+    String mimi = cat("Mimi"), luna = cat("Luna");
+    store.record(mimi, "observation", "Comeu menos");
+    String observation = store.history(mimi).get(0).id;
+    store.comment(observation, "  Comeu depois  ");
+    store.comment(observation, "Brincou à tarde");
+    store.record(luna, "observation", "Dormiu");
+    String other = store.history(luna).get(0).id;
+    store.comment(other, "Acordou");
+    store.close();
+    store = new CareStore(getContext(), DB);
+    assertEquals("Comeu depois", store.comments(observation).get(0).description);
+    assertEquals("Brincou à tarde", store.comments(observation).get(1).description);
+    assertEquals(1, store.summary(mimi, java.time.Instant.now()).observations);
+    JSONObject exported = new JSONObject(store.export(mimi));
+    assertEquals(2, exported.getInt("version"));
+    assertEquals(2, exported.getJSONArray("observation_comments").length());
+    assertEquals(
+        3, new JSONObject(store.export(null)).getJSONArray("observation_comments").length());
+    store.delete(mimi);
+    assertTrue(store.comments(observation).isEmpty());
+    assertEquals(1, store.comments(other).size());
+    store.delete(null);
+    assertTrue(store.comments(other).isEmpty());
+  }
+
+  public void testCommentsRejectBlankMissingAndNonObservationParents() {
+    String mimi = cat("Mimi");
+    String profile = store.history(mimi).get(0).id;
+    store.record(mimi, "observation", "Brincou");
+    String observation = store.history(mimi).get(0).id;
+    for (String parent : new String[] {profile, "missing"}) {
+      try {
+        store.comment(parent, "Reply");
+        fail("Invalid parent accepted");
+      } catch (IllegalArgumentException expected) {
+      }
+      assertTrue(store.comments(parent).isEmpty());
+    }
+    try {
+      store.comment(observation, "  ");
+      fail("Blank comment accepted");
+    } catch (IllegalArgumentException expected) {
+    }
+    assertTrue(store.comments(observation).isEmpty());
+  }
+
+  public void testVersionTwoMigrationPreservesProfilesTasksAndHistory() {
+    String mimi = cat("Mimi");
+    store.saveTask(mimi, null, "Água", "Outro", "", 0, 0);
+    store.record(mimi, "observation", "Brincou");
+    String observation = store.history(mimi).get(0).id;
+    store.getWritableDatabase().execSQL("DROP TABLE observation_comments");
+    store.getWritableDatabase().setVersion(2);
+    store.close();
+    store = new CareStore(getContext(), DB);
+    assertEquals(1, store.cats().size());
+    assertEquals(1, store.tasks(mimi).size());
+    assertEquals(3, store.history(mimi).size());
+    store.comment(observation, "Ainda brincando");
+    assertEquals(1, store.comments(observation).size());
+    assertEquals(3, store.getReadableDatabase().getVersion());
   }
 
   public void testProfilesPersistAndRemainIsolated() {

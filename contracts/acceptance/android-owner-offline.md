@@ -23,6 +23,10 @@ unless a scenario explicitly says otherwise. The owner is the sole actor.
 | A13 | Open Gatos with multiple cats and mixed task states | One avatar/name card per cat; total responsibility and observation counts are scoped correctly; only planned tasks count as pending; no badge for zero pending |
 | A14 | Create/edit a cat with dates and each available coat | Labeled visual choices match card avatars; saving updates the correct cat and reveals its card; dates and coat persist after restart and appear in export |
 | A15 | Choose a coat and type a name, then rotate before saving | Name/date/coat draft survives; saving applies the selected coat without creating duplicate cats |
+| A16 | Open Hoje with two cats, create a plan by avatar, rotate the draft | No page cat selector or Registrar action; an explicit form cat choice is required and survives rotation; only that cat receives the task |
+| A17 | Register from Histórico, changing the cat by avatar | Record belongs to the chosen cat and that cat's history is shown after save; draft selection survives rotation |
+| A18 | Comment on an observation, rotate before saving, reopen history | Draft and parent remain correct; replies persist oldest-first with timestamps; non-observation records have no comment action; blank replies rejected |
+| A19 | Upgrade schema 2, export/delete one cat with comments | Existing data survives upgrade; scoped export includes only that cat's comments; deletion cascades to comments and preserves other cats; observation counters exclude comments |
 
 Record build revision, device/Android version, clock/timezone, network state,
 actions and observed local state for release evidence. Document timezone and

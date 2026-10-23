@@ -44,12 +44,14 @@ public final class CareStore extends SQLiteOpenHelper {
   }
 
   public static final class History {
-    public final String type, description, at;
+    public final String id, catId, type, description, at;
 
     History(Cursor c) {
       type = c.getString(0);
       description = c.getString(1);
       at = c.getString(2);
+      id = c.getString(3);
+      catId = c.getString(4);
     }
   }
 
@@ -62,7 +64,7 @@ public final class CareStore extends SQLiteOpenHelper {
   }
 
   CareStore(Context context, String name) {
-    super(context, name, null, 2);
+    super(context, name, null, 3);
   }
 
   @Override
@@ -87,16 +89,29 @@ public final class CareStore extends SQLiteOpenHelper {
             + " DELETE CASCADE, task_id TEXT, type TEXT NOT NULL, description TEXT NOT NULL, at"
             + " TEXT NOT NULL, is_diagnosis INTEGER NOT NULL DEFAULT 0 CHECK(is_diagnosis=0))");
     db.execSQL("CREATE INDEX history_cat ON history(cat_id,at)");
+    createComments(db);
+  }
+
+  private void createComments(SQLiteDatabase db) {
+    db.execSQL(
+        "CREATE TABLE observation_comments(id TEXT PRIMARY KEY, observation_id TEXT NOT NULL"
+            + " REFERENCES history(id) ON DELETE CASCADE, description TEXT NOT NULL, at TEXT NOT"
+            + " NULL)");
+    db.execSQL("CREATE INDEX comment_observation ON observation_comments(observation_id,at)");
   }
 
   @Override
   public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     // Explicitly authorized development reset for the coat field. Future upgrades must migrate.
-    if (oldVersion == 1 && newVersion == 2) {
+    if (oldVersion == 1 && newVersion == 3) {
       db.execSQL("DROP TABLE history");
       db.execSQL("DROP TABLE tasks");
       db.execSQL("DROP TABLE cats");
       onCreate(db);
+      return;
+    }
+    if (oldVersion == 2 && newVersion == 3) {
+      createComments(db);
       return;
     }
     throw new IllegalStateException("Versão de dados não suportada. Nenhum dado foi apagado.");
@@ -337,11 +352,60 @@ public final class CareStore extends SQLiteOpenHelper {
     try (Cursor c =
         getReadableDatabase()
             .rawQuery(
-                "SELECT type,description,at FROM history WHERE cat_id=? ORDER BY at DESC,id DESC",
+                "SELECT type,description,at,id,cat_id FROM history WHERE cat_id=? ORDER BY at"
+                    + " DESC,id DESC",
                 new String[] {cat})) {
       while (c.moveToNext()) rows.add(new History(c));
     }
     return rows;
+  }
+
+  public History historyEntry(String id) {
+    try (Cursor c =
+        getReadableDatabase()
+            .rawQuery(
+                "SELECT type,description,at,id,cat_id FROM history WHERE id=?",
+                new String[] {id})) {
+      return c.moveToFirst() ? new History(c) : null;
+    }
+  }
+
+  public static final class Comment {
+    public final String description, at;
+
+    Comment(Cursor c) {
+      description = c.getString(0);
+      at = c.getString(1);
+    }
+  }
+
+  public List<Comment> comments(String observation) {
+    List<Comment> rows = new ArrayList<>();
+    try (Cursor c =
+        getReadableDatabase()
+            .rawQuery(
+                "SELECT description,at FROM observation_comments WHERE observation_id=? ORDER BY"
+                    + " at,id",
+                new String[] {observation})) {
+      while (c.moveToNext()) rows.add(new Comment(c));
+    }
+    return rows;
+  }
+
+  public void comment(String observation, String description) {
+    String clean = CareRules.required(description, "o comentário");
+    transaction(
+        db -> {
+          History parent = historyEntry(observation);
+          if (parent == null || !parent.type.equals("observation"))
+            throw new IllegalArgumentException("Observação indisponível.");
+          ContentValues values = new ContentValues();
+          values.put("id", id());
+          values.put("observation_id", observation);
+          values.put("description", clean);
+          values.put("at", HISTORY_TIME.format(Instant.now()));
+          db.insertOrThrow("observation_comments", null, values);
+        });
   }
 
   public void delete(String cat) {
@@ -361,17 +425,21 @@ public final class CareStore extends SQLiteOpenHelper {
       if (cat != null) requireCat(db, cat);
       JSONObject root = new JSONObject();
       root.put("format", "cat-care-offline");
-      root.put("version", 1);
+      root.put("version", 2);
       root.put("exported_at", Instant.now().toString());
       root.put("scope", cat == null ? "all_local_data" : "cat");
-      for (String table : new String[] {"cats", "tasks", "history"}) {
+      for (String table : new String[] {"cats", "tasks", "history", "observation_comments"}) {
         String key = table.equals("cats") ? "id" : "cat_id";
+        String selection =
+            table.equals("observation_comments")
+                ? "observation_id IN (SELECT id FROM history WHERE cat_id=?)"
+                : key + "=?";
         JSONArray rows = new JSONArray();
         try (Cursor c =
             db.query(
                 table,
                 null,
-                cat == null ? null : key + "=?",
+                cat == null ? null : selection,
                 cat == null ? null : new String[] {cat},
                 null,
                 null,

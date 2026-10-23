@@ -21,10 +21,13 @@ are filled forest green, secondary actions are white with an outline, and
 removal actions have a pale rust background. Color supplements explicit labels.
 
 Cards have restrained borders and rounded corners, with space between sections.
-Hoje keeps its summary compact so care cards stay near the top. Its two entry
-actions share a row at normal font size and stack above 120% font scale or on
-screens narrower than 360dp. Cat selection uses horizontally scrollable named
-chips with an explicit selected state.
+Hoje keeps its summary compact so care cards stay near the top, with one
+full-width “Planejar cuidado” action and no cat filter. Cat selection lives inside
+the new-plan and Histórico registration forms: labeled coat avatars with checked
+styling and radio-button accessibility semantics, two columns at normal size and
+one above 120% font scale. Histórico and Dados retain their named cat filter chips.
+Observations in Histórico offer “Comentar” and show replies with timestamps in
+inset cream panels.
 
 Navigation uses local vector icons, visible labels and a sage selected surface.
 At large font sizes, widths account for label length. Labels stay on one line
@@ -52,3 +55,6 @@ resources and `styles.xml` under `apps/mobile/app/src/main/`.
 See [cat-card evidence](../../runs/android-cat-cards-2026-10-23/evidence.md) for
 the current Gatos screen and form, and the earlier
 [visual evidence](../../runs/android-visual-2026-10-22/evidence.md) for other screens.
+
+See [Today and history evidence](../../runs/android-today-history-2026-10-23/evidence.md)
+for the planning and registration avatar forms and observation comments.

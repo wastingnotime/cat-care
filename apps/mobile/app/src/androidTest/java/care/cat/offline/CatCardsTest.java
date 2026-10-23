@@ -149,6 +149,78 @@ public class CatCardsTest extends ActivityInstrumentationTestCase2<MainActivity>
     getInstrumentation().waitForIdleSync();
   }
 
+  private void recreateActivity() {
+    Instrumentation.ActivityMonitor monitor =
+        getInstrumentation().addMonitor(MainActivity.class.getName(), null, false);
+    getInstrumentation().runOnMainSync(() -> activity.recreate());
+    MainActivity recreated = (MainActivity) monitor.waitForActivityWithTimeout(5000);
+    getInstrumentation().removeMonitor(monitor);
+    assertNotNull(recreated);
+    activity = recreated;
+    setActivity(recreated);
+  }
+
+  public void testTodayPlansForAvatarChoiceAndRestoresDraft() {
+    assertNull(find("CUIDANDO DE"));
+    assertNull(find("Registrar"));
+    assertNull(find("Mimi brincou"));
+    click("+ Planejar cuidado");
+    assertFalse(dialogItem("Luna, selecionar gato").isChecked());
+    dialogClick("Mimi, selecionar gato");
+    enterFirstField("Escovar Mimi");
+    recreateActivity();
+    assertTrue(dialogItem("Mimi, selecionado").isChecked());
+    dialogClick("Salvar");
+    assertTrue(store.tasks(mimi).stream().anyMatch(task -> task.title.equals("Escovar Mimi")));
+    assertFalse(store.tasks(luna).stream().anyMatch(task -> task.title.equals("Escovar Mimi")));
+  }
+
+  public void testNewPlanRequiresCatChoiceAndPreselectsOnlyCat() {
+    click("+ Planejar cuidado");
+    enterFirstField("Escolher gato primeiro");
+    dialogClick("Salvar");
+    assertNotNull(dialogItem("Escolha um gato."));
+    assertEquals(12, store.tasks(null).size());
+    dialogClick("Voltar");
+    store.delete(luna);
+    click("Gatos");
+    click("Hoje");
+    click("+ Planejar cuidado");
+    assertTrue(dialogItem("Mimi, selecionado").isChecked());
+    enterFirstField("Só Mimi");
+    dialogClick("Salvar");
+    assertTrue(store.tasks(mimi).stream().anyMatch(task -> task.title.equals("Só Mimi")));
+  }
+
+  public void testHistoryRegistersForAvatarChoiceAndCommentsOnObservation() {
+    click("Histórico");
+    assertNull(find("Comentar")); // Luna has only a measurement.
+    click("Registrar cuidado ou observação");
+    dialogClick("Mimi, selecionar gato");
+    enterFirstField("Registro da Mimi");
+    recreateActivity();
+    assertTrue(dialogItem("Mimi, selecionado").isChecked());
+    dialogClick("Salvar");
+    assertTrue(
+        store.history(mimi).stream().anyMatch(item -> item.description.equals("Registro da Mimi")));
+    assertNotNull(find("Registro da Mimi"));
+    click("Comentar observação: Mimi brincou");
+    enterFirstField("Brincou novamente à tarde");
+    recreateActivity();
+    dialogClick("Salvar");
+    CareStore.History observation =
+        store.history(mimi).stream()
+            .filter(item -> item.type.equals("observation"))
+            .findFirst()
+            .get();
+    assertEquals("Brincou novamente à tarde", store.comments(observation.id).get(0).description);
+    assertNotNull(find("Brincou novamente à tarde"));
+    click("Hoje");
+    assertNull(find("Brincou novamente à tarde"));
+    click("Histórico");
+    assertNotNull(find("Brincou novamente à tarde"));
+  }
+
   public void testCardsShowAvatarCountsAndOnlyPendingBadge() {
     click("Gatos");
     assertNotNull(find("Editar perfil de Mimi"));
