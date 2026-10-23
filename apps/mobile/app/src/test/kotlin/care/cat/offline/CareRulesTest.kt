@@ -8,13 +8,15 @@ class CareRulesTest {
     @Test
     fun monthlyRecurrenceClampsAndPreservesWallTime() {
         val next = CareRules.successor("2027-01-31T09:00-03:00[America/Sao_Paulo]", 0, 1)
-        val date = ZonedDateTime.parse(next)
+        val date = ZonedDateTime.parse(next).withZoneSameInstant(ZoneId.of("America/Sao_Paulo"))
         assertEquals(LocalDate.of(2027, 2, 28), date.toLocalDate())
         assertEquals(LocalTime.of(9, 0), date.toLocalTime())
-        assertEquals(ZoneId.of("America/Sao_Paulo"), date.zone)
+        assertEquals("2027-02-28T12:00:00Z", next)
         assertEquals(
             LocalDate.of(2027, 3, 28),
-            ZonedDateTime.parse(CareRules.successor(next, 0, 1)).toLocalDate(),
+            ZonedDateTime.parse(CareRules.successor(next, 0, 1, ZoneId.of("America/Sao_Paulo")))
+                .withZoneSameInstant(ZoneId.of("America/Sao_Paulo"))
+                .toLocalDate(),
         )
     }
 
@@ -22,8 +24,9 @@ class CareRulesTest {
     fun dailyRecurrencePreservesLocalTimeAcrossDst() {
         val next =
             ZonedDateTime.parse(
-                CareRules.successor("2026-03-07T09:00-05:00[America/New_York]", 1, 0)
-            )
+                    CareRules.successor("2026-03-07T14:00:00Z", 1, 0, ZoneId.of("America/New_York"))
+                )
+                .withZoneSameInstant(ZoneId.of("America/New_York"))
         assertEquals(LocalTime.of(9, 0), next.toLocalTime())
         assertEquals(ZoneOffset.ofHours(-4), next.offset)
     }
@@ -69,12 +72,9 @@ class CareRulesTest {
             assertThrows(CareValidation::class.java) { CareRules.due("2026-03-08", "02:30", zone) }
                 .issue,
         )
+        assertEquals("2026-11-01T05:30:00Z", CareRules.due("2026-11-01", "01:30", zone))
         assertEquals(
-            "2026-11-01T01:30-04:00[America/New_York]",
-            CareRules.due("2026-11-01", "01:30", zone),
-        )
-        assertEquals(
-            "2026-10-23T09:30-03:00[America/Sao_Paulo]",
+            "2026-10-23T12:30:00Z",
             CareRules.due("2026-10-23", "09:30", ZoneId.of("America/Sao_Paulo")),
         )
     }
@@ -111,6 +111,25 @@ class CareRulesTest {
                 )
                 .endsWith("(UTC-05:00)")
         )
+    }
+
+    @Test
+    fun reminderStagesUseUtcAndIgnoreUndatedOrFinishedCare() {
+        val due = "2026-10-24T12:00:00Z"
+        val task = CareStore.Task("task", "cat", "Exam", "Outro", due, "planned", 0, 0, 0)
+        val stages =
+            CareReminders.events(
+                listOf(
+                    task,
+                    task.copy(id = "undated", due = ""),
+                    task.copy(id = "done", state = "completed"),
+                ),
+                60,
+            )
+        assertEquals(listOf("near", "due"), stages.map { it.kind })
+        assertEquals(Instant.parse("2026-10-24T11:00:00Z"), stages.first().at)
+        assertEquals(Instant.parse(due), stages.last().at)
+        assertEquals(listOf("due"), CareReminders.events(listOf(task), 0).map { it.kind })
     }
 
     private fun reject(action: () -> Unit) =

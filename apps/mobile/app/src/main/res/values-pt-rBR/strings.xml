@@ -43,7 +43,7 @@
     <string name="plan_care">Planejar cuidado</string>
     <string name="edit_care">Editar cuidado</string>
     <string name="register_care">Registrar cuidado</string>
-    <string name="comment_heading">Comentar observação</string>
+    <string name="comment_heading">Comentar registro</string>
     <string name="care_actions">Ações do cuidado</string>
     <string name="complete_question">Concluir cuidado?</string>
     <string name="cancel_question">Cancelar cuidado?</string>
@@ -85,7 +85,7 @@
     <string name="choose_cat_hint">Toque no avatar para escolher.</string>
     <string name="edit_cat_profile">Editar perfil de %1$s</string>
     <string name="view_care_actions">Ver ações · %1$s</string>
-    <string name="comment_observation">Comentar observação: %1$s</string>
+    <string name="comment_observation">Comentar registro: %1$s</string>
     <string name="export_cat">Exportar %1$s</string>
     <string name="delete_cat_data">Apagar dados de %1$s</string>
     <string name="delete_cat_question">Apagar %1$s?</string>
@@ -100,7 +100,6 @@
     <string name="type_measurement">Medição</string>
     <string name="type_care">Cuidado</string>
     <string name="type_observation">Observação (não é diagnóstico)</string>
-    <string name="type_observation_short">Observação</string>
     <string name="type_created">Planejamento</string>
     <string name="type_edited">Edição</string>
     <string name="type_completed">Conclusão</string>
@@ -166,7 +165,7 @@
     <string name="error_stale">O cuidado mudou. Feche e abra novamente antes de tentar.</string>
     <string name="error_action">Ação inválida.</string>
     <string name="error_type">Tipo inválido.</string>
-    <string name="error_observation">Observação indisponível.</string>
+    <string name="error_observation">Registro indisponível.</string>
     <string name="error_coat">Escolha uma pelagem válida.</string>
     <string name="error_storage">Não foi possível acessar os dados. Tente novamente.</string>
     <string name="error_version">Versão de dados não suportada. Nenhum dado foi apagado.</string>
@@ -183,7 +182,7 @@
     <string name="history_task_cancelled">Cancelado: %1$s</string>
     <string name="history_task_deferred">Adiado: %1$s</string>
     <string name="history_task_next">Próximo cuidado: %1$s</string>
-    <string name="storage_body">Funciona sem internet e sem conta. Não há sincronização nem lembretes automáticos nesta versão.\n\nA exportação cria um arquivo JSON para consulta. Esta versão não importa nem restaura arquivos. Desinstalar, limpar os dados ou perder o aparelho pode apagar seus registros. O backup e a transferência automáticos estão desativados para os dados do app; alguns fabricantes podem aplicar regras próprias.\n\nArquivos exportados ficam no destino escolhido e não são apagados pelo app. Se escolher um provedor de nuvem, ele pode exigir internet. Use uma pasta local para exportar offline.</string>
+    <string name="storage_body">Funciona sem internet e sem conta. Há lembretes locais; não há sincronização.\n\nA exportação cria um arquivo JSON para consulta. Esta versão não importa nem restaura arquivos. Desinstalar, limpar os dados ou perder o aparelho pode apagar seus registros. O backup e a transferência automáticos estão desativados para os dados do app; alguns fabricantes podem aplicar regras próprias.\n\nArquivos exportados ficam no destino escolhido e não são apagados pelo app. Se escolher um provedor de nuvem, ele pode exigir internet. Use uma pasta local para exportar offline.</string>
     <string name="selected_avatar_label">✓ %1$s</string>
     <plurals name="planned_count">
         <item quantity="one">%d cuidado planejado · todos os gatos</item>
@@ -230,4 +229,24 @@
     <string name="previous_month">Mês anterior</string>
     <string name="next_month">Próximo mês</string>
     <string name="choose_year">Escolher ano: %1$s</string>
+    <string name="theme">Aparência</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Escuro</string>
+    <string name="repeat_custom">Personalizar</string>
+    <string name="repeat_unit">Unidade de repetição</string>
+    <string name="reminders">Lembretes de cuidado</string>
+    <string name="reminder_enable">Avisar sobre cuidados agendados</string>
+    <string name="reminder_before">Antecedência</string>
+    <string name="reminder_only_due">Apenas no horário agendado</string>
+    <string name="reminder_15m">15 minutos antes</string>
+    <string name="reminder_1h">1 hora antes</string>
+    <string name="reminder_1d">1 dia antes</string>
+    <string name="reminder_timing">Um lembrete também é enviado no horário agendado. O Android pode atrasar a entrega para economizar bateria.</string>
+    <string name="reminder_permission">Permitir notificações</string>
+    <string name="reminder_setup">Ativar lembretes em Dados</string>
+    <string name="reminder_channel">Cuidados agendados</string>
+    <string name="reminder_near">Cuidado próximo · %1$s</string>
+    <string name="reminder_due">Cuidado pendente · %1$s</string>
+    <string name="share_card">Compartilhar cartão</string>
+    <string name="theme_system">Tema do aparelho</string>
 </resources>

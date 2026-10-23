@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import java.time.Instant
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatterBuilder
 import java.util.UUID
@@ -14,7 +15,7 @@ import org.json.JSONObject
 
 /** Database name, schema, identifiers and transaction boundaries survive the UI migration. */
 class CareStore(context: Context, name: String = "cat-care.db") :
-    SQLiteOpenHelper(context, name, null, 4) {
+    SQLiteOpenHelper(context, name, null, 5) {
     data class Cat(
         val id: String,
         val name: String,
@@ -33,6 +34,7 @@ class CareStore(context: Context, name: String = "cat-care.db") :
         val days: Int,
         val months: Int,
         val version: Int,
+        val zone: String = "UTC",
     )
 
     data class History(
@@ -62,7 +64,7 @@ class CareStore(context: Context, name: String = "cat-care.db") :
             "CREATE TABLE cats(id TEXT PRIMARY KEY, name TEXT NOT NULL, birth TEXT NOT NULL, adoption TEXT NOT NULL, coat TEXT NOT NULL DEFAULT 'gray')"
         )
         db.execSQL(
-            "CREATE TABLE tasks(id TEXT PRIMARY KEY, cat_id TEXT NOT NULL REFERENCES cats(id) ON DELETE CASCADE, title TEXT NOT NULL, category TEXT NOT NULL, due TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN ('planned','completed','cancelled')), days INTEGER NOT NULL CHECK(days>=0), months INTEGER NOT NULL CHECK(months>=0), version INTEGER NOT NULL DEFAULT 0, CHECK(days=0 OR months=0))"
+            "CREATE TABLE tasks(id TEXT PRIMARY KEY, cat_id TEXT NOT NULL REFERENCES cats(id) ON DELETE CASCADE, title TEXT NOT NULL, category TEXT NOT NULL, due TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN ('planned','completed','cancelled')), days INTEGER NOT NULL CHECK(days>=0), months INTEGER NOT NULL CHECK(months>=0), version INTEGER NOT NULL DEFAULT 0, zone TEXT NOT NULL DEFAULT 'UTC', CHECK(days=0 OR months=0))"
         )
         db.execSQL("CREATE INDEX task_cat ON tasks(cat_id)")
         db.execSQL(
@@ -80,26 +82,69 @@ class CareStore(context: Context, name: String = "cat-care.db") :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        when {
-            oldVersion == 1 && newVersion == 4 -> {
-                // Retain the explicitly authorized legacy reset for coat selection.
-                db.execSQL("DROP TABLE history")
-                db.execSQL("DROP TABLE tasks")
-                db.execSQL("DROP TABLE cats")
-                onCreate(db)
+        careRequire(oldVersion in 1..4 && newVersion == 5, CareIssue.VERSION)
+        if (oldVersion == 1) {
+            db.execSQL("DROP TABLE history")
+            db.execSQL("DROP TABLE tasks")
+            db.execSQL("DROP TABLE cats")
+            onCreate(db)
+            return
+        }
+        if (oldVersion == 2) createComments(db)
+        fun hasColumn(table: String, name: String): Boolean =
+            db.rawQuery("PRAGMA table_info($table)", null).use { columns ->
+                var found = false
+                while (columns.moveToNext()) if (columns.getString(1) == name) found = true
+                found
             }
-            oldVersion in 2..3 && newVersion == 4 -> {
-                if (oldVersion == 2) createComments(db)
-                val hasDetails =
-                    db.rawQuery("PRAGMA table_info(history)", null).use { columns ->
-                        var exists = false
-                        while (columns.moveToNext()) if (columns.getString(1) == "details")
-                            exists = true
-                        exists
-                    }
-                if (!hasDetails) db.execSQL("ALTER TABLE history ADD COLUMN details TEXT")
+        if (!hasColumn("history", "details"))
+            db.execSQL("ALTER TABLE history ADD COLUMN details TEXT")
+        if (!hasColumn("tasks", "zone"))
+            db.execSQL("ALTER TABLE tasks ADD COLUMN zone TEXT NOT NULL DEFAULT 'UTC'")
+        val tasks =
+            db.rawQuery("SELECT id,due FROM tasks", null).use { c ->
+                buildList { while (c.moveToNext()) add(c.getString(0) to c.getString(1)) }
             }
-            else -> throw CareValidation(CareIssue.VERSION)
+        tasks.forEach { (id, due) ->
+            if (due.isNotEmpty()) {
+                val time = ZonedDateTime.parse(due)
+                db.update(
+                    "tasks",
+                    ContentValues().apply {
+                        put("due", time.toInstant().toString())
+                        put("zone", time.zone.id)
+                    },
+                    "id=?",
+                    arrayOf(id),
+                )
+            }
+        }
+        val history =
+            db.rawQuery("SELECT id,at,details FROM history", null).use { c ->
+                buildList {
+                    while (c.moveToNext()) add(
+                        Triple(c.getString(0), c.getString(1), c.getString(2))
+                    )
+                }
+            }
+        history.forEach { (id, at, metadata) ->
+            val details = metadata?.let { JSONObject(it) }
+            listOf("due", "from_due").forEach { key ->
+                if (details != null && details.optString(key).isNotEmpty())
+                    details.put(
+                        key,
+                        ZonedDateTime.parse(details.getString(key)).toInstant().toString(),
+                    )
+            }
+            db.update(
+                "history",
+                ContentValues().apply {
+                    put("at", HISTORY_TIME.format(Instant.parse(at)))
+                    put("details", details?.toString())
+                },
+                "id=?",
+                arrayOf(id),
+            )
         }
     }
 
@@ -212,7 +257,7 @@ class CareStore(context: Context, name: String = "cat-care.db") :
 
     fun tasks(cat: String?): List<Task> =
         query(
-                "SELECT id,cat_id,title,category,due,state,days,months,version FROM tasks" +
+                "SELECT id,cat_id,title,category,due,state,days,months,version,zone FROM tasks" +
                     (if (cat == null) "" else " WHERE cat_id=?") +
                     " ORDER BY id",
                 cat?.let { arrayOf(it) },
@@ -227,6 +272,7 @@ class CareStore(context: Context, name: String = "cat-care.db") :
                     it.getInt(6),
                     it.getInt(7),
                     it.getInt(8),
+                    it.getString(9),
                 )
             }
             .sortedWith(
@@ -246,12 +292,16 @@ class CareStore(context: Context, name: String = "cat-care.db") :
         due: String,
         days: Int,
         months: Int,
+        zone: String =
+            if (due.isEmpty()) ZoneId.systemDefault().id else ZonedDateTime.parse(due).zone.id,
     ) {
+        val utcDue = if (due.isEmpty()) "" else ZonedDateTime.parse(due).toInstant().toString()
+        val recurrenceZone = ZoneId.of(zone)
         val cleanTitle = CareRules.required(title, CareIssue.TITLE)
         CareRules.required(category, CareIssue.CATEGORY)
         CareRules.recurrence(days, months)
         if (due.isNotEmpty()) ZonedDateTime.parse(due)
-        CareRules.successor(due, days, months)
+        CareRules.successor(utcDue, days, months, recurrenceZone)
         careRequire(existing == null || existing.catId == cat, CareIssue.CAT_INCORRECT)
         transaction { db ->
             requireCat(db, cat)
@@ -259,9 +309,10 @@ class CareStore(context: Context, name: String = "cat-care.db") :
                 ContentValues().apply {
                     put("title", cleanTitle)
                     put("category", category)
-                    put("due", due)
+                    put("due", utcDue)
                     put("days", days)
                     put("months", months)
+                    put("zone", zone)
                 }
             val task = existing?.id ?: id()
             if (existing == null) {
@@ -284,7 +335,7 @@ class CareStore(context: Context, name: String = "cat-care.db") :
                 JSONObject()
                     .put("event", if (existing == null) "task_created" else "task_edited")
                     .put("title", cleanTitle)
-                    .put("due", due)
+                    .put("due", utcDue)
                     .put("days", days)
                     .put("months", months),
             )
@@ -307,12 +358,16 @@ class CareStore(context: Context, name: String = "cat-care.db") :
         careRequire(action in listOf("completed", "cancelled", "deferred"), CareIssue.ACTION)
         if (action == "deferred") CareRules.defer(task.due, newDue, Instant.now())
         val next =
-            if (action == "completed") CareRules.successor(task.due, task.days, task.months) else ""
+            if (action == "completed")
+                CareRules.successor(task.due, task.days, task.months, ZoneId.of(task.zone))
+            else ""
         transaction { db ->
             val values =
                 ContentValues().apply {
                     put("version", task.version + 1)
-                    if (action == "deferred") put("due", newDue) else put("state", action)
+                    if (action == "deferred")
+                        put("due", ZonedDateTime.parse(newDue).toInstant().toString())
+                    else put("state", action)
                 }
             updatePlanned(db, task, values)
             val label =
@@ -335,7 +390,11 @@ class CareStore(context: Context, name: String = "cat-care.db") :
                     .put("event", "task_$action")
                     .put("title", task.title)
                     .put("from_due", task.due)
-                    .put("due", if (action == "deferred") newDue else task.due),
+                    .put(
+                        "due",
+                        if (action == "deferred") ZonedDateTime.parse(newDue).toInstant().toString()
+                        else task.due,
+                    ),
             )
             if (next.isNotEmpty()) {
                 val successor = id()
@@ -351,6 +410,7 @@ class CareStore(context: Context, name: String = "cat-care.db") :
                         put("state", "planned")
                         put("days", task.days)
                         put("months", task.months)
+                        put("zone", task.zone)
                     },
                 )
                 event(
@@ -364,7 +424,8 @@ class CareStore(context: Context, name: String = "cat-care.db") :
                         .put("title", task.title)
                         .put("due", next)
                         .put("days", task.days)
-                        .put("months", task.months),
+                        .put("months", task.months)
+                        .put("zone", task.zone),
                 )
             }
         }
@@ -415,7 +476,7 @@ class CareStore(context: Context, name: String = "cat-care.db") :
     fun comment(observation: String, description: String) {
         val clean = CareRules.required(description, CareIssue.COMMENT)
         transaction { db ->
-            careRequire(historyEntry(observation)?.type == "observation", CareIssue.OBSERVATION)
+            careRequire(historyEntry(observation) != null, CareIssue.OBSERVATION)
             db.insertOrThrow(
                 "observation_comments",
                 null,
@@ -445,7 +506,7 @@ class CareStore(context: Context, name: String = "cat-care.db") :
             val root =
                 JSONObject()
                     .put("format", "cat-care-offline")
-                    .put("version", 2)
+                    .put("version", 3)
                     .put("exported_at", Instant.now().toString())
                     .put("scope", if (cat == null) "all_local_data" else "cat")
             for (table in listOf("cats", "tasks", "history", "observation_comments")) {

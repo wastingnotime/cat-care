@@ -92,8 +92,8 @@ edit button. Create/edit asks for name, optional birth/adoption dates and closes
 coat. Histórico shows the selected cat's records and lifecycle, offers comments
 on observations, and contains “Registrar” with an avatar cat picker. Dados exports or
 deletes one cat/all local care data after a scope preview. Dates use calendar pickers and times use a numeric/clock dialog. Repetition
-offers none, every N days, or every N months with presets and a next-date preview. Export is versioned JSON via
-Android's document picker. No import/restore, automatic reminders or cloud sync
+offers none, daily, weekly, monthly or a custom days/months interval and a next-date preview. Export is versioned JSON via
+Android's document picker. No import/restore or cloud sync
 is included. Automatic backup/device transfer of app data is disabled by app
 policy. Uninstall, storage clearing or device loss may permanently remove data;
 exported files remain in the destination chosen by the owner.
@@ -102,8 +102,8 @@ See `contracts/mobile.md` for persistence, timezone, recurrence, export and
 error semantics, and ADR 0002 for scope. Existing web/API fixtures stay separate.
 
 The authorized legacy schema 1 reset remains for coat selection. Schema 2 → 3
-adds observation comments without clearing existing data. JSON export version 2
-includes comments with their observation IDs. Future upgrades require explicit migrations.
+adds observation comments without clearing existing data. JSON export version 3
+includes comments with their history-entry IDs under the retained `observation_id` field. Future upgrades require explicit migrations.
 
 ## Kotlin and Compose structure
 
@@ -113,7 +113,7 @@ draws avatars and onboarding art with Compose Canvas. `CareViewModel` exposes
 immutable snapshots through StateFlow, runs SQLite work on the IO dispatcher, and
 keeps form fields, target IDs, selected cats and navigation in SavedStateHandle.
 `CareStore` retains the same database filename, atomic mutations and JSON export
-version 2. Schema 4 adds nullable metadata for localized automatic history;
+version 3. Schema 4 added nullable metadata for localized automatic history;
 upgrading schema 3 preserves all existing cats, care records and comments.
 
 The build pins Kotlin/compiler plugin 2.2.21, Compose BOM 2025.04.01, Activity
@@ -133,6 +133,19 @@ Dates use the selected locale’s order and times follow the device’s 12/24-ho
 setting. Due dates, history and recurrence previews show the current device
 timezone and UTC offset. Scheduling retains its stored zone; profile dates have
 no timezone conversion. Care and history cards identify their cat with an
-avatar/name badge. Only observations offer comment threads.
+avatar/name badge. All history records offer comment threads.
 
 Scheduling and localization verification: [evidence](../../runs/android-care-ux-2026-10-23/evidence.md).
+
+Data also offers system/light/dark appearance and local notification settings.
+Reminders default to one hour before and at the due time; allow notification
+permission using the button in Data. Android may delay alarms to save battery.
+History cat filters have avatars, every card accepts comments, and Share opens
+Android’s chooser with formatted text for that card and its replies.
+
+SQLite schema 5 upgrades existing zone-aware deadlines to UTC instants without
+changing their meaning. The named recurrence zone remains separate so routines
+keep their local wall time across DST. Editors and cards display device-local
+datetime. JSON export version 3 carries UTC deadlines and the recurrence zone.
+
+Theme, reminders, UTC and sharing verification: [evidence](../../runs/android-reminders-theme-2026-10-23/evidence.md).

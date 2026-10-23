@@ -14,14 +14,6 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 
-val Paper = Color(0xfff8f7f2)
-val Ink = Color(0xff243c32)
-val Forest = Color(0xff285345)
-val Muted = Color(0xff5c6b60)
-val Sage = Color(0xffe9eee4)
-val Line = Color(0xffdfe5da)
-val Rust = Color(0xff954c38)
-
 @Composable
 fun CatAvatar(coatId: String, modifier: Modifier = Modifier, describe: Boolean = true) {
     val coat = CatCoat.fromId(coatId)
@@ -32,7 +24,7 @@ fun CatAvatar(coatId: String, modifier: Modifier = Modifier, describe: Boolean =
             translate((size.width - 100 * factor) / 2, (size.height - 100 * factor) / 2)
             scale(factor, factor, Offset.Zero)
         }) {
-            oval(Sage, 0f, 0f, 100f, 100f)
+            oval(Color(0xffe9eee4), 0f, 0f, 100f, 100f)
             val ears = if (coat == CatCoat.SIAMESE) Color(0xff594c48) else Color(coat.color)
             drawPath(
                 Path().apply {
@@ -75,12 +67,12 @@ fun CatAvatar(coatId: String, modifier: Modifier = Modifier, describe: Boolean =
                     CatCoat.BLACK,
                     CatCoat.TUXEDO -> Color(0xffd9c36b)
                     CatCoat.SIAMESE -> Color(0xff4c91a3)
-                    else -> Ink
+                    else -> Color(0xff243c32)
                 }
             oval(eyes, 29f, 54f, 37f, 62f)
             oval(eyes, 63f, 54f, 71f, 62f)
             oval(Color(0xffc48b8b), 45f, 66f, 55f, 72f)
-            val mouth = if (coat == CatCoat.BLACK) Color(0xffd8d0bd) else Ink
+            val mouth = if (coat == CatCoat.BLACK) Color(0xffd8d0bd) else Color(0xff243c32)
             drawLine(mouth, Offset(50f, 72f), Offset(50f, 77f), 2f)
             drawLine(mouth, Offset(50f, 77f), Offset(44f, 80f), 2f)
             drawLine(mouth, Offset(50f, 77f), Offset(56f, 80f), 2f)

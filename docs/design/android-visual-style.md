@@ -26,7 +26,7 @@ full-width “Planejar cuidado” action and no cat filter. Cat selection lives 
 the new-plan and Histórico registration forms: labeled coat avatars with checked
 styling and radio-button accessibility semantics, two columns at normal size and
 one above 120% font scale. Histórico and Dados retain their named cat filter chips.
-Observations in Histórico offer “Comentar” and show replies with timestamps in
+All cards in Histórico offer “Comentar” and show replies with timestamps in
 inset cream panels.
 
 Navigation uses local vector icons, visible labels and a sage selected surface.
@@ -68,7 +68,7 @@ and cat name. The identity badge is separate from scheduling status and category
 
 Planning uses calendar selection followed by a separate time dialog. Numeric
 hour/minute entry is the default, with a clock toggle. Repetition uses a single
-mode and interval, daily/weekly/monthly presets, and a preview of the next due
+choice (none/daily/weekly/monthly/custom); only custom shows interval and unit, and a preview of the next due
 moment. Longer hints explain calendar-month behavior only when relevant.
 
 All copy is provided through English and Brazilian Portuguese resources. The
@@ -79,3 +79,13 @@ respects the device setting. Date/time displays include the device zone and offs
 Below 360dp or above 120% text scale, date entry uses a compact calendar with
 month arrows, a year chooser, six equal calendar rows, and wrapping actions. The
 calendar stays within the window while preserving full spoken date labels.
+
+
+Dark appearance follows the device by default and can be selected explicitly in
+Data. It uses deep green backgrounds, pale green accents, muted sage outlines
+and warm red error colours; artwork keeps its coat colours. Today’s summary
+switches to an explicit overdue count/error surface whenever any task is overdue.
+Card identity rows keep the cat avatar/name on the left and category/type right
+aligned, allowing wrapping for longer translated labels. Task action buttons use
+a short label with the task title retained only in their accessibility description.
+History filters show coat avatars; every card has comment and text-share actions.

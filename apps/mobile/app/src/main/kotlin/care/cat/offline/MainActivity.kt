@@ -14,6 +14,16 @@ class MainActivity : ComponentActivity() {
         super.attachBaseContext(AppLanguage.context(base))
     }
 
+    override fun onResume() {
+        super.onResume()
+        model.retry()
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        model.navigate("today")
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

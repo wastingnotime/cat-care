@@ -93,7 +93,7 @@ class CareStoreTest {
         }
         store = CareStore(context, DB)
         assertTrue(store.cats().isEmpty())
-        assertEquals(4, store.readableDatabase.version)
+        assertEquals(5, store.readableDatabase.version)
         store.saveCat(null, "Luna", "", "", "siamese")
         assertEquals("siamese", store.cats().first().coat)
     }
@@ -116,7 +116,7 @@ class CareStoreTest {
         )
         assertEquals(1, store.summary(mimi, Instant.now()).observations)
         val exported = JSONObject(store.export(mimi))
-        assertEquals(2, exported.getInt("version"))
+        assertEquals(3, exported.getInt("version"))
         assertEquals(2, exported.getJSONArray("observation_comments").length())
         assertEquals(
             3,
@@ -130,15 +130,14 @@ class CareStoreTest {
     }
 
     @Test
-    fun commentsRejectBlankMissingAndNonObservationParents() {
+    fun commentsAcceptAnyHistoryParentAndRejectBlankOrMissing() {
         val mimi = cat("Mimi")
         val profile = store.history(mimi).first().id
         store.record(mimi, "observation", "Brincou")
         val observation = store.history(mimi).first().id
-        listOf(profile, "missing").forEach { parent ->
-            reject { store.comment(parent, "Reply") }
-            assertTrue(store.comments(parent).isEmpty())
-        }
+        store.comment(profile, "Reply")
+        assertEquals("Reply", store.comments(profile).single().description)
+        reject { store.comment("missing", "Reply") }
         reject { store.comment(observation, "  ") }
         assertTrue(store.comments(observation).isEmpty())
     }
@@ -157,7 +156,58 @@ class CareStoreTest {
         assertEquals(3, store.history(mimi).size)
         store.comment(observation, "Ainda brincando")
         assertEquals(1, store.comments(observation).size)
-        assertEquals(4, store.readableDatabase.version)
+        assertEquals(5, store.readableDatabase.version)
+    }
+
+    @Test
+    fun schemaFourMigratesUtcWithoutChangingInstantsAndKeepsRecurrenceZone() {
+        val cat = cat("Mimi")
+        store.saveTask(
+            cat,
+            null,
+            "Daily",
+            "Outro",
+            "2026-03-07T09:00-05:00[America/New_York]",
+            1,
+            0,
+        )
+        val task = store.tasks(cat).single()
+        val entry = store.history(cat).first { it.type == "created" }
+        store.writableDatabase.execSQL(
+            "UPDATE tasks SET due=?,zone='UTC' WHERE id=?",
+            arrayOf("2026-03-07T09:00-05:00[America/New_York]", task.id),
+        )
+        store.writableDatabase.execSQL(
+            "UPDATE history SET details=? WHERE id=?",
+            arrayOf(
+                JSONObject(entry.details!!)
+                    .put("due", "2026-03-07T09:00-05:00[America/New_York]")
+                    .toString(),
+                entry.id,
+            ),
+        )
+        store.writableDatabase.execSQL(
+            "CREATE TABLE legacy_tasks AS SELECT id,cat_id,title,category,due,state,days,months,version FROM tasks"
+        )
+        store.writableDatabase.execSQL("DROP TABLE tasks")
+        store.writableDatabase.execSQL("ALTER TABLE legacy_tasks RENAME TO tasks")
+        store.writableDatabase.version = 4
+        reopen()
+        val migrated = store.tasks(cat).single()
+        assertEquals("2026-03-07T14:00:00Z", migrated.due)
+        assertEquals("America/New_York", migrated.zone)
+        assertEquals(
+            "2026-03-07T14:00:00Z",
+            JSONObject(store.historyEntry(entry.id)!!.details!!).getString("due"),
+        )
+        store.transition(migrated, "completed", "")
+        assertEquals("2026-03-08T13:00:00Z", store.tasks(cat).first().due)
+        val export = JSONObject(store.export(cat))
+        assertTrue(
+            (0 until export.getJSONArray("tasks").length()).all {
+                export.getJSONArray("tasks").getJSONObject(it).getString("due").endsWith("Z")
+            }
+        )
     }
 
     @Test
@@ -202,7 +252,7 @@ class CareStoreTest {
         val details = JSONObject(store.history("mimi").first { it.type == "created" }.details!!)
         assertEquals("Water · every day", details.getString("title"))
         assertEquals(1, details.getInt("days"))
-        assertEquals(4, store.readableDatabase.version)
+        assertEquals(5, store.readableDatabase.version)
         val export = JSONObject(store.export("mimi"))
         assertTrue(
             (0 until export.getJSONArray("history").length()).any {
@@ -247,7 +297,7 @@ class CareStoreTest {
         reopen()
         assertEquals(2, store.cats().size)
         assertEquals(2, store.tasks(mimi).size)
-        assertTrue(store.tasks(mimi).first().due.contains("2027-02-28T09:00"))
+        assertTrue(store.tasks(mimi).first().due.contains("2027-02-28T12:00"))
     }
 
     @Test

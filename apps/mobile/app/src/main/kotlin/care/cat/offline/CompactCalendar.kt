@@ -210,7 +210,9 @@ internal fun CompactDateDialog(value: String, select: (String) -> Unit, dismiss:
                                             Text(
                                                 number.toString(),
                                                 Modifier.clearAndSetSemantics {},
-                                                color = if (active) Color.White else Ink,
+                                                color =
+                                                    if (active) MaterialTheme.colorScheme.onPrimary
+                                                    else Ink,
                                             )
                                         }
                                     }

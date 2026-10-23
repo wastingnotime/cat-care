@@ -43,7 +43,7 @@
     <string name="plan_care">Plan care</string>
     <string name="edit_care">Edit care</string>
     <string name="register_care">Record care</string>
-    <string name="comment_heading">Comment on observation</string>
+    <string name="comment_heading">Comment on record</string>
     <string name="care_actions">Care actions</string>
     <string name="complete_question">Complete care?</string>
     <string name="cancel_question">Cancel care?</string>
@@ -85,7 +85,7 @@
     <string name="choose_cat_hint">Tap an avatar to choose.</string>
     <string name="edit_cat_profile">Edit %1$s’s profile</string>
     <string name="view_care_actions">Actions · %1$s</string>
-    <string name="comment_observation">Comment on observation: %1$s</string>
+    <string name="comment_observation">Comment on record: %1$s</string>
     <string name="export_cat">Export %1$s</string>
     <string name="delete_cat_data">Delete %1$s’s data</string>
     <string name="delete_cat_question">Delete %1$s?</string>
@@ -100,7 +100,6 @@
     <string name="type_measurement">Measurement</string>
     <string name="type_care">Care</string>
     <string name="type_observation">Observation (not a diagnosis)</string>
-    <string name="type_observation_short">Observation</string>
     <string name="type_created">Planning</string>
     <string name="type_edited">Edit</string>
     <string name="type_completed">Completion</string>
@@ -166,7 +165,7 @@
     <string name="error_stale">This care task changed. Close and reopen it before trying again.</string>
     <string name="error_action">Invalid action.</string>
     <string name="error_type">Invalid record type.</string>
-    <string name="error_observation">Observation unavailable.</string>
+    <string name="error_observation">Record unavailable.</string>
     <string name="error_coat">Choose a valid coat.</string>
     <string name="error_storage">Could not access data. Try again.</string>
     <string name="error_version">Unsupported data version. No data was deleted.</string>
@@ -183,7 +182,7 @@
     <string name="history_task_cancelled">Cancelled: %1$s</string>
     <string name="history_task_deferred">Rescheduled: %1$s</string>
     <string name="history_task_next">Next care: %1$s</string>
-    <string name="storage_body">Works offline without an account. This version has no sync or automatic reminders.\n\nExport creates a JSON file for reference. This version cannot import or restore files. Uninstalling, clearing data, or losing the device may erase your records. Automatic app backup and device transfer are disabled; some manufacturers may apply their own rules.\n\nExported files remain in your chosen destination and are not deleted by the app. A cloud provider may require connectivity. Choose a local folder to export offline.</string>
+    <string name="storage_body">Works offline without an account. Local reminders are available; there is no sync.\n\nExport creates a JSON file for reference. This version cannot import or restore files. Uninstalling, clearing data, or losing the device may erase your records. Automatic app backup and device transfer are disabled; some manufacturers may apply their own rules.\n\nExported files remain in your chosen destination and are not deleted by the app. A cloud provider may require connectivity. Choose a local folder to export offline.</string>
     <string name="selected_avatar_label">✓ %1$s</string>
     <plurals name="planned_count">
         <item quantity="one">%d planned task · all cats</item>
@@ -222,4 +221,24 @@
     <string name="previous_month">Previous month</string>
     <string name="next_month">Next month</string>
     <string name="choose_year">Choose year: %1$s</string>
+    <string name="theme">Appearance</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="repeat_custom">Custom</string>
+    <string name="repeat_unit">Repeat unit</string>
+    <string name="reminders">Care reminders</string>
+    <string name="reminder_enable">Notify me about scheduled care</string>
+    <string name="reminder_before">Advance notice</string>
+    <string name="reminder_only_due">At the due time only</string>
+    <string name="reminder_15m">15 minutes before</string>
+    <string name="reminder_1h">1 hour before</string>
+    <string name="reminder_1d">1 day before</string>
+    <string name="reminder_timing">A reminder is also sent when care is due. Android may delay delivery to save battery.</string>
+    <string name="reminder_permission">Allow notifications</string>
+    <string name="reminder_setup">Enable reminders in Data</string>
+    <string name="reminder_channel">Scheduled care</string>
+    <string name="reminder_near">Care coming up · %1$s</string>
+    <string name="reminder_due">Care due · %1$s</string>
+    <string name="share_card">Share card</string>
+    <string name="theme_system">Device theme</string>
 </resources>

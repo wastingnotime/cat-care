@@ -37,7 +37,10 @@ fun careRequire(condition: Boolean, issue: CareIssue) {
     if (!condition) throw CareValidation(issue)
 }
 
-/** Language-independent scheduling rules. Stored due times retain their named zone. */
+/**
+ * Language-independent scheduling rules. Timestamps persist as UTC; recurrence uses a separate
+ * named zone.
+ */
 object CareRules {
     // Legacy textual timestamps are retained only for exported historical descriptions.
     val DATE: DateTimeFormatter =
@@ -88,20 +91,26 @@ object CareRules {
 
     private fun zoned(local: LocalDateTime, zone: ZoneId): String {
         careRequire(zone.rules.getValidOffsets(local).isNotEmpty(), CareIssue.DST)
-        return local.atZone(zone).toString()
+        return local.atZone(zone).toInstant().toString()
     }
 
     fun recurrence(days: Int, months: Int) {
         careRequire(days >= 0 && months >= 0 && (days == 0 || months == 0), CareIssue.RECURRENCE)
     }
 
-    fun successor(due: String, days: Int, months: Int): String {
+    fun successor(
+        due: String,
+        days: Int,
+        months: Int,
+        zone: ZoneId = ZonedDateTime.parse(due.ifEmpty { "1970-01-01T00:00Z" }).zone,
+    ): String {
         recurrence(days, months)
         if (days == 0 && months == 0) return ""
         careRequire(due.isNotEmpty(), CareIssue.RECURRENCE_DATE)
-        val current = ZonedDateTime.parse(due)
+        val current = ZonedDateTime.parse(due).withZoneSameInstant(zone)
         return (if (months > 0) current.plusMonths(months.toLong())
             else current.plusDays(days.toLong()))
+            .toInstant()
             .toString()
     }
 
@@ -120,7 +129,7 @@ object CareRules {
             state == "completed" -> "completed"
             state == "cancelled" -> "cancelled"
             due.isEmpty() -> "unknown"
-            ZonedDateTime.parse(due).toInstant().isBefore(now) -> "overdue"
+            ZonedDateTime.parse(due).toInstant().let { !it.isAfter(now) } -> "overdue"
             !ZonedDateTime.parse(due).toInstant().isAfter(now.plus(Duration.ofDays(2))) -> "soon"
             else -> "planned"
         }

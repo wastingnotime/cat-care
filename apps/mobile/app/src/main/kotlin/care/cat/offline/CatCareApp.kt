@@ -1,11 +1,11 @@
 package care.cat.offline
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
@@ -37,6 +38,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.time.*
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.delay
 
 private data class Destination(val route: String, val label: Int, val icon: Int)
 
@@ -72,37 +74,7 @@ fun CatCareApp(model: CareViewModel) {
         }
     }
     BackHandler(enabled = screen != "today" && draft.isEmpty) { model.navigate("today") }
-    MaterialTheme(
-        colorScheme =
-            lightColorScheme(
-                primary = Forest,
-                onPrimary = androidx.compose.ui.graphics.Color.White,
-                primaryContainer = Sage,
-                onPrimaryContainer = Forest,
-                background = Paper,
-                onBackground = Ink,
-                surface = Paper,
-                onSurface = Ink,
-                tertiary = Forest,
-                onTertiary = androidx.compose.ui.graphics.Color.White,
-                tertiaryContainer = Sage,
-                onTertiaryContainer = Forest,
-                secondary = Forest,
-                secondaryContainer = Sage,
-                onSecondaryContainer = Ink,
-                surfaceTint = Forest,
-                surfaceContainerHighest = Sage,
-                surfaceContainerHigh = Paper,
-                surfaceContainer = Paper,
-                surfaceContainerLow = Paper,
-                surfaceContainerLowest = androidx.compose.ui.graphics.Color.White,
-                surfaceVariant = Sage,
-                onSurfaceVariant = Muted,
-                outline = Line,
-                error = Rust,
-            ),
-        shapes = Shapes(medium = RoundedCornerShape(16.dp), large = RoundedCornerShape(24.dp)),
-    ) {
+    CareTheme {
         Scaffold(
             containerColor = Paper,
             topBar = {
@@ -207,6 +179,18 @@ private fun CareScreen(
     model: CareViewModel,
 ) {
     val list = rememberLazyListState()
+    val context = LocalContext.current
+    var now by remember { mutableStateOf(Instant.now()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            now = Instant.now()
+            delay(30_000)
+        }
+    }
+    androidx.lifecycle.compose.LifecycleResumeEffect(Unit) {
+        now = Instant.now()
+        onPauseOrDispose {}
+    }
     val selectedCat = state.cats.find { it.id == selected }
     val history = state.history[selected].orEmpty()
     LaunchedEffect(reveal, screen, state.cats, history) {
@@ -251,6 +235,8 @@ private fun CareScreen(
             when (screen) {
                 "today" -> {
                     val planned = state.tasks.filter { it.state == "planned" }
+                    val overdue =
+                        planned.count { CareRules.status(it.state, it.due, now) == "overdue" }
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                             Text(
@@ -266,8 +252,10 @@ private fun CareScreen(
                             )
                             Heading(tr(R.string.today_heading))
                             Badge(
-                                if (planned.isEmpty()) tr(R.string.all_up_to_date)
-                                else quantity(R.plurals.planned_count, planned.size)
+                                if (overdue > 0) quantity(R.plurals.overdue_count, overdue)
+                                else if (planned.isEmpty()) tr(R.string.all_up_to_date)
+                                else quantity(R.plurals.planned_count, planned.size),
+                                overdue = overdue > 0,
                             )
                             Primary(tr(R.string.plan_care_action), !busy) {
                                 model.openEditor("task")
@@ -279,28 +267,37 @@ private fun CareScreen(
                                 fontWeight = FontWeight.Bold,
                             )
                             Text(tr(R.string.routine_hint), color = Muted, fontSize = 12.sp)
+                            if (
+                                planned.any { it.due.isNotEmpty() } &&
+                                    !CareReminders.allowed(context)
+                            )
+                                TextButton(onClick = { model.navigate("data") }) {
+                                    Text(tr(R.string.reminder_setup))
+                                }
                             if (planned.isEmpty()) Text(tr(R.string.no_pending), color = Muted)
                         }
                     }
                     items(planned, key = { it.id }) { task ->
                         CareCard {
-                            CatBadge(state.cats.first { it.id == task.catId })
-                            Text(
+                            CardIdentity(
+                                state.cats.first { it.id == task.catId },
                                 tr(categoryLabel(task.category)),
-                                color = Forest,
-                                fontWeight = FontWeight.Bold,
                             )
                             Text(
                                 task.title,
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Bold,
                             )
-                            val status = CareRules.status(task.state, task.due, Instant.now())
+                            val status = CareRules.status(task.state, task.due, now)
                             Badge(tr(statusLabel(status)), status == "overdue")
                             if (task.due.isNotEmpty()) Text(localMoment(task.due), color = Muted)
                             if (task.days > 0 || task.months > 0)
                                 Text(repeatLabel(task.days, task.months), color = Muted)
-                            Secondary(tr(R.string.view_care_actions, task.title), !busy) {
+                            Secondary(
+                                tr(R.string.care_actions),
+                                !busy,
+                                description = tr(R.string.view_care_actions, task.title),
+                            ) {
                                 model.openEditor("actions", task.id)
                             }
                         }
@@ -359,19 +356,17 @@ private fun CareScreen(
                     }
                     items(history, key = { it.id }) { entry ->
                         CareCard {
-                            state.cats.find { it.id == entry.catId }?.let { CatBadge(it) }
-                            Text(
-                                tr(typeLabel(entry.type)),
-                                color = Forest,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            HistoryDescription(entry)
+                            state.cats
+                                .find { it.id == entry.catId }
+                                ?.let { CardIdentity(it, tr(typeLabel(entry.type))) }
+                            val description = historyDescriptionText(entry)
+                            description.lineSequence().forEach { Text(it) }
                             Text(
                                 tr(R.string.recorded_at, historyTime(entry.at)),
                                 color = Muted,
                                 fontSize = 13.sp,
                             )
-                            if (entry.type == "observation") {
+                            run {
                                 val comments = state.comments[entry.id].orEmpty()
                                 Text(
                                     if (comments.isEmpty()) tr(R.string.no_comments)
@@ -411,6 +406,30 @@ private fun CareScreen(
                                     Text(tr(R.string.comment_action))
                                 }
                             }
+                            val shareText =
+                                historyShareText(
+                                    state.cats.first { it.id == entry.catId }.name,
+                                    tr(typeLabel(entry.type)),
+                                    description,
+                                    historyTime(entry.at),
+                                    state.comments[entry.id].orEmpty(),
+                                )
+                            OutlinedButton(
+                                onClick = {
+                                    context.startActivity(
+                                        Intent.createChooser(
+                                            Intent(Intent.ACTION_SEND).apply {
+                                                type = "text/plain"
+                                                putExtra(Intent.EXTRA_TEXT, shareText)
+                                            },
+                                            null,
+                                        )
+                                    )
+                                },
+                                modifier = Modifier.fillMaxWidth().testTag("share-${entry.id}"),
+                            ) {
+                                Text(tr(R.string.share_card))
+                            }
                         }
                     }
                 }
@@ -419,6 +438,8 @@ private fun CareScreen(
                         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             Heading(tr(R.string.data_heading))
                             LanguageChoice()
+                            ThemeChoice()
+                            ReminderSettings()
                             Badge(tr(R.string.local_data))
                             Text(tr(R.string.data_hint))
                             CareCard {
@@ -482,7 +503,7 @@ private fun CareCard(content: @Composable ColumnScope.() -> Unit) {
     Surface(
         Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        color = androidx.compose.ui.graphics.Color.White,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
         border = BorderStroke(1.dp, Line),
     ) {
         Column(
@@ -505,11 +526,19 @@ private fun Primary(label: String, enabled: Boolean = true, action: () -> Unit) 
     }
 
 @Composable
-private fun Secondary(label: String, enabled: Boolean = true, action: () -> Unit) =
+private fun Secondary(
+    label: String,
+    enabled: Boolean = true,
+    description: String? = null,
+    action: () -> Unit,
+) =
     OutlinedButton(
         onClick = action,
         enabled = enabled,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+        modifier =
+            Modifier.fillMaxWidth().heightIn(min = 48.dp).semantics {
+                if (description != null) contentDescription = description
+            },
         shape = RoundedCornerShape(16.dp),
     ) {
         Text(label)
@@ -529,7 +558,7 @@ private fun Danger(label: String, enabled: Boolean, action: () -> Unit) =
 @Composable
 private fun Badge(label: String, overdue: Boolean = false) {
     Surface(
-        color = if (overdue) androidx.compose.ui.graphics.Color(0xfff8e9e1) else Sage,
+        color = if (overdue) MaterialTheme.colorScheme.errorContainer else Sage,
         shape = RoundedCornerShape(24.dp),
     ) {
         Text(
@@ -566,6 +595,7 @@ private fun CatFilter(cats: List<CareStore.Cat>, selected: String, choose: (Stri
                 selected = cat.id == selected,
                 onClick = { choose(cat.id) },
                 label = { Text(cat.name) },
+                leadingIcon = { CatAvatar(cat.coat, Modifier.size(28.dp), describe = false) },
                 modifier = Modifier.heightIn(min = 48.dp).testTag("filter-${cat.id}"),
             )
         }
@@ -608,7 +638,7 @@ private fun CareEditor(
     Dialog(onDismissRequest = model::closeEditor) {
         Surface(
             shape = RoundedCornerShape(28.dp),
-            color = androidx.compose.ui.graphics.Color.White,
+            color = MaterialTheme.colorScheme.surfaceContainerLowest,
         ) {
             Column(
                 Modifier.fillMaxWidth()
@@ -707,7 +737,7 @@ private fun CareEditor(
                         "comment" -> {
                             state.cats.find { it.id == observation?.catId }?.let { CatBadge(it) }
                             Text(
-                                tr(R.string.type_observation_short),
+                                tr(typeLabel(observation?.type ?: "observation")),
                                 color = Forest,
                                 fontWeight = FontWeight.Bold,
                             )
@@ -972,7 +1002,8 @@ private fun AvatarGrid(options: List<AvatarOption>, selected: String, choose: (S
                 row.forEach { option ->
                     val active = option.id == selected
                     Surface(
-                        color = if (active) Sage else androidx.compose.ui.graphics.Color.White,
+                        color =
+                            if (active) Sage else MaterialTheme.colorScheme.surfaceContainerLowest,
                         shape = RoundedCornerShape(16.dp),
                         border = BorderStroke(1.dp, Line),
                         modifier = Modifier.weight(1f),

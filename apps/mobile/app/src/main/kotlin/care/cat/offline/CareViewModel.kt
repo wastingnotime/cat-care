@@ -56,11 +56,8 @@ class CareViewModel(application: Application, private val saved: SavedStateHandl
     private fun reload() {
         val cats = store.cats()
         val history = cats.associate { it.id to store.history(it.id) }
-        val comments =
-            history.values
-                .flatten()
-                .filter { it.type == "observation" }
-                .associate { it.id to store.comments(it.id) }
+        val comments = history.values.flatten().associate { it.id to store.comments(it.id) }
+
         mutableSnapshot.value =
             CareSnapshot(
                 cats,
@@ -70,6 +67,7 @@ class CareViewModel(application: Application, private val saved: SavedStateHandl
                 cats.associate { it.id to store.summary(it.id, Instant.now()) },
                 true,
             )
+        CareReminders.sync(getApplication())
     }
 
     private fun runAction(action: suspend () -> Unit) {
@@ -148,16 +146,15 @@ class CareViewModel(application: Application, private val saved: SavedStateHandl
                     putString("title", task?.title.orEmpty())
                     putString("category", task?.category ?: Categories.first())
                     val scheduled =
-                        task?.due?.takeIf { it.isNotEmpty() }?.let { ZonedDateTime.parse(it) }
-                    putString("dueDate", scheduled?.toLocalDate()?.toString().orEmpty())
-                    putString("dueTime", scheduled?.toLocalTime()?.toString().orEmpty())
-                    putString(
-                        "zone",
                         task
                             ?.due
                             ?.takeIf { it.isNotEmpty() }
-                            ?.let { ZonedDateTime.parse(it).zone.id } ?: ZoneId.systemDefault().id,
-                    )
+                            ?.let {
+                                ZonedDateTime.parse(it).withZoneSameInstant(ZoneId.systemDefault())
+                            }
+                    putString("dueDate", scheduled?.toLocalDate()?.toString().orEmpty())
+                    putString("dueTime", scheduled?.toLocalTime()?.toString().orEmpty())
+                    putString("zone", ZoneId.systemDefault().id)
                     putString(
                         "repeatMode",
                         if ((task?.months ?: 0) > 0) "months"
@@ -225,6 +222,8 @@ class CareViewModel(application: Application, private val saved: SavedStateHandl
                                 scheduled(),
                                 interval("days"),
                                 interval("months"),
+                                if (task != null && scheduled() == task.due) task.zone
+                                else value("zone"),
                             )
                             null
                         }

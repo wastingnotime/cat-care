@@ -26,11 +26,17 @@ class CareComposeTest {
                     .getSharedPreferences("appearance", 0)
                     .edit()
                     .putString("language", "pt-BR")
+                    .putString("theme", "light")
                     .commit()
                 if (android.os.Build.VERSION.SDK_INT >= 33)
                     context
                         .getSystemService(android.app.LocaleManager::class.java)
                         .applicationLocales = android.os.LocaleList.forLanguageTags("pt-BR")
+                context
+                    .getSharedPreferences("reminders", 0)
+                    .edit()
+                    .putBoolean("enabled", false)
+                    .commit()
                 context.deleteDatabase("cat-care.db")
                 context.getSharedPreferences("MainActivity", 0).edit().clear().commit()
                 store = CareStore(context)
@@ -117,7 +123,7 @@ class CareComposeTest {
     fun historyRegistersAndCommentsWithRestoredDraft() {
         ready()
         nav("history")
-        compose.onNodeWithText("Comentar").assertDoesNotExist()
+        compose.onAllNodesWithText("Comentar").onFirst().assertExists()
         click("Registrar cuidado ou observação")
         compose.onNodeWithTag("avatar-$mimi").performClick()
         field("description", "Registro da Mimi")
@@ -127,7 +133,7 @@ class CareComposeTest {
         compose.onNodeWithText("Registro da Mimi").assertExists()
         // Let the save snackbar leave the touch area before opening the comment form.
         compose.mainClock.advanceTimeBy(5000)
-        val comment = hasContentDescription("Comentar observação: Mimi brincou")
+        val comment = hasContentDescription("Comentar registro: Mimi brincou")
         compose.onNodeWithTag("care-list").performScrollToNode(comment)
         compose.onNode(comment).performScrollTo().performClick()
         field("description", "Brincou à tarde")
@@ -172,8 +178,13 @@ class CareComposeTest {
     @Test
     fun taskCompletionKeepsConfirmationAndHistory() {
         ready()
-        compose.onNodeWithTag("care-list").performScrollToNode(hasText("Ver ações · Água da Mimi"))
-        click("Ver ações · Água da Mimi")
+        compose
+            .onNodeWithTag("care-list")
+            .performScrollToNode(hasContentDescription("Ver ações · Água da Mimi"))
+        compose
+            .onNodeWithContentDescription("Ver ações · Água da Mimi")
+            .performScrollTo()
+            .performClick()
         click("Concluir")
         compose.onNodeWithText("Concluir cuidado?").assertExists()
         assertEquals("planned", store.tasks(mimi).single().state)
@@ -285,9 +296,16 @@ class CareComposeTest {
         assertEquals(0, task.months)
         assertEquals(
             java.time.LocalTime.of(9, 30),
-            java.time.ZonedDateTime.parse(task.due).toLocalTime(),
+            java.time.ZonedDateTime.parse(task.due)
+                .withZoneSameInstant(java.time.ZoneId.systemDefault())
+                .toLocalTime(),
         )
-        assertEquals(today, java.time.ZonedDateTime.parse(task.due).toLocalDate())
+        assertEquals(
+            today,
+            java.time.ZonedDateTime.parse(task.due)
+                .withZoneSameInstant(java.time.ZoneId.systemDefault())
+                .toLocalDate(),
+        )
     }
 
     @Test
@@ -304,5 +322,99 @@ class CareComposeTest {
         save()
         assertEquals(listOf("Mimi"), store.cats().map { it.name })
         assertTrue(store.history(luna).isEmpty())
+    }
+
+    @Test
+    fun historyBadgeFiltersAndMeasurementCommentSharesOnlyThisCard() {
+        ready()
+        nav("history")
+        compose.onNodeWithTag("filter-$luna").performClick()
+        compose.onNodeWithTag("filter-$luna").assertIsSelected()
+        compose.onNodeWithText("Mimi brincou").assertDoesNotExist()
+        val entry = store.history(luna).first { it.type == "measurement" }
+        val comment = hasContentDescription("Comentar registro: Luna pesa 4 kg")
+        compose.onNodeWithTag("care-list").performScrollToNode(comment)
+        compose.onNode(comment).performScrollTo().performClick()
+        field("description", "Peso estável")
+        save()
+        assertEquals("Peso estável", store.comments(entry.id).single().description)
+        compose.mainClock.advanceTimeBy(5000)
+        var captured: android.content.Intent? = null
+        val instrumentation =
+            androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+        val monitor =
+            object : android.app.Instrumentation.ActivityMonitor() {
+                override fun onStartActivity(
+                    intent: android.content.Intent
+                ): android.app.Instrumentation.ActivityResult? {
+                    if (intent.action != android.content.Intent.ACTION_CHOOSER) return null
+                    captured = intent
+                    return android.app.Instrumentation.ActivityResult(0, null)
+                }
+            }
+        instrumentation.addMonitor(monitor)
+        try {
+            compose.onNodeWithTag("care-list").performScrollToNode(hasTestTag("share-${entry.id}"))
+            compose.onNodeWithTag("share-${entry.id}").performScrollTo().performClick()
+            compose.waitUntil(5000) { captured != null }
+            @Suppress("DEPRECATION")
+            val share =
+                captured!!.getParcelableExtra<android.content.Intent>(
+                    android.content.Intent.EXTRA_INTENT
+                )!!
+            assertEquals(android.content.Intent.ACTION_SEND, share.action)
+            assertEquals("text/plain", share.type)
+            val text = share.getStringExtra(android.content.Intent.EXTRA_TEXT)!!
+            assertTrue(text.contains("Cat Care • Luna"))
+            assertTrue(text.contains("Luna pesa 4 kg"))
+            assertTrue(text.contains("• Peso estável"))
+            assertTrue(text.contains(java.time.ZoneId.systemDefault().id))
+            assertFalse(text.contains("Mimi"))
+        } finally {
+            instrumentation.removeMonitor(monitor)
+        }
+    }
+
+    @Test
+    fun darkThemeChoiceSurvivesActivityRecreation() {
+        ready()
+        nav("data")
+        compose.onNodeWithText("Aparência").performScrollTo()
+        click("Claro")
+        click("Escuro")
+        assertEquals(
+            "dark",
+            compose.activity.getSharedPreferences("appearance", 0).getString("theme", ""),
+        )
+        compose.activityRule.scenario.recreate()
+        compose.onNodeWithText("Escuro").assertExists()
+        nav("today")
+        compose.onNodeWithText("Hoje").assertExists()
+    }
+
+    @Test
+    fun overdueHeaderIncludesPastDueCare() {
+        store.saveTask(
+            mimi,
+            null,
+            "Exame atrasado",
+            "Outro",
+            java.time.Instant.now().minusSeconds(3600).toString(),
+            0,
+            0,
+        )
+        compose.activityRule.scenario.recreate()
+        ready()
+        compose.waitUntil(5000) {
+            compose.onAllNodesWithText("1 atrasado").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("1 atrasado").assertIsDisplayed()
+        compose
+            .onNodeWithTag("care-list")
+            .performScrollToNode(hasContentDescription("Ver ações · Exame atrasado"))
+        compose
+            .onNodeWithContentDescription("Ver ações · Exame atrasado")
+            .assertTextContains("Ações do cuidado")
+        compose.onNodeWithText("Ver ações · Exame atrasado").assertDoesNotExist()
     }
 }

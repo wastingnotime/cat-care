@@ -161,44 +161,67 @@ internal fun repeatLabel(days: Int, months: Int): String =
 internal fun RepeatFields(draft: Bundle, model: CareViewModel) {
     val mode = draft.getString("repeatMode") ?: "none"
     val interval = draft.getString("interval") ?: "1"
-    Choice(
-        tr(R.string.repeat),
-        linkedMapOf(
-            "none" to tr(R.string.repeat_none),
-            "days" to tr(R.string.repeat_days),
-            "months" to tr(R.string.repeat_months),
-        ),
-        mode,
-    ) {
-        model.field("repeatMode", it)
-    }
-    // Presets keep common routines to a single tap; the interval stays editable.
+    Text(tr(R.string.repeat), style = MaterialTheme.typography.titleMedium)
+    /* Single recurrence choice, including the common presets. */
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        val selected =
+            when {
+                mode == "none" -> "none"
+                mode == "days" && interval == "1" -> "daily"
+                mode == "days" && interval == "7" -> "weekly"
+                mode == "months" && interval == "1" -> "monthly"
+                else -> "custom"
+            }
         listOf(
-                Triple("days", "1", R.string.repeat_daily),
-                Triple("days", "7", R.string.repeat_weekly),
-                Triple("months", "1", R.string.repeat_monthly),
+                "none" to R.string.repeat_none,
+                "daily" to R.string.repeat_daily,
+                "weekly" to R.string.repeat_weekly,
+                "monthly" to R.string.repeat_monthly,
+                "custom" to R.string.repeat_custom,
             )
-            .forEach { (unit, count, label) ->
+            .forEach { (key, label) ->
                 FilterChip(
-                    selected = mode == unit && interval == count,
+                    selected =
+                        if (draft.getString("repeatChoice") == "custom") key == "custom"
+                        else selected == key,
                     onClick = {
-                        model.field("repeatMode", unit)
-                        model.field("interval", count)
+                        model.field("repeatChoice", key)
+                        model.field(
+                            "repeatMode",
+                            if (key == "none") "none"
+                            else if (key == "monthly") "months" else "days",
+                        )
+                        model.field(
+                            "interval",
+                            if (key == "weekly") "7" else if (key == "custom") "2" else "1",
+                        )
                     },
                     label = { Text(tr(label)) },
                 )
             }
     }
+    val custom =
+        draft.getString("repeatChoice") == "custom" ||
+            (mode == "days" && interval !in listOf("1", "7")) ||
+            (mode == "months" && interval != "1")
+    if (custom)
+        Choice(
+            tr(R.string.repeat_unit),
+            linkedMapOf("days" to tr(R.string.repeat_days), "months" to tr(R.string.repeat_months)),
+            mode,
+        ) {
+            model.field("repeatMode", it)
+        }
     if (mode != "none") {
-        FormField(
-            tr(R.string.repeat_every),
-            interval,
-            "interval",
-            model,
-            singleLine = true,
-            number = true,
-        )
+        if (custom)
+            FormField(
+                tr(R.string.repeat_every),
+                interval,
+                "interval",
+                model,
+                singleLine = true,
+                number = true,
+            )
         Text(tr(R.string.repeat_hint), color = Muted)
         if (mode == "months") Text(tr(R.string.repeat_month_hint), color = Muted)
         val count = interval.toIntOrNull()?.takeIf { it > 0 }
@@ -219,6 +242,7 @@ internal fun RepeatFields(draft: Bundle, model: CareViewModel) {
                             due,
                             if (mode == "days") count else 0,
                             if (mode == "months") count else 0,
+                            ZoneId.of(draft.getString("zone")),
                         )
                     }
                     .getOrNull()
@@ -240,15 +264,12 @@ internal fun RepeatFields(draft: Bundle, model: CareViewModel) {
 
 /** Localize generated events without translating owner-authored notes or legacy prose. */
 @Composable
-internal fun HistoryDescription(entry: CareStore.History) {
+internal fun historyDescriptionText(entry: CareStore.History): String {
     val details =
         remember(entry.details) {
             entry.details?.let { runCatching { JSONObject(it) }.getOrNull() }
         }
-    if (details == null) {
-        Text(entry.description)
-        return
-    }
+    if (details == null) return entry.description
     val label =
         when (details.optString("event")) {
             "profile_created" -> R.string.history_profile_created
@@ -259,17 +280,50 @@ internal fun HistoryDescription(entry: CareStore.History) {
             "task_cancelled" -> R.string.history_task_cancelled
             "task_deferred" -> R.string.history_task_deferred
             "task_next" -> R.string.history_task_next
-            else -> null
+            else -> return entry.description
         }
-    if (label == null) {
-        Text(entry.description)
-        return
-    }
-    Text(tr(label, details.optString("name", details.optString("title"))))
+    val lines = mutableListOf(tr(label, details.optString("name", details.optString("title"))))
     if (details.has("due"))
-        Text(tr(R.string.scheduled_for, localMoment(details.optString("due"))), color = Muted)
+        lines += tr(R.string.scheduled_for, localMoment(details.optString("due")))
     if (details.optString("event") == "task_deferred")
-        Text(tr(R.string.previous_due, localMoment(details.optString("from_due"))), color = Muted)
+        lines += tr(R.string.previous_due, localMoment(details.optString("from_due")))
     if (details.has("days") || details.has("months"))
-        Text(repeatLabel(details.optInt("days"), details.optInt("months")), color = Muted)
+        lines += repeatLabel(details.optInt("days"), details.optInt("months"))
+    return lines.joinToString("\n")
+}
+
+@Composable
+internal fun historyShareText(
+    cat: String,
+    type: String,
+    description: String,
+    at: String,
+    comments: List<CareStore.Comment>,
+): String {
+    val lines =
+        mutableListOf("Cat Care • $cat", type, "", description, "", tr(R.string.recorded_at, at))
+    if (comments.isNotEmpty()) {
+        lines += ""
+        lines += quantity(R.plurals.comment_count, comments.size)
+        comments.forEach { lines += "• ${it.description}\n  ${historyTime(it.at)}" }
+    }
+    return lines.joinToString("\n")
+}
+
+@Composable
+internal fun CardIdentity(cat: CareStore.Cat, label: String) {
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.weight(1f)) { CatBadge(cat) }
+        Text(
+            label,
+            modifier = Modifier.weight(1f),
+            textAlign = androidx.compose.ui.text.style.TextAlign.End,
+            color = Forest,
+            style = MaterialTheme.typography.labelLarge,
+        )
+    }
 }
