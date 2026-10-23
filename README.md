@@ -1,6 +1,13 @@
 # Cat Care
 
-Cat Care is a calm, web-first care companion for individual cat owners.
+Cat Care is a calm care companion for individual cat owners.
+
+The planned Android version works offline and has one actor: the owner.
+Care data is stored on the device; core use requires no server or sign-in.
+Veterinarian workspaces and collaboration are outside its scope. See
+[ADR 0002](docs/adr/0002-offline-owner-android.md) and the
+[Android acceptance contract](contracts/acceptance/android-owner-offline.md).
+The Android application is not implemented yet.
 
 The domain is being discovered through the repository-owned simulation under
 [`sandboxes/simulation/`](sandboxes/simulation/). The simulation is separate
@@ -29,8 +36,10 @@ Only assigned cats appear in the veterinarian workspace.
 
 ## Owner MVP scope and production status
 
-[ADR 0001](docs/adr/0001-owner-mvp.md) freezes the owner MVP and preserves
+[ADR 0001](docs/adr/0001-owner-mvp.md) records the earlier owner MVP and preserves
 assigned-veterinarian web continuity. The
 [production evidence register](docs/assessment/wnt-145-production-gaps.md)
 distinguishes the local prototype from unverified external services;
 [acceptance fixtures](contracts/acceptance/owner-mvp.md) define delivery gates.
+ADR 0002 supersedes its cloud-client requirement for Android; the existing
+API/web prototype remains a separate surface.

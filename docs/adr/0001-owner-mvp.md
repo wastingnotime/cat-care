@@ -1,6 +1,9 @@
 # ADR 0001: Freeze the owner MVP and retain the existing service boundaries
 
 Status: accepted for scope; production release remains gated by the evidence below.
+Android amendment: [ADR 0002](0002-offline-owner-android.md) supersedes the
+Android cloud-client decision and defines an offline, owner-only application.
+The web/API scope and historical evidence below remain applicable to those surfaces.
 Date: 2026-10-16 (America/Sao_Paulo).
 Task: [WNT-145](https://linear.app/wastingnotime/issue/WNT-145).
 Source baseline: `3924d52d986e2ccd837746c533b7afd49e1db343`.
