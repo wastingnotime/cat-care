@@ -90,7 +90,7 @@ with unsaved forms. No simulator account or external API is needed.
 
 Hoje shows planned tasks across cats and a “Planejar cuidado” button. Choose the
 cat by avatar inside the new-plan form. Gatos lists cards for every cat, with the
-chosen coat avatar, pending status, responsibility/observation counters and an
+chosen coat avatar, pending status and an
 edit button. Create/edit asks for name, optional birth/adoption dates and closest
 coat. Histórico shows the selected cat's records and lifecycle, offers comments
 on observations, and contains “Registrar” with an avatar cat picker. Dados exports or

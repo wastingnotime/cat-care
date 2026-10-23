@@ -8,7 +8,7 @@ BFF, synchronization boundary or network permission. ADR 0002 governs scope.
 
 | Released semantics | Owner use case and visible state | Local boundary |
 | --- | --- | --- |
-| Cat profile/history | Gatos: all-cat cards, coat avatar, pending badge, responsibility/observation totals; edit name, birth/adoption dates and coat | `CareStore.saveCat`, `cats`, `history` |
+| Cat profile/history | Gatos: all-cat cards, coat avatar, pending badge; edit name, birth/adoption dates and coat | `CareStore.saveCat`, `cats`, `history` |
 | Responsibility status | Hoje across cats: identity, category, deadline, planned/soon/overdue/unknown | `tasks`, `CareRules.status`; two-day soon threshold |
 | Responsibility lifecycle | Create/edit/complete/cancel/defer, optional days OR calendar months recurrence | `saveTask`, `transition`; state/version guard and atomic successor/history |
 | Direct care and observation | Histórico: avatar selection in registration, typed record with description and timestamp; comments on every record | `record`, `comment`, `comments`; never completes a task |
@@ -81,9 +81,9 @@ Unsupported versions fail without a generic destructive fallback.
 Validation errors keep entered values in the form and announce the error.
 SQLite/storage errors show failure without claiming success or silently resetting
 data. Dialog drafts (including the chosen coat, form cat and comment target) and selected cat/tab survive
-activity recreation. Gatos shows one card per cat with an avatar and name,
-responsibility totals (all states), observation totals (`observation` entries
-only), and an edit button. Pending badges count only planned responsibilities;
+activity recreation. Gatos shows one card per cat with an avatar and name
+and an edit button, without responsibility or observation totals.
+Pending badges count only planned responsibilities;
 o badge appears when that count is zero. Overdue counts use task deadlines,
 not clinical urgency. New/edit forms use optional birth/adoption date pickers
 and a labeled coat grid. Saving returns to Gatos and reveals the saved card. Android

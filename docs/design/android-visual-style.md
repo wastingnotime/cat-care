@@ -38,8 +38,9 @@ language, appearance and reminders; About holds WNT attribution and privacy.
 The cat illustration is drawn with Compose Canvas and scales without external
 assets. It appears in onboarding. Gatos uses smaller face avatars whose coat
 colors and markings match the eight web coat identifiers. Each card shows the
-avatar/name, a pending badge when needed, total responsibilities, total
-observations, and an edit button. The screen lists all cats and has an add action.
+avatar/name, a pending badge when needed, and an edit button. Responsibility and
+observation totals are omitted to keep cards focused on current care.
+The screen lists all cats and has an add action.
 
 New/edit forms use Compose Material 3 date pickers and a coat grid with labeled faces,
 selected styling and radio-button accessibility semantics. Coat options use two

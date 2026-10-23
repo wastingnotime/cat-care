@@ -329,8 +329,6 @@ private fun CareScreen(
                                         else "",
                                     summary.overdue > 0,
                                 )
-                            Text(quantity(R.plurals.responsibility_count, summary.responsibilities))
-                            Text(quantity(R.plurals.observation_count, summary.observations))
                             Secondary(tr(R.string.edit_cat_profile, cat.name), !busy) {
                                 model.openEditor("cat", cat.id)
                             }
