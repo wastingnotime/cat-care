@@ -17,6 +17,20 @@ adb shell am start -n care.cat.offline/.MainActivity
 ```
 
 Root shortcuts: `make mobile-test`, `make mobile-build`, `make mobile-apk`.
+Run `make mobile-run` from the repository root to reuse a running emulator or
+start one, wait for boot, build/install the debug APK and launch Cat Care. The
+emulator stays running, and installation preserves existing app data. Python 3,
+the SDK Emulator/Platform-Tools and an existing API 26+ AVD are required. Create
+an AVD in Android Studio Device Manager if needed. SDK discovery uses
+`ANDROID_HOME`, `ANDROID_SDK_ROOT`, `local.properties`, then `~/Android/Sdk`.
+
+To choose a device, use `CAT_CARE_AVD=my-device make mobile-run`. Without an
+override, the command reuses the first running emulator; otherwise it prefers
+`cat-care-offline-35`, then the first available AVD. Physical devices are ignored.
+For a headless session use `CAT_CARE_EMULATOR_HEADLESS=1 make mobile-run`.
+`CAT_CARE_EMULATOR_TIMEOUT` sets the startup/boot timeout in seconds (default 180).
+Startup logs are saved in the ignored `apps/mobile/.local/emulator.log`.
+
 The debug APK is `app/build/outputs/apk/debug/app-debug.apk`; it is for local
 installation, not a signed production release. Dependencies and SDK downloads
 require internet during development; installed core app workflows work offline.
