@@ -1,4 +1,4 @@
-.PHONY: dev dev-api dev-web setup reset-seed test mobile-test mobile-build mobile-apk mobile-device-test mobile-run
+.PHONY: dev dev-api dev-web setup reset-seed test mobile-test mobile-build mobile-apk mobile-device-test mobile-run mobile-update-device
 
 dev: setup
 	@command -v air >/dev/null || { echo "air is required: go install github.com/air-verse/air@latest" >&2; exit 1; }
@@ -40,3 +40,6 @@ mobile-device-test:
 
 mobile-run:
 	@python3 apps/mobile/tools/run-emulator.py
+
+mobile-update-device:
+	@python3 apps/mobile/tools/update-device.py

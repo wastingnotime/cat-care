@@ -32,6 +32,25 @@ For a headless session use `CAT_CARE_EMULATOR_HEADLESS=1 make mobile-run`.
 `CAT_CARE_EMULATOR_TIMEOUT` sets the startup/boot timeout in seconds (default 180).
 Startup logs are saved in the ignored `apps/mobile/.local/emulator.log`.
 
+To build and update your connected test phone, run from the repository root:
+
+```bash
+make mobile-update-device
+```
+
+Enable USB debugging and authorize this computer on the phone first. The command
+selects the single connected physical device, builds the debug APK, updates it
+with `adb install -r`, and opens Cat Care. Existing app data is retained. If more
+than one phone is connected, select its ADB serial explicitly:
+
+```bash
+make mobile-update-device CAT_CARE_DEVICE=ZF5254WKJ8
+```
+
+Emulators are ignored during automatic selection. An explicit `CAT_CARE_DEVICE`
+can select any attached ADB device. SDK discovery is shared with `mobile-run`;
+only Platform-Tools are required for this command, alongside the build SDK/JDK.
+
 The debug APK is `app/build/outputs/apk/debug/app-debug.apk`; it is for local
 installation, not a signed production release. Dependencies and SDK downloads
 require internet during development; installed core app workflows work offline.
