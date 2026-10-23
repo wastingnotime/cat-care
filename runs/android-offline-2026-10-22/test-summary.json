@@ -1,0 +1,29 @@
+[
+  {
+    "suite": "care.cat.offline.CareRulesTest",
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "cases": [
+      "invalidDatesAndRecurrenceAreRejected",
+      "statusDistinguishesUncertaintyFromScheduling",
+      "dailyRecurrencePreservesLocalTimeAcrossDst",
+      "monthlyRecurrenceClampsAndPreservesWallTime",
+      "deferRequiresFutureAndLaterThanPrevious"
+    ]
+  },
+  {
+    "suite": "care.cat.offline.CareStoreTest",
+    "tests": 6,
+    "failures": 0,
+    "errors": 0,
+    "cases": [
+      "testCompletionIsAtomicAndRetryDoesNotDuplicate",
+      "testDeferAndCancelKeepRecordsIndependent",
+      "testInvalidCreateAndStaleEditLeaveNoPartialHistory",
+      "testProfilesPersistAndRemainIsolated",
+      "testScopedExportAndCascadingDeletion",
+      "testStorageFailureRollsBackCompletionAndSuccessorTogether"
+    ]
+  }
+]

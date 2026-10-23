@@ -1,0 +1,85 @@
+{
+  "format": "cat-care-offline",
+  "version": 1,
+  "exported_at": "2026-10-23T02:30:09.885415Z",
+  "scope": "cat",
+  "cats": [
+    {
+      "id": "2c925195-7f1f-4f53-9adc-20065dd55683",
+      "name": "Mimi",
+      "birth": "",
+      "adoption": ""
+    }
+  ],
+  "tasks": [
+    {
+      "id": "63e4ae9f-540d-4bb7-bea2-35835666c686",
+      "cat_id": "2c925195-7f1f-4f53-9adc-20065dd55683",
+      "title": "Consulta",
+      "category": "Veterinário",
+      "due": "2027-01-31T09:00-03:00[America\/Sao_Paulo]",
+      "state": "completed",
+      "days": 0,
+      "months": 1,
+      "version": 1
+    },
+    {
+      "id": "6f877373-3182-4b4e-830a-1201e4b24944",
+      "cat_id": "2c925195-7f1f-4f53-9adc-20065dd55683",
+      "title": "Consulta",
+      "category": "Veterinário",
+      "due": "2027-02-28T09:00-03:00[America\/Sao_Paulo]",
+      "state": "planned",
+      "days": 0,
+      "months": 1,
+      "version": 0
+    }
+  ],
+  "history": [
+    {
+      "id": "3e3960a7-f661-44e3-9881-a0e6041b63a8",
+      "cat_id": "2c925195-7f1f-4f53-9adc-20065dd55683",
+      "task_id": null,
+      "type": "measurement",
+      "description": "Peso 4.2 kg",
+      "at": "2026-10-23T02:28:48.722149000Z",
+      "is_diagnosis": 0
+    },
+    {
+      "id": "842e3174-94fd-4924-868d-91d31a14a90d",
+      "cat_id": "2c925195-7f1f-4f53-9adc-20065dd55683",
+      "task_id": "63e4ae9f-540d-4bb7-bea2-35835666c686",
+      "type": "created",
+      "description": "Cuidado criado: Consulta · 31\/01\/2027 09:00 · America\/Sao_Paulo · recorrência: 0 dias \/ 1 meses",
+      "at": "2026-10-23T02:28:09.550412000Z",
+      "is_diagnosis": 0
+    },
+    {
+      "id": "87ee957c-3f2a-45c8-852b-74f92186354d",
+      "cat_id": "2c925195-7f1f-4f53-9adc-20065dd55683",
+      "task_id": "6f877373-3182-4b4e-830a-1201e4b24944",
+      "type": "created",
+      "description": "Próximo cuidado: Consulta · 28\/02\/2027 09:00 · America\/Sao_Paulo",
+      "at": "2026-10-23T02:28:42.168157000Z",
+      "is_diagnosis": 0
+    },
+    {
+      "id": "c21ebea8-77e0-4794-a837-003ae8922a9c",
+      "cat_id": "2c925195-7f1f-4f53-9adc-20065dd55683",
+      "task_id": null,
+      "type": "profile",
+      "description": "Perfil criado: Mimi",
+      "at": "2026-10-23T02:27:01.323548000Z",
+      "is_diagnosis": 0
+    },
+    {
+      "id": "d61a9c0e-fa33-4d2f-bb3d-1410e3b49a36",
+      "cat_id": "2c925195-7f1f-4f53-9adc-20065dd55683",
+      "task_id": "63e4ae9f-540d-4bb7-bea2-35835666c686",
+      "type": "completed",
+      "description": "Concluído: Consulta",
+      "at": "2026-10-23T02:28:42.167876000Z",
+      "is_diagnosis": 0
+    }
+  ]
+}
