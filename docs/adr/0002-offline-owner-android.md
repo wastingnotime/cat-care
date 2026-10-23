@@ -57,6 +57,8 @@ its compile/target level. Java 17 language features are built using JDK 21 and a
 pinned Gradle wrapper. The app declares no internet permission. Reminders,
 import/restore and cloud sync are excluded from version 0.1. Implementation
 details and data policies are in [the mobile contract](../../contracts/mobile.md).
+The presentation implementation is subsequently migrated to Kotlin and Compose
+by [ADR 0003](0003-kotlin-compose-android.md); the offline boundary is retained.
 This ADR does not establish production release readiness.
 
 Delivery scenarios are defined in the

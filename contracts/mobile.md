@@ -100,3 +100,14 @@ Editing an existing task retains its cat. Histórico keeps its cat filter and
 selection of another. Saving switches the history filter to the chosen cat.
 Only observations offer “Comentar”; replies appear oldest-first beneath their
 observation. Saving a comment reveals its observation in Histórico.
+
+## Android implementation
+
+The app and its tests use Kotlin. Compose Material 3 owns every screen, editor,
+date picker, avatar and illustration; the system document picker remains the
+export destination boundary. `CareViewModel` owns StateFlow snapshots and
+SavedStateHandle drafts, including fixed mutation targets and version guards.
+SQLite reads, writes and exports run on the IO dispatcher. Busy actions disable
+repeat submissions; errors retain form values. The Compose migration preserves
+`care.cat.offline`, `cat-care.db`, schema 3, export version 2 and existing rows.
+It does not trigger an upgrade callback for an existing schema-3 database.

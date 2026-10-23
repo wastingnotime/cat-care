@@ -1,8 +1,9 @@
 # Cat Care offline Android
 
-Native Android owner application, Java 17 language level and Android views,
-SQLite persistence, min API 26, compile/target API 35. No runtime third-party
-libraries, account, server, internet permission or veterinarian workspace.
+Native Android owner application written in Kotlin with Jetpack Compose and
+Material 3. SQLite persistence, min API 26, compile/target API 35, JVM target 17.
+AndroidX and Kotlin coroutines supply UI/lifecycle support. No account, server,
+internet permission or veterinarian workspace.
 
 ## Build and install
 
@@ -49,8 +50,8 @@ mode, disable Wi-Fi and mobile data, and run:
 Use a device with no valuable Cat Care data: Gradle installs and uninstalls the
 target app during instrumentation, which can clear its existing local data.
 Store tests use a separate disposable database and Android's real SQLite engine.
-UI tests reset app data and check cat cards, avatar selection, observation comments
-and draft restoration. Storage tests also cover additive schema migration and
+Compose UI tests reset app data and check cat cards, avatar selection, observation
+comments, draft restoration, task confirmation and data scope/deletion. Storage tests also cover additive schema migration and
 comment persistence, validation, scoped export and cascading deletion.
 They cover persistence after close/reopen, atomic recurrence completion, stale
 writes, invalid create rollback, scoped export, direct records, deferral,
@@ -84,3 +85,19 @@ error semantics, and ADR 0002 for scope. Existing web/API fixtures stay separate
 The authorized legacy schema 1 reset remains for coat selection. Schema 2 → 3
 adds observation comments without clearing existing data. JSON export version 2
 includes comments with their observation IDs. Future upgrades require explicit migrations.
+
+## Kotlin and Compose structure
+
+Application and test sources live under `app/src/{main,test,androidTest}/kotlin`.
+`MainActivity` hosts Compose; `CatCareApp` renders screens and editors; `CatArtwork`
+draws avatars and onboarding art with Compose Canvas. `CareViewModel` exposes
+immutable snapshots through StateFlow, runs SQLite work on the IO dispatcher, and
+keeps form fields, target IDs, selected cats and navigation in SavedStateHandle.
+`CareStore` retains the same database filename, schema 3, atomic mutations and
+JSON export version 2. Upgrading the Java app to this implementation requires
+no database migration or reset.
+
+The build pins Kotlin/compiler plugin 2.2.21, Compose BOM 2025.04.01, Activity
+1.10.1 and Lifecycle 2.9.0 alongside the existing AGP/Gradle/SDK 35 toolchain.
+These are compatible stable dependencies rather than a simultaneous SDK upgrade.
+See [ADR 0003](../../docs/adr/0003-kotlin-compose-android.md) for the migration decision.

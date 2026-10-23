@@ -27,7 +27,7 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: SQLite tests on Android 35
+      - name: SQLite and Compose tests on Android 35
         run: |
           sdkmanager 'system-images;android-35;google_apis;x86_64'
           echo no | avdmanager create avd -n cat-care -k 'system-images;android-35;google_apis;x86_64' --force

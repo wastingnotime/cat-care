@@ -15,3 +15,5 @@ playwright-report/
 .kotlin/
 apps/mobile/local.properties
 apps/mobile/**/build/
+
+.kotlin/

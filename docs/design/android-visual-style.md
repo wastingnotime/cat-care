@@ -41,16 +41,17 @@ colors and markings match the eight web coat identifiers. Each card shows the
 avatar/name, a pending badge when needed, total responsibilities, total
 observations, and an edit button. The screen lists all cats and has an add action.
 
-New/edit forms use native date pickers and a coat grid with labeled faces,
+New/edit forms use Compose Material 3 date pickers and a coat grid with labeled faces,
 selected styling and radio-button accessibility semantics. Coat options use two
 columns at normal text size and one above 120% font scale. Saved cards are brought
 into view on return to the list. Form fields use filled cream
 surfaces and persistent labels. Storage details are available from Dados in a
 readable dialog; the export/restore limitation remains visible on the page.
 
-Implementation: `MainActivity.java`, `CatAvatar.java`, `CatCoat.java`,
-`CatIllustration.java`, native vector
-resources and `styles.xml` under `apps/mobile/app/src/main/`.
+Implementation: Kotlin `MainActivity`, `CatCareApp`, `CareViewModel`, `CatArtwork`
+and `CatCoat`, with Compose Material 3 controls and Compose Canvas artwork.
+Vector resources provide brand/navigation icons; system bars respect Compose
+window insets. `styles.xml` supplies the host activity launch theme.
 
 See [cat-card evidence](../../runs/android-cat-cards-2026-10-23/evidence.md) for
 the current Gatos screen and form, and the earlier
@@ -58,3 +59,6 @@ the current Gatos screen and form, and the earlier
 
 See [Today and history evidence](../../runs/android-today-history-2026-10-23/evidence.md)
 for the planning and registration avatar forms and observation comments.
+
+See [Kotlin and Compose migration evidence](../../runs/android-compose-2026-10-23/evidence.md)
+for the current Compose screens, data compatibility, date picker and draft restoration.

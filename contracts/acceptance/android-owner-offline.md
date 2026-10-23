@@ -28,6 +28,8 @@ unless a scenario explicitly says otherwise. The owner is the sole actor.
 | A18 | Comment on an observation, rotate before saving, reopen history | Draft and parent remain correct; replies persist oldest-first with timestamps; non-observation records have no comment action; blank replies rejected |
 | A19 | Upgrade schema 2, export/delete one cat with comments | Existing data survives upgrade; scoped export includes only that cat's comments; deletion cascades to comments and preserves other cats; observation counters exclude comments |
 
+| A20 | Install Kotlin/Compose APK over the Java schema-3 app | Existing cats, tasks, history and comments retain all IDs and values; core owner flows work offline; no reset or schema upgrade occurs |
+
 Record build revision, device/Android version, clock/timezone, network state,
 actions and observed local state for release evidence. Document timezone and
 calendar recurrence behavior, export format, restore support and backup policy
