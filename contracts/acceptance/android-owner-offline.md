@@ -32,7 +32,7 @@ unless a scenario explicitly says otherwise. The owner is the sole actor.
 
 | A21 | Plan/edit/defer with calendar and numeric/clock time entry; rotate a weekly draft | ISO date/time and target survive; date without time rejected; UTC instant and recurrence zone persisted; daily/weekly/monthly choices and custom interval agree and next-date preview |
 | A22 | Switch PT-BR/EN-US offline; inspect cards/forms/errors/history | App labels, plural counts, calendar/time controls and new system events translate; notes/comments and legacy prose stay unchanged; cat badges identify every care/history card |
-| A23 | Display one instant in PT-BR/EN-US and different device zones including DST | Date order/time convention follow locale/device preference; conversion preserves the instant; zone ID and UTC offset are visible; profile dates do not shift |
+| A23 | Display one instant in PT-BR/EN-US and different device zones including DST | Date order/time convention follow locale/device preference; conversion preserves the instant; no zone ID or UTC offset is appended; profile dates do not shift |
 | A24 | Upgrade schema 3 with existing observations and replies | All old values/IDs survive; nullable metadata added; new automatic events translate across language changes and appear in export version 3 |
 
 | A25 | Switch device/light/dark theme and recreate the activity | Preference persists; forms, calendars, cards, status colours and system bars remain legible |
@@ -41,6 +41,13 @@ unless a scenario explicitly says otherwise. The owner is the sole actor.
 | A28 | Allow notifications; schedule, edit, complete/cancel/delete care | Advance/due alerts post once per stage; changed tasks remove stale alerts and alarms; no automatic completion |
 | A29 | Deny notifications, disable reminders, reboot, change timezone | Disabled/denied UI remains truthful; no false sent marker; restart reconciles schedules and preserves UTC instants |
 | A30 | Upgrade schema 4 task across New York spring DST, then complete it | Due instant unchanged by UTC migration; next daily occurrence remains at original local hour with new offset |
+
+| A31 | Open the ellipsis menu with and without cats | Only three icon tabs remain; localized accessibility names and activity titles identify them; Data, Settings and About are reachable |
+| A32 | Choose backup folder, back up repeatedly, disable automatic saving | Initial/manual copies are valid full snapshots; daily persisted job exists; only newest seven app copies remain; disabling keeps files and cancels job |
+| A33 | Restore a full backup, cancel, recreate preview, then confirm | Counts match file; cancel changes nothing; confirmation survives recreation; confirmed replacement preserves IDs/comments/recurrence and installation settings |
+| A34 | Restore malformed/scoped/new-version/orphaned data or fail insertion | File rejected or transaction rolled back; existing local data remains intact |
+| A35 | Fail publishing a backup or revoke folder access | Failure is visible; prior completed copies and last-success timestamp remain; no partial file is published as completed |
+| A36 | Read About/privacy in both languages | WNT attribution and actual storage, backup/provider, sharing and deletion behavior are explained |
 
 Record build revision, device/Android version, clock/timezone, network state,
 actions and observed local state for release evidence. Document timezone and

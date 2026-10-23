@@ -29,11 +29,11 @@ one above 120% font scale. Histórico and Dados retain their named cat filter ch
 All cards in Histórico offer “Comentar” and show replies with timestamps in
 inset cream panels.
 
-Navigation uses local vector icons, visible labels and a sage selected surface.
-At large font sizes, widths account for label length. Labels stay on one line
-and may ellipsize on unusually narrow screens; accessibility descriptions keep
-the complete label. Decorative illustrations/icons are excluded from the
-accessibility reading order; navigation exposes button semantics.
+Navigation uses three local vector icons with a sage selected surface and no
+visible labels. Each retains a localized accessible name. The activity header
+identifies the current screen. A vertical ellipsis opens Data, Settings and About.
+Today shows “Care for today.” followed by the current local date. Settings holds
+language, appearance and reminders; About holds WNT attribution and privacy.
 
 The cat illustration is drawn with Compose Canvas and scales without external
 assets. It appears in onboarding. Gatos uses smaller face avatars whose coat
@@ -46,7 +46,7 @@ selected styling and radio-button accessibility semantics. Coat options use two
 columns at normal text size and one above 120% font scale. Saved cards are brought
 into view on return to the list. Form fields use filled cream
 surfaces and persistent labels. Storage details are available from Dados in a
-readable dialog; the export/restore limitation remains visible on the page.
+readable dialog; backup/restore scope and replacement semantics remain visible on the page.
 
 Implementation: Kotlin `MainActivity`, `CatCareApp`, `CareViewModel`, `CatArtwork`
 and `CatCoat`, with Compose Material 3 controls and Compose Canvas artwork.
@@ -72,9 +72,9 @@ choice (none/daily/weekly/monthly/custom); only custom shows interval and unit, 
 moment. Longer hints explain calendar-month behavior only when relevant.
 
 All copy is provided through English and Brazilian Portuguese resources. The
-Data language selector is available even before any cats exist. Dates, times,
+Settings language selector is available even before any cats exist. Dates, times,
 plural counts and accessibility labels follow that selection; time format also
-respects the device setting. Date/time displays include the device zone and offset.
+respects the device setting. Date/time displays use the device zone without appending a zone ID or UTC offset.
 
 Below 360dp or above 120% text scale, date entry uses a compact calendar with
 month arrows, a year chooser, six equal calendar rows, and wrapping actions. The
@@ -82,7 +82,7 @@ calendar stays within the window while preserving full spoken date labels.
 
 
 Dark appearance follows the device by default and can be selected explicitly in
-Data. It uses deep green backgrounds, pale green accents, muted sage outlines
+Settings. It uses deep green backgrounds, pale green accents, muted sage outlines
 and warm red error colours; artwork keeps its coat colours. Today’s summary
 switches to an explicit overdue count/error surface whenever any task is overdue.
 Card identity rows keep the cat avatar/name on the left and category/type right

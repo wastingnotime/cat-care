@@ -73,7 +73,6 @@ internal fun ScheduleFields(draft: Bundle, model: CareViewModel, optional: Boole
         if (it.isEmpty()) model.field("dueTime", "")
     }
     TimeField(time, date.isNotEmpty()) { model.field("dueTime", it) }
-    Text(tr(R.string.timezone_hint, draft.getString("zone").orEmpty()), color = Muted)
     if (date.isNotEmpty() || time.isNotEmpty())
         TextButton(
             onClick = {

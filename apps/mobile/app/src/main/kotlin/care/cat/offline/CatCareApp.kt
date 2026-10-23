@@ -47,7 +47,6 @@ private val destinations =
         Destination("today", R.string.nav_today, R.drawable.ic_nav_today),
         Destination("cats", R.string.nav_cats, R.drawable.ic_nav_cats),
         Destination("history", R.string.nav_history, R.drawable.ic_nav_history),
-        Destination("data", R.string.nav_data, R.drawable.ic_nav_data),
     )
 
 @Composable
@@ -61,6 +60,7 @@ fun CatCareApp(model: CareViewModel) {
     val message by model.message.collectAsStateWithLifecycle()
     val reveal by model.reveal.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
+    var more by remember { mutableStateOf(false) }
     val export =
         rememberLauncherForActivityResult(
             ActivityResultContracts.CreateDocument("application/json"),
@@ -91,24 +91,36 @@ fun CatCareApp(model: CareViewModel) {
                             Modifier.size(32.dp),
                             tint = Forest,
                         )
-                        Text(
-                            "cat care",
-                            Modifier.padding(start = 10.dp).weight(1f),
-                            color = Forest,
-                            fontSize = 25.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        if (
-                            with(LocalDensity.current) {
-                                LocalWindowInfo.current.containerSize.width.toDp()
-                            } >= 360.dp && LocalDensity.current.fontScale <= 1.2f
-                        )
+                        Column(Modifier.padding(start = 10.dp).weight(1f)) {
+                            Text("cat care", color = Forest, fontSize = 25.sp, fontWeight = FontWeight.Bold)
                             Text(
-                                tr(R.string.brand_tagline),
+                                tr(when (screen) {
+                                    "cats" -> R.string.nav_cats
+                                    "history" -> R.string.nav_history
+                                    "data" -> R.string.nav_data
+                                    "settings" -> R.string.settings
+                                    "about" -> R.string.about
+                                    else -> R.string.nav_today
+                                }),
+                                modifier = Modifier.testTag("activity-title"),
                                 color = Muted,
-                                fontSize = 11.sp,
-                                letterSpacing = 1.sp,
+                                fontSize = 13.sp,
                             )
+                        }
+                        Box {
+                            IconButton(onClick = { more = true }, modifier = Modifier.testTag("more-options")) {
+                                Icon(painterResource(R.drawable.ic_more), tr(R.string.more_options))
+                            }
+                            DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
+                                listOf("data" to R.string.nav_data, "settings" to R.string.settings, "about" to R.string.about).forEach { (route, label) ->
+                                    DropdownMenuItem(
+                                        text = { Text(tr(label)) },
+                                        onClick = { more = false; model.navigate(route) },
+                                        modifier = Modifier.testTag("menu-$route"),
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -119,14 +131,7 @@ fun CatCareApp(model: CareViewModel) {
                             selected = screen == destination.route,
                             onClick = { model.navigate(destination.route) },
                             icon = {
-                                Icon(painterResource(destination.icon), null, Modifier.size(26.dp))
-                            },
-                            label = {
-                                Text(
-                                    tr(destination.label),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
+                                Icon(painterResource(destination.icon), tr(destination.label), Modifier.size(26.dp))
                             },
                             modifier = Modifier.testTag("nav-${destination.route}"),
                             colors =
@@ -211,14 +216,14 @@ private fun CareScreen(
         contentPadding = PaddingValues(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        if (state.cats.isEmpty() && screen != "data") {
+        if (state.cats.isEmpty() && screen in listOf("today", "cats", "history")) {
             item {
                 Heading(
                     if (screen == "cats") tr(R.string.cats_heading)
                     else if (screen == "history") tr(R.string.history_heading)
-                    else if (screen == "data") tr(R.string.data_heading)
                     else tr(R.string.today_heading)
                 )
+                if (screen == "today") TodayDate(now)
                 CareCard {
                     CatIllustration(Modifier.fillMaxWidth().height(170.dp))
                     Text(
@@ -239,18 +244,8 @@ private fun CareScreen(
                         planned.count { CareRules.status(it.state, it.due, now) == "overdue" }
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                            Text(
-                                LocalDate.now()
-                                    .format(
-                                        DateTimeFormatter.ofLocalizedDate(
-                                                java.time.format.FormatStyle.FULL
-                                            )
-                                            .withLocale(careLocale())
-                                    ),
-                                color = Muted,
-                                fontSize = 13.sp,
-                            )
                             Heading(tr(R.string.today_heading))
+                            TodayDate(now)
                             Badge(
                                 if (overdue > 0) quantity(R.plurals.overdue_count, overdue)
                                 else if (planned.isEmpty()) tr(R.string.all_up_to_date)
@@ -271,7 +266,7 @@ private fun CareScreen(
                                 planned.any { it.due.isNotEmpty() } &&
                                     !CareReminders.allowed(context)
                             )
-                                TextButton(onClick = { model.navigate("data") }) {
+                                TextButton(onClick = { model.navigate("settings") }) {
                                     Text(tr(R.string.reminder_setup))
                                 }
                             if (planned.isEmpty()) Text(tr(R.string.no_pending), color = Muted)
@@ -429,13 +424,35 @@ private fun CareScreen(
                         }
                     }
                 }
+                "settings" -> item {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Heading(tr(R.string.settings))
+                        LanguageChoice()
+                        ThemeChoice()
+                        ReminderSettings()
+                    }
+                }
+                "about" -> item {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Heading(tr(R.string.about))
+                        CareCard {
+                            Text("Cat Care", style = MaterialTheme.typography.titleLarge)
+                            Text(tr(R.string.about_wnt))
+                            Text(tr(R.string.about_purpose))
+                        }
+                        Heading(tr(R.string.privacy))
+                        CareCard {
+                            Text(tr(R.string.privacy_storage))
+                            Text(tr(R.string.privacy_files))
+                            Text(tr(R.string.privacy_delete))
+                        }
+                    }
+                }
                 "data" ->
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             Heading(tr(R.string.data_heading))
-                            LanguageChoice()
-                            ThemeChoice()
-                            ReminderSettings()
+                            BackupSettings(model, busy)
                             Badge(tr(R.string.local_data))
                             Text(tr(R.string.data_hint))
                             CareCard {
@@ -481,6 +498,18 @@ private fun CareScreen(
                     }
             }
     }
+}
+
+@Composable
+private fun TodayDate(now: Instant) {
+    Text(
+        now.atZone(ZoneId.systemDefault()).toLocalDate().format(
+            DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.FULL).withLocale(careLocale())
+        ),
+        modifier = Modifier.testTag("today-date"),
+        color = Muted,
+        fontSize = 13.sp,
+    )
 }
 
 @Composable
@@ -626,6 +655,7 @@ private fun CareEditor(
             "delete" ->
                 if (target == null) tr(R.string.delete_all_question)
                 else tr(R.string.delete_cat_question, cat?.name.orEmpty())
+            "restore" -> tr(R.string.restore_heading)
             "export" -> tr(R.string.export_question)
             "export-unavailable" -> tr(R.string.export_unavailable_title)
             else -> tr(R.string.storage_heading)
@@ -800,6 +830,10 @@ private fun CareEditor(
                                 else tr(R.string.export_scope_hint)
                             )
                         }
+                        "restore" -> {
+                            Text(tr(R.string.restore_preview, draft.getInt("cats"), draft.getInt("tasks"), draft.getInt("history"), draft.getInt("comments")))
+                            Text(tr(R.string.restore_warning))
+                        }
                         "export-unavailable" -> Text(tr(R.string.export_unavailable))
                         "storage" -> Text(tr(R.string.storage_body))
                     }
@@ -833,6 +867,10 @@ private fun CareEditor(
                                 },
                                 color = if (kind in listOf("delete", "cancel")) Rust else Forest,
                             )
+                        }
+                    if (kind == "restore")
+                        TextButton(onClick = model::restoreBackup, enabled = !busy, modifier = Modifier.testTag("confirm-restore")) {
+                            Text(tr(R.string.restore_confirm))
                         }
                     if (kind == "export")
                         TextButton(onClick = { export(target) }, enabled = !busy) {

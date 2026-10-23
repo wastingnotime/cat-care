@@ -80,36 +80,26 @@ class CareRulesTest {
     }
 
     @Test
-    fun localizedDatesUseDeviceZoneAndExplicitOffset() {
+    fun localizedDatesUseDeviceZoneWithoutZoneDecoration() {
         val instant = Instant.parse("2026-10-24T01:30:00Z")
         val zone = ZoneId.of("America/Sao_Paulo")
         assertEquals(
-            "23/10/2026 22:30 · America/Sao_Paulo (UTC-03:00)",
+            "23/10/2026 22:30",
             CareDates.moment(instant, java.util.Locale("pt", "BR"), zone, true),
         )
         assertEquals(
-            "10/23/2026 10:30 PM · America/Sao_Paulo (UTC-03:00)",
+            "10/23/2026 10:30 PM",
             CareDates.moment(instant, java.util.Locale.US, zone, false),
         )
         assertEquals("01/02/2026", CareDates.date("2026-02-01", java.util.Locale("pt", "BR")))
         assertEquals("02/01/2026", CareDates.date("2026-02-01", java.util.Locale.US))
-        assertTrue(
-            CareDates.moment(
-                    Instant.parse("2026-11-01T05:30:00Z"),
-                    java.util.Locale.US,
-                    ZoneId.of("America/New_York"),
-                    false,
-                )
-                .endsWith("(UTC-04:00)")
+        assertEquals(
+            "11/01/2026 1:30 AM",
+            CareDates.moment(Instant.parse("2026-11-01T05:30:00Z"), java.util.Locale.US, ZoneId.of("America/New_York"), false),
         )
-        assertTrue(
-            CareDates.moment(
-                    Instant.parse("2026-11-01T06:30:00Z"),
-                    java.util.Locale.US,
-                    ZoneId.of("America/New_York"),
-                    false,
-                )
-                .endsWith("(UTC-05:00)")
+        assertEquals(
+            "11/01/2026 1:30 AM",
+            CareDates.moment(Instant.parse("2026-11-01T06:30:00Z"), java.util.Locale.US, ZoneId.of("America/New_York"), false),
         )
     }
 

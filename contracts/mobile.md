@@ -60,16 +60,17 @@ Android's document picker writes to a user-selected destination. A local documen
 provider works offline; a cloud document provider may require connectivity. No
 broad storage permission is requested. Export success is shown only after the
 stream closes successfully; failure warns that a partial file may need removal.
-This version offers export for inspection, not import or restore.
+Scoped cat exports are for inspection. Full-data version 3 files can also be
+restored after validation and explicit replacement confirmation; see Backup and restore below.
 
 Local cat deletion cascades to tasks/history and record comments. Delete-all clears all cats and
 related care rows and resets selection. Deletion is logical removal from the
 app's database, not a claim of forensic erasure. No identity, sessions or remote
 copies exist. Exports are outside app ownership and must be deleted separately.
-Automatic app backup is disabled; Android 12+ extraction rules exclude app data
+Android OS-managed app backup is disabled; Android 12+ extraction rules exclude app data
 from cloud backup and device transfer. Manufacturer behavior may vary. App data
 loss, clearing storage or uninstalling may permanently remove care data; there
-is no recovery service or retained app backup. For this development change, the
+is no remote recovery service. User-selected backup files can restore care data. For this development change, the
 owner explicitly authorized recreating legacy schema 1 for coat selection. That
 bounded reset remains when upgrading schema 1 directly to the current schema.
 Schema 2 → 3 adds comments while preserving all existing cats, tasks and history.
@@ -124,7 +125,7 @@ Each Hoje task card and Histórico entry shows a coat-avatar/name cat badge, eve
 when history is already filtered to that cat. Comments remain scoped
 to their immutable history ID and survive language changes.
 
-Data offers device language, Português (Brasil), and English (US). Android 13+
+Settings offers device language, Português (Brasil), and English (US). Android 13+
 also exposes the supported languages in per-app system settings; older versions
 use the saved app preference. Both language resources ship together for offline
 use, including app bundles. Navigation, forms, categories, coat labels, plural
@@ -137,8 +138,8 @@ The original description is retained for readable exports and fallback. Export v
 
 PT-BR dates use day/month/year; EN-US uses month/day/year. Times follow the device
 12/24-hour preference. Due moments, history timestamps and repeat previews are
-converted to the current device timezone and show its ID and UTC offset, including
-DST distinctions. Birth/adoption are calendar dates and never shift with timezone.
+converted to the current device timezone and shown without zone IDs or UTC offsets.
+DST still controls conversion and recurrence. Birth/adoption are calendar dates and never shift with timezone.
 Scheduling retains the creation zone even when display uses a different device zone.
 
 Narrow windows (below 360dp) and enlarged text use a compact calendar with month
@@ -148,7 +149,7 @@ dialog clipping. Its selected date and displayed month survive restoration.
 
 ## Theme, reminders and UTC upgrade
 
-Data offers device theme, light and dark. The choice persists and applies to
+Settings offers device theme, light and dark. The choice persists and applies to
 cards, forms, calendars, status colours and system bars. Today’s summary displays
 an explicit overdue count in the error palette whenever a planned deadline is
 at or before now; it refreshes on resume and every 30 seconds while visible.
@@ -161,7 +162,7 @@ zone. Earlier supported schemas migrate through the same upgrade. Birth/adoption
 remain date-only values. Comments already store UTC instants. Historical prose
 is immutable and is not parsed/reworded by migration.
 
-Local reminders default to one hour before and at the scheduled instant. Data
+Local reminders default to one hour before and at the scheduled instant. Settings
 allows advance notice of none, 15 minutes, one hour or one day, and disabling
 reminders. Android 13+ notification permission is requested through an explicit
 button. Disabled/denied notifications never mark events delivered; the UI links
@@ -192,3 +193,39 @@ with “time not provided,” without timezone conversion or an invented clock t
 Ordinary timestamped records and comment timestamps retain their existing local
 datetime presentation. Invalid/missing date metadata falls back to the normal
 recorded timestamp. Original source notes can be retained in `details.source_line`.
+
+## Navigation, backup and restore
+
+The bottom navigation contains only Today, Cats and History icons, with localized
+accessibility names. The activity header names the current screen. Today places
+“Care for today.” before the current local date, refreshed while visible. The
+ellipsis menu opens Data, Settings and About. Data retains scoped export/delete;
+Settings owns language, appearance and reminders. About identifies Wasting No
+Time and explains local storage, no network/analytics/remote crash reporting,
+provider-controlled backups/sharing and deletion coverage in both app languages.
+
+Data can persist read/write access to a user-selected document tree. Selection
+checks create/rename/delete capability and writes an initial full-data backup.
+Android JobScheduler performs approximate daily automatic saves; its persisted
+job survives reboot, but timing is subject to Android background restrictions.
+No network or broad storage permission is added. Manual backup uses the same
+folder. A temporary document is written and closed, then renamed to an app-owned
+completed filename; retention runs only after that publication. The seven newest
+completed app backups remain; unrelated files are untouched. Failure is visible
+and does not advance the last-success time. Disabling cancels future jobs and
+releases folder access while retaining external files. Local care changes still
+persist immediately in SQLite independently of automatic backups.
+
+Restore accepts full-data `cat-care-offline` version 3 JSON up to 16 MiB. Older
+version 3 files with zoned deadlines are normalized to UTC while preserving the
+recurrence zone. Files must contain all four arrays, unique nonblank row IDs,
+valid dates, domain values and parent references. Scoped, unknown-version,
+malformed or invalid snapshots are rejected before replacement. IDs, history,
+comments, recurrence and date-precision metadata are retained. A staged private
+cache copy supports a count preview and recreation of the confirmation dialog.
+Confirmation replaces all care rows in one SQLite transaction; failed insertion
+rolls back deletion and inserted rows. Cancel leaves live data unchanged.
+Settings, notification permission and backup-folder access remain local to this
+installation. There is no merge or undo; the preview tells the owner to back up
+current data first. Restore refreshes selection and reconciles local reminders.
+Backup files and full exports are interchangeable within this format/size limit.

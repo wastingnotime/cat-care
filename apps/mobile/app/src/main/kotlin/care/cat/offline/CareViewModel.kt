@@ -70,6 +70,10 @@ class CareViewModel(
                 true,
             )
         CareReminders.sync(getApplication())
+        val backups = CareBackups(getApplication())
+        runCatching { backups.ensureScheduled() }.onFailure {
+            backups.preferences.edit().putBoolean("failed", true).apply()
+        }
     }
 
     private fun runAction(action: suspend () -> Unit) {
@@ -124,6 +128,7 @@ class CareViewModel(
 
     fun closeEditor() {
         if (!busy.value) {
+            if (draft.value.getString("kind") == "restore") discardRestore()
             saved["draft"] = Bundle()
             clearError()
         }
@@ -321,6 +326,87 @@ class CareViewModel(
                 mutableError.value = R.string.error_export
             }
         }
+    }
+
+    fun configureBackup(uri: Uri?) {
+        if (uri == null) return
+        backupAction(R.string.backup_saved) {
+            val backups = CareBackups(getApplication())
+            backups.configure(uri)
+            backups.write()
+        }
+    }
+
+    fun backupNow() = backupAction(R.string.backup_saved) { CareBackups(getApplication()).write() }
+    fun disableBackup() = backupAction { CareBackups(getApplication()).disable() }
+
+    private fun backupAction(success: Int = R.string.backup_updated, action: () -> Unit) = runAction {
+        try {
+            withContext(Dispatchers.IO) { action() }
+            mutableMessage.value = success
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { mutableError.value = R.string.backup_error }
+    }
+
+    fun prepareRestore(uri: Uri?) {
+        if (uri == null) return
+        runAction {
+            try {
+                val preview = withContext(Dispatchers.IO) {
+                    val bytes = requireNotNull(getApplication<Application>().contentResolver.openInputStream(uri)).use {
+                        val output = java.io.ByteArrayOutputStream()
+                        val buffer = ByteArray(8192)
+                        while (true) {
+                            val count = it.read(buffer)
+                            if (count < 0) break
+                            require(output.size() + count <= CareBackupDocument.MAX_BYTES)
+                            output.write(buffer, 0, count)
+                        }
+                        output.toByteArray()
+                    }
+                    require(bytes.size <= CareBackupDocument.MAX_BYTES)
+                    val text = bytes.toString(Charsets.UTF_8)
+                    val backup = CareBackupDocument.parse(text)
+                    val file = java.io.File.createTempFile("restore-", ".json", getApplication<Application>().cacheDir)
+                    try { file.writeText(text) } catch (error: Exception) { file.delete(); throw error }
+                    file.absolutePath to Bundle().apply {
+                        putString("kind", "restore")
+                        putInt("cats", backup.count("cats"))
+                        putInt("tasks", backup.count("tasks"))
+                        putInt("history", backup.count("history"))
+                        putInt("comments", backup.count("observation_comments"))
+                    }
+                }
+                discardRestore()
+                saved["restoreFile"] = preview.first
+                saved["draft"] = preview.second
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { mutableError.value = R.string.restore_error }
+        }
+    }
+
+    fun restoreBackup() = runAction {
+        try {
+            withContext(Dispatchers.IO) {
+                val file = java.io.File(requireNotNull(saved.get<String>("restoreFile")))
+                store.restore(file.readText())
+            }
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) {
+            mutableError.value = R.string.restore_error
+            return@runAction
+        }
+        // Replacement committed: close confirmation before refreshing to prevent resubmission.
+        discardRestore()
+        saved["draft"] = Bundle()
+        saved["selected"] = ""
+        mutableMessage.value = R.string.restore_success
+        withContext(Dispatchers.IO) { reload() }
+    }
+
+    private fun discardRestore() {
+        saved.get<String>("restoreFile")?.let { java.io.File(it).delete() }
+        saved["restoreFile"] = null
     }
 
     override fun onCleared() {

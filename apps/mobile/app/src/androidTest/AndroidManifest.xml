@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <provider android:name="care.cat.offline.BackupTestProvider" android:authorities="care.cat.offline.test.backups" android:permission="android.permission.MANAGE_DOCUMENTS" android:exported="true" android:grantUriPermissions="true" />
+        <activity android:name="care.cat.offline.BackupGrantActivity" android:exported="true" />
+    </application>
+</manifest>

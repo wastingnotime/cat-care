@@ -63,3 +63,7 @@ This ADR does not establish production release readiness.
 
 Delivery scenarios are defined in the
 [Android acceptance contract](../../contracts/acceptance/android-owner-offline.md).
+
+[ADR 0004](0004-mobile-navigation-and-backups.md) subsequently adds explicit
+user-selected folder backups and confirmed restore while retaining the offline
+boundary and disabled Android OS backup/device transfer.

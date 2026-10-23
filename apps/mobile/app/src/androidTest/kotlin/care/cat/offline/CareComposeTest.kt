@@ -77,7 +77,62 @@ class CareComposeTest {
     }
 
     private fun nav(route: String) {
-        compose.onNodeWithTag("nav-$route").performClick()
+        if (route in listOf("data", "settings", "about")) {
+            compose.onNodeWithTag("more-options").performClick()
+            compose.onNodeWithTag("menu-$route").performClick()
+        } else compose.onNodeWithTag("nav-$route").performClick()
+    }
+
+    @Test
+    fun overflowSeparatesDataSettingsAndPrivacyFromThreeIconTabs() {
+        ready()
+        compose.onNodeWithTag("nav-data").assertDoesNotExist()
+        compose.onNodeWithTag("nav-today").assertContentDescriptionEquals("Hoje")
+        compose.onNodeWithTag("nav-cats").assertContentDescriptionEquals("Gatos")
+        compose.onNodeWithTag("nav-history").assertContentDescriptionEquals("Histórico")
+        compose.onNodeWithText("Cuidados de hoje.").assertExists()
+        compose.onNodeWithTag("today-date").assertExists()
+        nav("settings")
+        compose.onNodeWithText("Idioma").assertExists()
+        compose.onNodeWithTag("choose-backup-folder").assertDoesNotExist()
+        nav("data")
+        compose.onNodeWithTag("choose-backup-folder").assertExists()
+        compose.onNodeWithText("Idioma").assertDoesNotExist()
+        nav("about")
+        compose.onNodeWithTag("care-list").performScrollToNode(hasText("Privacidade"))
+        compose.onNodeWithText("Privacidade").assertExists()
+        compose.onNodeWithTag("care-list").performScrollToNode(hasText("A Wasting No Time (WNT) desenvolve o Cat Care."))
+        compose.onNodeWithText("A Wasting No Time (WNT) desenvolve o Cat Care.").assertExists()
+    }
+
+    @Test
+    fun restorePreviewSurvivesRecreationAndRequiresConfirmation() {
+        ready()
+        val snapshot = store.export(null)
+        val file = java.io.File(compose.activity.cacheDir, "restore-test.json").apply { writeText(snapshot) }
+        store.saveCat(null, "After backup", "", "", "gray")
+        compose.activityRule.scenario.recreate()
+        ready()
+        nav("data")
+        compose.runOnIdle {
+            androidx.lifecycle.ViewModelProvider(compose.activity)[CareViewModel::class.java]
+                .prepareRestore(android.net.Uri.fromFile(file))
+        }
+        compose.waitUntil(10000) { compose.onAllNodesWithTag("confirm-restore").fetchSemanticsNodes().isNotEmpty() }
+        assertEquals(3, store.cats().size)
+        compose.activityRule.scenario.recreate()
+        compose.onNodeWithTag("confirm-restore").assertExists()
+        click("Voltar")
+        assertEquals(3, store.cats().size)
+        compose.runOnIdle {
+            androidx.lifecycle.ViewModelProvider(compose.activity)[CareViewModel::class.java]
+                .prepareRestore(android.net.Uri.fromFile(file))
+        }
+        compose.waitUntil(10000) { compose.onAllNodesWithTag("confirm-restore").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithTag("confirm-restore").performClick()
+        compose.waitUntil(10000) { compose.onAllNodesWithTag("confirm-restore").fetchSemanticsNodes().isEmpty() }
+        assertEquals(setOf("Mimi", "Luna"), store.cats().map { it.name }.toSet())
+        file.delete()
     }
 
     @Test
@@ -209,11 +264,11 @@ class CareComposeTest {
     @Test
     fun localeChoiceSwitchesLabelsAndLeavesOwnerTextUnchanged() {
         ready()
-        nav("data")
+        nav("settings")
         click("Português (Brasil)")
         click("English (US)")
         compose.waitUntil(10000) {
-            compose.onAllNodesWithText("Your data").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("Language").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithText("Language").assertExists()
         nav("today")
@@ -229,11 +284,11 @@ class CareComposeTest {
             .onNodeWithTag("care-list")
             .performScrollToNode(hasText("Care planned: Owner text stays exactly the same"))
         compose.onNodeWithText("Care planned: Owner text stays exactly the same").assertExists()
-        nav("data")
+        nav("settings")
         click("English (US)")
         click("Português (Brasil)")
         compose.waitUntil(10000) {
-            compose.onAllNodesWithText("Seus dados").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("Idioma").fetchSemanticsNodes().isNotEmpty()
         }
         nav("history")
         compose.onNodeWithTag("filter-$mimi").performClick()
@@ -368,7 +423,8 @@ class CareComposeTest {
             assertTrue(text.contains("Cat Care • Luna"))
             assertTrue(text.contains("Luna pesa 4 kg"))
             assertTrue(text.contains("• Peso estável"))
-            assertTrue(text.contains(java.time.ZoneId.systemDefault().id))
+            assertFalse(text.contains("UTC"))
+            assertFalse(text.contains(java.time.ZoneId.systemDefault().id))
             assertFalse(text.contains("Mimi"))
         } finally {
             instrumentation.removeMonitor(monitor)
@@ -378,7 +434,7 @@ class CareComposeTest {
     @Test
     fun darkThemeChoiceSurvivesActivityRecreation() {
         ready()
-        nav("data")
+        nav("settings")
         compose.onNodeWithText("Aparência").performScrollTo()
         click("Claro")
         click("Escuro")

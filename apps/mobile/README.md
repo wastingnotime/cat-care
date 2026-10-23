@@ -96,8 +96,8 @@ coat. Histórico shows the selected cat's records and lifecycle, offers comments
 on observations, and contains “Registrar” with an avatar cat picker. Dados exports or
 deletes one cat/all local care data after a scope preview. Dates use calendar pickers and times use a numeric/clock dialog. Repetition
 offers none, daily, weekly, monthly or a custom days/months interval and a next-date preview. Export is versioned JSON via
-Android's document picker. No import/restore or cloud sync
-is included. Automatic backup/device transfer of app data is disabled by app
+Android's document picker. Full-data version 3 files can be restored after a scope preview and replacement
+confirmation. Scoped cat exports are for reference. Cloud sync is not included. Android OS backup/device transfer of app data is disabled by app
 policy. Uninstall, storage clearing or device loss may permanently remove data;
 exported files remain in the destination chosen by the owner.
 
@@ -110,7 +110,9 @@ includes comments with their history-entry IDs under the retained `observation_i
 
 ## Kotlin and Compose structure
 
-Application and test sources live under `app/src/{main,test,androidTest}/kotlin`.
+Application and test sources live under `app/src/{main,test,androidTest}/kotlin`;
+the instrumentation document provider and grant activity are Java fixtures in
+`app/src/androidTest/java` so they can run in the test APK’s own process.
 `MainActivity` hosts Compose; `CatCareApp` renders screens and editors; `CatArtwork`
 draws avatars and onboarding art with Compose Canvas. `CareViewModel` exposes
 immutable snapshots through StateFlow, runs SQLite work on the IO dispatcher, and
@@ -126,23 +128,24 @@ See [ADR 0003](../../docs/adr/0003-kotlin-compose-android.md) for the migration 
 
 ## Language and date/time display
 
-Choose Português (Brasil), English (US), or the device language in Dados/Data.
+Choose Português (Brasil), English (US), or the device language in Settings
+under the ellipsis menu.
 Android 13+ also supports the app-language setting in Android Settings. Both
 translations are bundled for offline use. App text and new automatic history
 follow the selected language; owner-entered text and old history prose are kept
 exactly as recorded.
 
 Dates use the selected locale’s order and times follow the device’s 12/24-hour
-setting. Due dates, history and recurrence previews show the current device
-timezone and UTC offset. Scheduling retains its stored zone; profile dates have
+setting. Due dates, history and recurrence previews show device-local date/time without
+a zone ID or UTC suffix. Scheduling retains its stored zone; profile dates have
 no timezone conversion. Care and history cards identify their cat with an
 avatar/name badge. All history records offer comment threads.
 
 Scheduling and localization verification: [evidence](../../runs/android-care-ux-2026-10-23/evidence.md).
 
-Data also offers system/light/dark appearance and local notification settings.
+Settings offers system/light/dark appearance and local notification settings.
 Reminders default to one hour before and at the due time; allow notification
-permission using the button in Data. Android may delay alarms to save battery.
+permission using the button in Settings. Android may delay alarms to save battery.
 History cat filters have avatars, every card accepts comments, and Share opens
 Android’s chooser with formatted text for that card and its replies.
 
@@ -151,10 +154,34 @@ changing their meaning. The named recurrence zone remains separate so routines
 keep their local wall time across DST. Editors and cards display device-local
 datetime. JSON export version 3 carries UTC deadlines and the recurrence zone.
 
-Theme, reminders, UTC and sharing verification: [evidence](../../runs/android-reminders-theme-2026-10-23/evidence.md).
+Theme, reminders, UTC storage and sharing verification: [evidence](../../runs/android-reminders-theme-2026-10-23/evidence.md).
 
 
 Imported historical records may retain a reported calendar date without a known
 time. Optional date-precision metadata makes cards and shared text display only
 that date, with an explicit “time not provided” label; the stored UTC instant is
 then a chronological anchor. Ordinary entries retain their full local timestamp.
+
+## Navigation, backups and privacy
+
+Three icon-only tabs open Today, Cats and History; their accessible names remain
+available to TalkBack. The activity header identifies the screen. Today shows
+“Care for today.” followed by the current local date. The ellipsis menu opens
+Data, Settings and About. Settings contains language, appearance and reminders.
+About describes Wasting No Time and the app’s actual local-data privacy behavior.
+
+Data retains scoped export and deletion and adds backup/restore. Choose a folder
+to enable a first backup and roughly daily automatic saving through Android’s
+persisted JobScheduler. Android can defer background execution. Manual backup
+uses the same folder, and the seven newest completed app backups are kept.
+Disabling automatic saving leaves existing files. Folder access and settings
+belong to the installation and are not restored from a file. OS device backup
+and device transfer remain disabled.
+
+Restore accepts full-data `cat-care-offline` version 3 JSON up to 16 MiB, validates
+all rows and relationships, previews counts and requires confirmation to replace
+local care data atomically. Invalid files and failed writes leave existing data
+intact. Backups/exports can contain private information, and a selected document
+provider may sync them. Deleting app data does not delete those external files.
+
+Navigation and backup verification: [evidence](../../runs/android-menu-backup-2026-10-23/evidence.md).

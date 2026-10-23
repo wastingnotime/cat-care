@@ -127,8 +127,7 @@ object CareDates {
         val pattern =
             (if (locale.language == "pt") "dd/MM/uuuu" else "MM/dd/uuuu") +
                 if (use24Hour) " HH:mm" else " h:mm a"
-        val offset = local.offset.id.takeUnless { it == "Z" } ?: "+00:00"
-        return "${local.format(DateTimeFormatter.ofPattern(pattern, locale))} · ${zone.id} (UTC$offset)"
+        return local.format(DateTimeFormatter.ofPattern(pattern, locale))
     }
 }
 

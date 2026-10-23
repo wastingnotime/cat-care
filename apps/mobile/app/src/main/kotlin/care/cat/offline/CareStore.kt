@@ -550,6 +550,17 @@ class CareStore(context: Context, name: String = "cat-care.db") :
         }
     }
 
+    /** Validate before touching live data; any insertion failure rolls back the replacement. */
+    fun restore(text: String) {
+        val backup = CareBackupDocument.parse(text)
+        transaction { db ->
+            db.delete("cats", null, null)
+            backup.tables.forEach { (table, rows) ->
+                rows.forEach { db.insertOrThrow(table, null, it) }
+            }
+        }
+    }
+
     companion object {
         private val HISTORY_TIME = DateTimeFormatterBuilder().appendInstant(9).toFormatter()
     }

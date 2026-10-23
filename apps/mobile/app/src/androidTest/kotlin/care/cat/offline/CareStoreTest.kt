@@ -27,6 +27,67 @@ class CareStoreTest {
         context.deleteDatabase(DB)
     }
 
+    @Test
+    fun fullBackupRestoresStableIdsRecurrenceCommentsAndDatesAfterReopen() {
+        val id = cat("Mimi")
+        store.saveTask(id, null, "Water", "Outro", "2027-01-31T12:00:00Z", 0, 1, "America/Sao_Paulo")
+        store.record(id, "observation", "Playing")
+        val entry = store.history(id).first { it.type == "observation" }
+        store.comment(entry.id, "Still active")
+        val before = JSONObject(store.export(null))
+        val snapshot = store.export(null)
+        store.delete(null)
+        cat("Temporary")
+        store.restore(snapshot)
+        reopen()
+        val after = JSONObject(store.export(null))
+        listOf("cats", "tasks", "history", "observation_comments").forEach {
+            assertEquals(before.getJSONArray(it).toString(), after.getJSONArray(it).toString())
+        }
+        assertEquals("Still active", store.comments(entry.id).single().description)
+        assertEquals("America/Sao_Paulo", store.tasks(id).single().zone)
+    }
+
+    @Test
+    fun invalidOrScopedBackupsNeverChangeLocalData() {
+        val id = cat("Keep me")
+        val valid = store.export(null)
+        val broken = mutableListOf("{}", store.export(id))
+        broken += JSONObject(valid).put("version", 99).toString()
+        broken += JSONObject(valid).apply { remove("tasks") }.toString()
+        broken += JSONObject(valid).apply {
+            getJSONArray("cats").put(getJSONArray("cats").getJSONObject(0))
+        }.toString()
+        store.record(id, "observation", "Existing record")
+        val withHistory = store.export(null)
+        broken += JSONObject(withHistory).apply {
+            getJSONArray("history").getJSONObject(0).put("cat_id", "missing")
+        }.toString()
+        broken += JSONObject(withHistory).apply {
+            getJSONArray("history").getJSONObject(0).put("at", "invalid")
+        }.toString()
+        broken += JSONObject(withHistory).apply {
+            getJSONArray("history").getJSONObject(0).put("is_diagnosis", 1)
+        }.toString()
+        broken.forEach { text ->
+            assertThrows(Exception::class.java) { store.restore(text) }
+            assertEquals(listOf("Keep me"), store.cats().map { it.name })
+            assertTrue(store.history(id).any { it.description == "Existing record" })
+        }
+    }
+
+    @Test
+    fun failedReplacementRollsBackDeletionAndInsertedRows() {
+        cat("Backup cat")
+        val backup = store.export(null)
+        store.delete(null)
+        cat("Keep current cat")
+        store.writableDatabase.execSQL("CREATE TRIGGER reject_restore BEFORE INSERT ON history BEGIN SELECT RAISE(ABORT, 'test failure'); END")
+        assertThrows(SQLiteException::class.java) { store.restore(backup) }
+        assertEquals(listOf("Keep current cat"), store.cats().map { it.name })
+        assertEquals(1, store.history(store.cats().single().id).size)
+    }
+
     private fun cat(name: String) = store.saveCat(null, name, "", "", "gray")
 
     private fun reopen() {
