@@ -5,6 +5,9 @@ Material 3. SQLite persistence, min API 26, compile/target API 35, JVM target 17
 AndroidX and Kotlin coroutines supply UI/lifecycle support. No account, server,
 internet permission or veterinarian workspace.
 
+See [the mobile technology stack](docs/technology-stack.md) for the layer-by-layer
+choices and rationale, including manual injection and the offline networking boundary.
+
 ## Build and install
 
 Install JDK 21 and Android SDK platform 35/build tools 35.0.0. Set `ANDROID_HOME`

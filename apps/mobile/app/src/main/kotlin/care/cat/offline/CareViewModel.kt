@@ -31,9 +31,11 @@ data class CareSnapshot(
     val loaded: Boolean = false,
 )
 
-class CareViewModel(application: Application, private val saved: SavedStateHandle) :
-    AndroidViewModel(application) {
-    private val store = CareStore(application)
+class CareViewModel(
+    application: Application,
+    private val saved: SavedStateHandle,
+    private val store: CareStore,
+) : AndroidViewModel(application) {
     private val preferences = application.getSharedPreferences("MainActivity", 0)
     private val mutableSnapshot = MutableStateFlow(CareSnapshot())
     val snapshot = mutableSnapshot.asStateFlow()
