@@ -42,7 +42,7 @@ def main():
     run([
         adb, "-s", serial, "shell", "am", "start", "-W", "--activity-single-top",
         "-a", "android.intent.action.MAIN", "-c", "android.intent.category.LAUNCHER",
-        "-n", "care.cat.offline/.MainActivity",
+        "-n", "org.wastingnotime.catcare/.MainActivity",
     ], capture=False)
     print(f"Cat Care updated and opened on {serial}. Existing app data was retained.", flush=True)
 

@@ -20,73 +20,42 @@ headings and 13–16sp body text. Keep buttons at least 48dp high. Primary actio
 are filled forest green, secondary actions are white with an outline, and
 removal actions have a pale rust background. Color supplements explicit labels.
 
-Cards have restrained borders and rounded corners, with space between sections.
-Hoje keeps its summary compact so care cards stay near the top, with one
-full-width “Planejar cuidado” action and no cat filter. Cat selection lives inside
-the new-plan and Histórico registration forms: labeled coat avatars with checked
-styling and radio-button accessibility semantics, two columns at normal size and
-one above 120% font scale. Histórico and Dados retain their named cat filter chips.
-All cards in Histórico offer “Comentar” and show replies with timestamps in
-inset cream panels.
+Cards have restrained borders, rounded corners and compact spacing. Keep the
+warm identity and use screen space primarily for care content. The onboarding cat
+illustration welcomes first-time owners; everyday screens use a compact app bar.
 
-Navigation uses three local vector icons with a sage selected surface and no
-visible labels. Each retains a localized accessible name. The activity header
-identifies the current screen. A vertical ellipsis opens Data, Settings and About.
-Today shows “Care for today.” followed by the current local date. Settings holds
-language, appearance and reminders; About holds WNT attribution and privacy.
+Today groups tasks into Overdue, Today, Upcoming (initially collapsed) and No date.
+Deadlines are chronological, with localized Today/Tomorrow dates. Each card opens
+details on tap, offers a compact Mark done button and an overflow menu for secondary
+actions. Completion still requires confirmation. No essential action uses long press.
 
-The cat illustration is drawn with Compose Canvas and scales without external
-assets. It appears in onboarding. Gatos uses smaller face avatars whose coat
-colors and markings match the eight web coat identifiers. Each card shows the
-avatar/name, a pending badge when needed, and an edit button. Responsibility and
-observation totals are omitted to keep cards focused on current care.
-The screen lists all cats and has an add action.
+Gatos cards open a profile with upcoming care and recent history. They show the coat
+avatar, name, next care and overdue status. Lifetime counters are omitted. Edit is
+available through overflow. History groups compact entries by date and supports cat,
+type and period filters. Tapping opens the full entry, comments and sharing menu.
 
-New/edit forms use Compose Material 3 date pickers and a coat grid with labeled faces,
-selected styling and radio-button accessibility semantics. Coat options use two
-columns at normal text size and one above 120% font scale. Saved cards are brought
-into view on return to the list. Form fields use filled cream
-surfaces and persistent labels. Storage details are available from Dados in a
-readable dialog; backup/restore scope and replacement semantics remain visible on the page.
+Primary navigation uses labeled Today, Cats and History icons, with a rail on windows
+at least 600dp wide. Child screens have an Up button. Back restores the originating
+screen. Floating labeled creation actions remain available as lists scroll, with
+bottom content padding so they do not block the last item.
 
-Implementation: Kotlin `MainActivity`, `CatCareApp`, `CareViewModel`, `CatArtwork`
-and `CatCoat`, with Compose Material 3 controls and Compose Canvas artwork.
-Vector resources provide brand/navigation icons; system bars respect Compose
-window insets. `styles.xml` supplies the host activity launch theme.
+Editors fill phone windows and keep Save/Cancel visible above system/keyboard insets.
+Changed drafts require confirmation before discarding. Cat pickers use wrapping avatar
+chips; coat selection keeps a labeled grid with one column above 120% font scale.
+Optional profile dates expand on demand. Validation identifies the field and brings it
+into view. Calendar/time pickers and recurrence previews retain their existing behavior.
+Direct records allow an occurrence date/time and distinguish it from the entry time.
 
-See [cat-card evidence](../../runs/android-cat-cards-2026-10-23/evidence.md) for
-the current Gatos screen and form, and the earlier
-[visual evidence](../../runs/android-visual-2026-10-22/evidence.md) for other screens.
+Backup status and last successful time lead the Data screen. Operational details are
+expandable; destructive replacement warnings remain visible in restore confirmation.
 
-See [Today and history evidence](../../runs/android-today-history-2026-10-23/evidence.md)
-for the planning and registration avatar forms and observation comments.
+English and Brazilian Portuguese resources cover all copy and accessibility labels.
+Date/time display uses the device zone and 12/24-hour preference without zone suffixes.
+Below 360dp or above 120% font scale, the compact calendar supplies month/year navigation
+and wrapping actions. Dark appearance uses deep green backgrounds, pale green accents
+and warm error colors; coat artwork retains its colors.
 
-See [Kotlin and Compose migration evidence](../../runs/android-compose-2026-10-23/evidence.md)
-for the current Compose screens, data compatibility, date picker and draft restoration.
-
-Care and history cards share a compact sage cat badge with the saved coat avatar
-and cat name. The identity badge is separate from scheduling status and category.
-
-Planning uses calendar selection followed by a separate time dialog. Numeric
-hour/minute entry is the default, with a clock toggle. Repetition uses a single
-choice (none/daily/weekly/monthly/custom); only custom shows interval and unit, and a preview of the next due
-moment. Longer hints explain calendar-month behavior only when relevant.
-
-All copy is provided through English and Brazilian Portuguese resources. The
-Settings language selector is available even before any cats exist. Dates, times,
-plural counts and accessibility labels follow that selection; time format also
-respects the device setting. Date/time displays use the device zone without appending a zone ID or UTC offset.
-
-Below 360dp or above 120% text scale, date entry uses a compact calendar with
-month arrows, a year chooser, six equal calendar rows, and wrapping actions. The
-calendar stays within the window while preserving full spoken date labels.
-
-
-Dark appearance follows the device by default and can be selected explicitly in
-Settings. It uses deep green backgrounds, pale green accents, muted sage outlines
-and warm red error colours; artwork keeps its coat colours. Today’s summary
-switches to an explicit overdue count/error surface whenever any task is overdue.
-Card identity rows keep the cat avatar/name on the left and category/type right
-aligned, allowing wrapping for longer translated labels. Task action buttons use
-a short label with the task title retained only in their accessibility description.
-History filters show coat avatars; every card has comment and text-share actions.
+Implementation: `CatCareApp` supplies the shell and editors, `CareScreens` the screens,
+`CareAgenda` the deadline grouping, and `CareViewModel` the saved navigation/draft state.
+See [ADR 0005](../adr/0005-daily-care-ux.md) and the
+[validation evidence](../../runs/android-daily-ux-2026-10-23/evidence.md).

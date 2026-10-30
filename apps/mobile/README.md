@@ -1,7 +1,7 @@
 # Cat Care offline Android
 
 Native Android owner application written in Kotlin with Jetpack Compose and
-Material 3. SQLite persistence, min API 26, compile/target API 35, JVM target 17.
+Material 3. SQLite persistence, min API 26, compile/target API 36, JVM target 17.
 AndroidX and Kotlin coroutines supply UI/lifecycle support. No account, server,
 internet permission or veterinarian workspace.
 
@@ -10,14 +10,14 @@ choices and rationale, including manual injection and the offline networking bou
 
 ## Build and install
 
-Install JDK 21 and Android SDK platform 35/build tools 35.0.0. Set `ANDROID_HOME`
+Install JDK 21 and Android SDK platform 36/build tools 35.0.0. Set `ANDROID_HOME`
 (or use Android Studio's generated, ignored `local.properties`). Open this
 folder in Android Studio or use the checked-in Gradle 8.11.1 wrapper:
 
 ```bash
 ./gradlew testDebugUnitTest lintDebug assembleDebug
 adb install -r app/build/outputs/apk/debug/app-debug.apk
-adb shell am start -n care.cat.offline/.MainActivity
+adb shell am start -n org.wastingnotime.catcare/.MainActivity
 ```
 
 Root shortcuts: `make mobile-test`, `make mobile-build`, `make mobile-apk`.
@@ -88,13 +88,15 @@ with unsaved forms. No simulator account or external API is needed.
 
 ## Data and current limits
 
-Hoje shows planned tasks across cats and a “Planejar cuidado” button. Choose the
-cat by avatar inside the new-plan form. Gatos lists cards for every cat, with the
-chosen coat avatar, pending status and an
-edit button. Create/edit asks for name, optional birth/adoption dates and closest
-coat. Histórico shows the selected cat's records and lifecycle, offers comments
-on observations, and contains “Registrar” with an avatar cat picker. Dados exports or
-deletes one cat/all local care data after a scope preview. Dates use calendar pickers and times use a numeric/clock dialog. Repetition
+Hoje groups care by Overdue, Today, Upcoming (collapsed initially) and No date,
+sorted by deadline. Cards open details, offer Mark done with confirmation, and put
+Edit/Reschedule/Cancel in overflow. Floating actions keep planning, adding cats and
+recording history available while scrolling. Gatos cards open a profile overview
+with next care and recent history, without lifetime counters. History has compact
+date groups, cat/type/period filters and a detail screen for comments and sharing.
+Full-screen editors use compact cat chips, inline validation and discard protection;
+records allow past occurrence times and retain the actual entry timestamp separately.
+Dados exports or deletes one cat/all local care data after a scope preview. Dates use calendar pickers and times use a numeric/clock dialog. Repetition
 offers none, daily, weekly, monthly or a custom days/months interval and a next-date preview. Export is versioned JSON via
 Android's document picker. Full-data version 3 files can be restored after a scope preview and replacement
 confirmation. Scoped cat exports are for reference. Cloud sync is not included. Android OS backup/device transfer of app data is disabled by app
@@ -122,7 +124,7 @@ version 3. Schema 4 added nullable metadata for localized automatic history;
 upgrading schema 3 preserves all existing cats, care records and comments.
 
 The build pins Kotlin/compiler plugin 2.2.21, Compose BOM 2025.04.01, Activity
-1.10.1 and Lifecycle 2.9.0 alongside the existing AGP/Gradle/SDK 35 toolchain.
+1.10.1 and Lifecycle 2.9.0 alongside the existing AGP/Gradle toolchain.
 These are compatible stable dependencies rather than a simultaneous SDK upgrade.
 See [ADR 0003](../../docs/adr/0003-kotlin-compose-android.md) for the migration decision.
 
@@ -164,12 +166,16 @@ then a chronological anchor. Ordinary entries retain their full local timestamp.
 
 ## Navigation, backups and privacy
 
-Three icon-only tabs open Today, Cats and History; their accessible names remain
-available to TalkBack. The activity header identifies the screen. Today shows
-“Care for today.” followed by the current local date. The ellipsis menu opens
-Data, Settings and About. Settings contains language, appearance and reminders.
+Three labeled tabs open Today, Cats and History; wider windows use a navigation
+rail. The compact header identifies the screen. Child screens have an Up action,
+and Back restores the originating screen and its list state. The ellipsis menu
+opens Data, Settings and About. Settings contains language, appearance and reminders.
 About describes Wasting No Time and the app’s actual local-data privacy behavior.
 
+Reminders offer setup after the first dated plan and open the notified task.
+An unfinished editor is protected if a notification is opened during editing.
+See [ADR 0005](../../docs/adr/0005-daily-care-ux.md) and
+[UX validation](../../runs/android-daily-ux-2026-10-23/evidence.md).
 Data retains scoped export and deletion and adds backup/restore. Choose a folder
 to enable a first backup and roughly daily automatic saving through Android’s
 persisted JobScheduler. Android can defer background execution. Manual backup
@@ -185,3 +191,9 @@ intact. Backups/exports can contain private information, and a selected document
 provider may sync them. Deleting app data does not delete those external files.
 
 Navigation and backup verification: [evidence](../../runs/android-menu-backup-2026-10-23/evidence.md).
+
+## WNT application identity
+
+Namespace and Play package: `org.wastingnotime.catcare`. The initial
+`care.cat.offline` internal test is a separate app installation. Export full data
+from that installation and restore it in the WNT app to transfer existing records.

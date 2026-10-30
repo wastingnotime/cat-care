@@ -8,10 +8,10 @@ BFF, synchronization boundary or network permission. ADR 0002 governs scope.
 
 | Released semantics | Owner use case and visible state | Local boundary |
 | --- | --- | --- |
-| Cat profile/history | Gatos: all-cat cards, coat avatar, pending badge; edit name, birth/adoption dates and coat | `CareStore.saveCat`, `cats`, `history` |
+| Cat profile/history | Gatos: all-cat cards, coat avatar, next care and overdue status; edit name, birth/adoption dates and coat | `CareStore.saveCat`, `cats`, `history` |
 | Responsibility status | Hoje across cats: identity, category, deadline, planned/soon/overdue/unknown | `tasks`, `CareRules.status`; two-day soon threshold |
 | Responsibility lifecycle | Create/edit/complete/cancel/defer, optional days OR calendar months recurrence | `saveTask`, `transition`; state/version guard and atomic successor/history |
-| Direct care and observation | Histórico: avatar selection in registration, typed record with description and timestamp; comments on every record | `record`, `comment`, `comments`; never completes a task |
+| Direct care and observation | Histórico: avatar selection in registration, typed record with description and chosen occurrence time; comments in entry details | `record`, `comment`, `comments`; never completes a task |
 | Data stewardship | Dados: preview cat/all scope, JSON destination, confirmed local deletion | `export`, `delete`; SQLite snapshot and cascading deletion |
 
 No veterinarian boundary exists in this app. A veterinary appointment is a care
@@ -92,14 +92,25 @@ TalkBack, large-font and physical-device acceptance require recorded evidence.
 Emulators require no host URL, server credentials or seeded account. Release
 acceptance is in `contracts/acceptance/android-owner-offline.md`.
 
-Hoje lists planned care across all cats with a single “Planejar cuidado” entry
-action, without a page-level cat selector or registration/observation section.
-New care plans choose their cat from labeled coat avatars inside the form; with
-multiple cats an explicit choice is required, while a sole cat is preselected.
-Editing an existing task retains its cat. Histórico keeps its cat filter and
-“Registrar” action; the registration form defaults to that cat and allows avatar
-selection of another. Saving switches the history filter to the chosen cat.
-Every History card offers “Comentar”; replies appear oldest-first beneath their record. Saving a comment reveals its parent in Histórico. Cat filters include coat avatars. Share uses Android’s text share sheet with the card identity, localized type, description, local timestamps and comments; other cards/cats are excluded. User chooses the destination app and confirms sending there.
+Hoje groups all planned care into Overdue, Today, Upcoming and No date, with
+chronological deadlines and deterministic ties. Upcoming starts collapsed. Calendar
+boundaries and relative dates follow the device zone, refreshing while visible.
+A floating Plan care action stays reachable while scrolling. Task cards open details,
+show a direct Mark done button (still requiring confirmation), and place Edit,
+Reschedule and Cancel in overflow. No action requires a long press.
+
+New plans choose a cat with compact labeled avatar chips. A sole cat is preselected;
+multiple cats require an explicit choice unless planning from a cat profile. Existing
+tasks retain their cat. History keeps its cat filter and floating Record action,
+adds type and period filters, and groups compact entries by device-local date.
+Tapping an entry opens its full content and oldest-first comment thread. Sharing is
+in the entry overflow and includes only this entry and replies through Android's chooser.
+
+Direct records default to the current date/time and allow a past occurrence. Future
+or missing occurrence times are rejected. `history.at` is the chosen UTC occurrence;
+`details.recorded_at` is the insertion instant. The saved entry opens by its stable ID,
+even when backdated. Existing date-only imports retain their reported calendar date.
+No schema or export version change is needed; backup/restore retains both timestamps.
 
 ## Android implementation
 
@@ -108,8 +119,9 @@ date picker, avatar and illustration; the system document picker remains the
 export destination boundary. `CareViewModel` owns StateFlow snapshots and
 SavedStateHandle drafts, including fixed mutation targets and version guards.
 SQLite reads, writes and exports run on the IO dispatcher. Busy actions disable
-repeat submissions; errors retain form values. The Compose migration preserves
-`care.cat.offline` and `cat-care.db` remain stable. The export is now version 3. Schema 3 → 4
+repeat submissions; errors retain form values. The Android namespace and application ID are `org.wastingnotime.catcare`.
+The earlier internal-test package `care.cat.offline` is a separate installation;
+transfer its data through full export and restore. The database remains `cat-care.db`. The export is now version 3. Schema 3 → 4
 adds a nullable `history.details` column without changing existing IDs or text.
 Schema 2 → 5 also adds comments and metadata; the bounded schema-1 reset remains explicit.
 
@@ -151,10 +163,9 @@ dialog clipping. Its selected date and displayed month survive restoration.
 
 Settings offers device theme, light and dark. The choice persists and applies to
 cards, forms, calendars, status colours and system bars. Today’s summary displays
-an explicit overdue count in the error palette whenever a planned deadline is
-at or before now; it refreshes on resume and every 30 seconds while visible.
-Each card places category/type on the right of its cat identity row. The care
-action label is short; its accessibility description retains the task title.
+today and overdue counts; overdue sections and deadlines provide explicit status.
+It refreshes on resume and every 30 seconds while visible. History cards place type
+beside cat identity. The direct completion button has an accessible task-specific label.
 
 Schema 4 → 5 normalizes task deadlines and structured history due/from_due values
 to UTC while preserving their instants and extracting the prior named recurrence
@@ -178,8 +189,11 @@ alert, without a stale advance alert. Edits, completion, cancellation and deleti
 reschedule the next alarm and remove obsolete notifications. Reboot, package
 update, clock/timezone/locale changes and app resume reconcile the schedule.
 Force-stopping the app suppresses Android alarms until it is reopened. Reminder
-text follows the app language and device timezone. Tapping opens Today; it never
-completes care automatically.
+text follows the app language and device timezone. Tapping opens the specific task
+without completing it; if it is no longer pending, the app explains that state.
+A notification waits for an unfinished editor to close before opening its task.
+The first dated plan offers reminder setup if reminders are disabled or permission
+is unavailable. Android still controls actual delivery timing.
 
 
 ## Imported dates without a time
@@ -196,14 +210,17 @@ recorded timestamp. Original source notes can be retained in `details.source_lin
 
 ## Navigation, backup and restore
 
-The bottom navigation contains only Today, Cats and History icons, with localized
-accessibility names. The activity header names the current screen. Today places
-“Care for today.” before the current local date, refreshed while visible. The
-ellipsis menu opens Data, Settings and About. Data retains scoped export/delete;
+Primary navigation uses labeled Today, Cats and History destinations: a bottom bar
+on compact windows and a rail at 600dp and above. Child screens use an Up action;
+Back returns to the originating screen. Main-screen scroll/filter state survives
+navigation. A compact activity header names the current screen; Today shows the
+local date and agenda counts. The ellipsis menu opens Data, Settings and About. Data retains scoped export/delete;
 Settings owns language, appearance and reminders. About identifies Wasting No
 Time and explains local storage, no network/analytics/remote crash reporting,
 provider-controlled backups/sharing and deletion coverage in both app languages.
 
+Data leads with backup status and last successful time; operational explanation
+is expandable. Restore still presents scope and replacement warnings before writing.
 Data can persist read/write access to a user-selected document tree. Selection
 checks create/rename/delete capability and writes an initial full-data backup.
 Android JobScheduler performs approximate daily automatic saves; its persisted

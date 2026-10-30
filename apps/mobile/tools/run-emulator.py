@@ -82,7 +82,7 @@ def main():
         raise RuntimeError(f"Emulator did not finish booting within {timeout}s. Check it and try again.")
     run([MOBILE / "gradlew", "-p", MOBILE, "assembleDebug"], timeout=None, capture=False, env=env)
     run([adb, "-s", serial, "install", "-r", MOBILE / "app/build/outputs/apk/debug/app-debug.apk"], timeout=120, capture=False)
-    run([adb, "-s", serial, "shell", "am", "start", "-W", "-n", "care.cat.offline/.MainActivity"], capture=False)
+    run([adb, "-s", serial, "shell", "am", "start", "-W", "-n", "org.wastingnotime.catcare/.MainActivity"], capture=False)
     print(f"Cat Care launched on {serial}. The emulator stays running.", flush=True)
 
 

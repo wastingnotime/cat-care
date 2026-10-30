@@ -4,7 +4,7 @@
     <application android:label="Cat Care" android:theme="@style/AppTheme"
         android:icon="@drawable/ic_cat" android:allowBackup="false"
         android:fullBackupContent="false" android:dataExtractionRules="@xml/data_extraction_rules"
-        android:supportsRtl="true" android:localeConfig="@xml/locales_config" tools:targetApi="33">
+        android:enableOnBackInvokedCallback="true" android:supportsRtl="true" android:localeConfig="@xml/locales_config" tools:targetApi="33">
         <service android:name=".CareBackupJob" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true" />
         <receiver android:name=".CareReminderReceiver" android:exported="false">
             <intent-filter>
