@@ -29,9 +29,10 @@ Deadlines are chronological, with localized Today/Tomorrow dates. Each card open
 details on tap, offers a compact Mark done button and an overflow menu for secondary
 actions. Completion still requires confirmation. No essential action uses long press.
 
-Gatos cards open a profile with upcoming care and recent history. They show the coat
-avatar, name, next care and overdue status. Lifetime counters are omitted. Edit is
-available through overflow. History groups compact entries by date and supports cat,
+Gatos cards show only the coat avatar and name and open registration details with
+name, coat avatar, birth date and adoption date. Edit remains available through
+overflow. Care status, upcoming tasks, history and care creation actions belong to
+Today and History rather than cat registration. History groups compact entries by date and supports cat,
 type and period filters. Tapping opens the full entry, comments and sharing menu.
 
 Primary navigation uses labeled Today, Cats and History icons, with a rail on windows

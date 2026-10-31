@@ -26,3 +26,11 @@ and open task details; a pending editor is never replaced. Completion, delete an
 confirmations remain explicit. No backend, account or schema migration is introduced.
 
 These are local product decisions; no shared WNT platform extraction is required.
+
+## Amendment: registration-only Cats, 2026-10-31
+
+Cats cards show name and coat avatar. Opening a card shows registration details
+and editing, including optional birth/adoption dates. Remove care summaries,
+upcoming tasks, recent history and care creation actions from this surface.
+Today and History retain care planning and activity. This supersedes the profile
+overview decision above following the owner's review.

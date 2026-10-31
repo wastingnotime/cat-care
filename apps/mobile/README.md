@@ -91,8 +91,8 @@ with unsaved forms. No simulator account or external API is needed.
 Hoje groups care by Overdue, Today, Upcoming (collapsed initially) and No date,
 sorted by deadline. Cards open details, offer Mark done with confirmation, and put
 Edit/Reschedule/Cancel in overflow. Floating actions keep planning, adding cats and
-recording history available while scrolling. Gatos cards open a profile overview
-with next care and recent history, without lifetime counters. History has compact
+recording history available while scrolling. Gatos cards show the cat name and coat avatar and open registration details
+with editing, birth and adoption dates. Care activity stays in Today and History. History has compact
 date groups, cat/type/period filters and a detail screen for comments and sharing.
 Full-screen editors use compact cat chips, inline validation and discard protection;
 records allow past occurrence times and retain the actual entry timestamp separately.

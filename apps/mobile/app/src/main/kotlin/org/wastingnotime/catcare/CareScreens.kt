@@ -166,22 +166,6 @@ internal fun CareScreen(
                                         !busy,
                                     )
                                 }
-                                val catTasks =
-                                    careAgenda(state.tasks.filter { it.catId == cat.id }, now, zone)
-                                        .values
-                                        .flatten()
-                                val overdue =
-                                    catTasks.count {
-                                        CareRules.status(it.state, it.due, now) == "overdue"
-                                    }
-                                if (overdue > 0)
-                                    Badge(quantity(R.plurals.overdue_count, overdue), true)
-                                catTasks.firstOrNull()?.let {
-                                    Text(
-                                        it.title + " · " + relativeDeadline(it.due, now),
-                                        color = Muted,
-                                    )
-                                } ?: Text(tr(R.string.all_up_to_date), color = Muted)
                             }
                         }
                     "profile" -> {
@@ -214,42 +198,6 @@ internal fun CareScreen(
                                                 ": " +
                                                 localDate(profile.adoption)
                                         )
-                                    TextButton(
-                                        onClick = { model.openEditor("task", catId = profile.id) },
-                                        enabled = !busy,
-                                    ) {
-                                        Text(tr(R.string.plan_care))
-                                    }
-                                    TextButton(
-                                        onClick = {
-                                            model.openEditor("record", catId = profile.id)
-                                        },
-                                        enabled = !busy,
-                                    ) {
-                                        Text(tr(R.string.register_care))
-                                    }
-                                }
-                            }
-                            item { Heading(tr(R.string.upcoming_care)) }
-                            val tasks =
-                                careAgenda(state.tasks.filter { it.catId == profile.id }, now, zone)
-                                    .values
-                                    .flatten()
-                            if (tasks.isEmpty())
-                                item { Text(tr(R.string.no_pending), color = Muted) }
-                            items(tasks, key = { it.id }) { TaskCard(it, state, now, busy, model) }
-                            item { Heading(tr(R.string.recent_history)) }
-                            items(state.history[profile.id].orEmpty().take(3), key = { it.id }) {
-                                HistoryCard(it, state, model)
-                            }
-                            item {
-                                TextButton(
-                                    onClick = {
-                                        model.selectCat(profile.id)
-                                        model.navigate("history")
-                                    }
-                                ) {
-                                    Text(tr(R.string.view_history))
                                 }
                             }
                         }
