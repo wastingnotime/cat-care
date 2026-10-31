@@ -99,7 +99,7 @@
     <string name="category_other">Other</string>
     <string name="type_measurement">Measurement</string>
     <string name="type_care">Care</string>
-    <string name="type_observation">Observation (not a diagnosis)</string>
+    <string name="type_observation">Note</string>
     <string name="type_created">Planning</string>
     <string name="type_edited">Edit</string>
     <string name="type_completed">Completion</string>
@@ -318,8 +318,10 @@
     <string name="task_no_longer_pending">This care is no longer pending.</string>
     <string name="entry_unavailable">This record is no longer available.</string>
     <string name="care_title_other">Care</string>
-    <string name="add_observation">Record an observation</string>
+    <string name="add_observation">Add note</string>
     <string name="record_care_only">Record care</string>
     <string name="observation_prompt">What did you notice?</string>
-    <string name="observation_details">Observation details</string>
+    <string name="observation_details">Note details</string>
+    <string name="nav_notes">Notes</string>
+    <string name="no_notes">No notes for this cat yet. Add a note about their day, behavior or wellbeing.</string>
 </resources>

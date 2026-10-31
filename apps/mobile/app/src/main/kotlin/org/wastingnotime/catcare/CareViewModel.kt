@@ -125,7 +125,7 @@ class CareViewModel(
 
     fun navigate(route: String) {
         if (route == screen.value) return
-        if (route in listOf("today", "cats", "history")) {
+        if (route in listOf("today", "cats", "notes", "history")) {
             saved["backStack"] = arrayListOf<String>()
         } else {
             saved["backStack"] =

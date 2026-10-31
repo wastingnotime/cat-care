@@ -42,3 +42,11 @@ Observation creation now has its own editor launched from Today, separate from
 recording care. History only browses existing events; observation entries open
 observation details and comments. The timeline projects the same stored record,
 without duplication or a schema migration.
+
+## Amendment: Notes destination, 2026-10-31
+
+Add Notes to primary navigation. It lists the selected cat’s observations and
+provides Add note; these are presented as notes throughout the UI. Existing
+observations are reused without migration. Notes remain visible in History.
+Creation moves from Today to Notes, superseding the preceding creation-placement
+decision. Today retains Record care, and History remains a browsing surface.

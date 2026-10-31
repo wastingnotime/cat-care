@@ -35,7 +35,7 @@ overflow. Care status, upcoming tasks, history and care creation actions belong 
 Today and History rather than cat registration. History groups compact entries by date and supports cat,
 type and period filters. Tapping opens the full entry, comments and sharing menu.
 
-Primary navigation uses labeled Today, Cats and History icons, with a rail on windows
+Primary navigation uses labeled Today, Cats, Notes and History icons, with a rail on windows
 at least 600dp wide. Child screens have an Up button. Back restores the originating
 screen. Floating labeled creation actions remain available as lists scroll, with
 bottom content padding so they do not block the last item.
@@ -61,9 +61,11 @@ Implementation: `CatCareApp` supplies the shell and editors, `CareScreens` the s
 See [ADR 0005](../adr/0005-daily-care-ux.md) and the
 [validation evidence](../../runs/android-daily-ux-2026-10-23/evidence.md).
 
-Observation creation starts from Today using “Record an observation”, with a cat,
-what the owner noticed and an occurrence date/time. A separate “Record care” action
-handles feeding, medication, hygiene, measurements and other completed care.
-History is a browsing surface with no creation action. Observation entries open
-“Observation details” with comments and sharing. One observation remains one stored
-timeline record; no duplicate event or separate Observations tab is introduced.
+Notes is a primary destination for cat observations, with a cat filter, dated note
+cards and an Add note action. Existing observations are included automatically.
+Opening a note shows Note details, comments and sharing. Creation asks for a cat,
+what the owner noticed and an occurrence date/time. Today retains Record care for
+feeding, medication, hygiene, measurements and other completed care.
+History browses all events, including notes, without a creation action. Notes and
+History display the same stored records; no duplicate events or schema migration
+are introduced. Back from note details returns to the originating tab.

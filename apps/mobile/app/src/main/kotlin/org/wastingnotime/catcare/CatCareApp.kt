@@ -46,6 +46,7 @@ private val destinations =
     listOf(
         Destination("today", R.string.nav_today, R.drawable.ic_nav_today),
         Destination("cats", R.string.nav_cats, R.drawable.ic_nav_cats),
+        Destination("notes", R.string.nav_notes, R.drawable.ic_nav_notes),
         Destination("history", R.string.nav_history, R.drawable.ic_nav_history),
     )
 
@@ -76,7 +77,7 @@ fun CatCareApp(model: CareViewModel) {
             model.clearMessage()
         }
     }
-    val primary = screen in listOf("today", "cats", "history")
+    val primary = screen in listOf("today", "cats", "notes", "history")
     val wide =
         with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() } >= 600.dp
     BackHandler(enabled = screen != "today" && draft.isEmpty, onBack = model::back)
@@ -85,6 +86,7 @@ fun CatCareApp(model: CareViewModel) {
             tr(
                 when (screen) {
                     "cats" -> R.string.nav_cats
+                    "notes" -> R.string.nav_notes
                     "history" -> R.string.nav_history
                     "entry" -> if (state.history.values.flatten().find { it.id == model.entryId.value }?.type == "observation") R.string.observation_details else R.string.entry_details
                     "data" -> R.string.nav_data
@@ -165,7 +167,7 @@ fun CatCareApp(model: CareViewModel) {
                                 model.openEditor(
                                     when (screen) {
                                         "cats" -> "cat"
-                                        "history" -> "record"
+                                        "notes" -> "observation"
                                         else -> "task"
                                     }
                                 )
@@ -176,7 +178,7 @@ fun CatCareApp(model: CareViewModel) {
                             tr(
                                 when (screen) {
                                     "cats" -> R.string.add_cat_action
-                                    "history" -> R.string.register_action
+                                    "notes" -> R.string.add_observation
                                     else -> R.string.plan_care_action
                                 }
                             )

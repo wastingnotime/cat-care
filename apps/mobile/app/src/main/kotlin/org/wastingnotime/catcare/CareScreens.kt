@@ -68,7 +68,7 @@ internal fun CareScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 100.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (state.cats.isEmpty() && screen in listOf("today", "cats", "history")) {
+            if (state.cats.isEmpty() && screen in listOf("today", "cats", "notes", "history")) {
                 item {
                     CareCard {
                         CatIllustration(Modifier.fillMaxWidth().height(150.dp))
@@ -101,9 +101,6 @@ internal fun CareScreen(
                         }
                         item {
                             Column {
-                                TextButton(onClick = { model.openEditor("observation") }, enabled = !busy) {
-                                    Text(tr(R.string.add_observation))
-                                }
                                 TextButton(onClick = { model.openEditor("record") }, enabled = !busy) {
                                     Text(tr(R.string.record_care_only))
                                 }
@@ -176,6 +173,22 @@ internal fun CareScreen(
                                 }
                             }
                         }
+                    "notes" -> {
+                        item { CatFilter(state.cats, selected, model::selectCat) }
+                        val notes = history.filter { it.type == "observation" }
+                        if (notes.isEmpty())
+                            item { Text(tr(R.string.no_notes), color = Muted) }
+                        notes.groupBy { historyDay(it, zone) }.forEach { (day, entries) ->
+                            item(key = day.toString()) {
+                                Text(
+                                    relativeDay(day, now),
+                                    Modifier.semantics { heading() },
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                            }
+                            items(entries, key = { it.id }) { HistoryCard(it, state, model) }
+                        }
+                    }
                     "history" -> {
                         item {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

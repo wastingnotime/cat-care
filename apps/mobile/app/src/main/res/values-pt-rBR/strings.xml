@@ -99,7 +99,7 @@
     <string name="category_other">Outro</string>
     <string name="type_measurement">Medição</string>
     <string name="type_care">Cuidado</string>
-    <string name="type_observation">Observação (não é diagnóstico)</string>
+    <string name="type_observation">Nota</string>
     <string name="type_created">Planejamento</string>
     <string name="type_edited">Edição</string>
     <string name="type_completed">Conclusão</string>
@@ -326,8 +326,10 @@
     <string name="task_no_longer_pending">Este cuidado não está mais pendente.</string>
     <string name="entry_unavailable">Este registro não está mais disponível.</string>
     <string name="care_title_other">Cuidado</string>
-    <string name="add_observation">Registrar observação</string>
+    <string name="add_observation">Adicionar nota</string>
     <string name="record_care_only">Registrar cuidado</string>
     <string name="observation_prompt">O que você percebeu?</string>
-    <string name="observation_details">Detalhes da observação</string>
+    <string name="observation_details">Detalhes da nota</string>
+    <string name="nav_notes">Notas</string>
+    <string name="no_notes">Este gato ainda não tem notas. Adicione uma nota sobre o dia, comportamento ou bem-estar dele.</string>
 </resources>
