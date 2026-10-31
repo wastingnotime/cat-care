@@ -37,3 +37,8 @@ overview decision above following the owner's review.
 
 Cat cards now open the profile editor directly. The intermediate read-only profile
 screen is removed; saving or canceling returns to Cats.
+
+Observation creation now has its own editor launched from Today, separate from
+recording care. History only browses existing events; observation entries open
+observation details and comments. The timeline projects the same stored record,
+without duplication or a schema migration.

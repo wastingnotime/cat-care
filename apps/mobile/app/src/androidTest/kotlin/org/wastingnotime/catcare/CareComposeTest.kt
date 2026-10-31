@@ -213,7 +213,8 @@ class CareComposeTest {
         ready()
         nav("history")
         compose.onAllNodesWithText("Comentar").assertCountEquals(0)
-        click("Registrar cuidado ou observação")
+        nav("today")
+        compose.onNodeWithText("Registrar observação").performScrollTo().performClick()
         compose.onNodeWithTag("avatar-$mimi").performClick()
         field("description", "Registro da Mimi")
         compose.activityRule.scenario.recreate()
@@ -607,7 +608,8 @@ class CareComposeTest {
     fun backdatedRecordOpensTheSavedEntryAndKeepsEntryTimeSeparate() {
         ready()
         nav("history")
-        click("Registrar cuidado ou observação")
+        nav("today")
+        compose.onNodeWithText("Registrar observação").performScrollTo().performClick()
         compose.onNodeWithTag("avatar-$mimi").performClick()
         field("description", "Observed yesterday")
         val yesterday = java.time.LocalDate.now().minusDays(1).toString()
@@ -630,7 +632,7 @@ class CareComposeTest {
             java.time.Instant.parse(org.json.JSONObject(entry.details!!).getString("recorded_at"))
                 .isAfter(java.time.Instant.parse(entry.at))
         )
-        compose.onNodeWithTag("activity-title").assertTextContains("Detalhes do registro")
+        compose.onNodeWithTag("activity-title").assertTextContains("Detalhes da observação")
         compose.onNodeWithText("Observed yesterday").assertExists()
         val before = store.export(null)
         store.restore(before)
@@ -722,7 +724,7 @@ class CareComposeTest {
         capture("history")
         openEntry("Mimi brincou")
         compose.waitUntil(10000) {
-            compose.onAllNodesWithText("Detalhes do registro").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("Detalhes da observação").fetchSemanticsNodes().isNotEmpty()
         }
         capture("entry")
         nav("data")

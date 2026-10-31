@@ -203,7 +203,7 @@ class CareViewModel(
         val baseline = saved.get<Bundle>("draftBaseline")
         val current = draft.value
         val editable =
-            current.getString("kind") in listOf("cat", "task", "record", "comment", "defer")
+            current.getString("kind") in listOf("cat", "task", "record", "observation", "comment", "defer")
         @Suppress("DEPRECATION")
         val changed =
             baseline != null &&
@@ -283,9 +283,9 @@ class CareViewModel(
                         putString("dueTime", "")
                     }
                 }
-                if (kind == "record") {
+                if (kind in listOf("record", "observation")) {
                     putString("cat", catId ?: selected.value)
-                    putString("type", "observation")
+                    putString("type", if (kind == "observation") "observation" else "care")
                     val moment = ZonedDateTime.now().withSecond(0).withNano(0)
                     putString("dueDate", moment.toLocalDate().toString())
                     putString("dueTime", moment.toLocalTime().toString())
@@ -342,7 +342,7 @@ class CareViewModel(
                             )
                             null
                         }
-                        "record" -> {
+                        "record", "observation" -> {
                             store.record(
                                 chosenCat(),
                                 value("type"),
@@ -390,7 +390,7 @@ class CareViewModel(
                     navigate("cats")
                     mutableReveal.value = result
                 }
-                "record" -> {
+                "record", "observation" -> {
                     selectCat(value("cat"))
                     openHistoryEntry(result!!)
                 }

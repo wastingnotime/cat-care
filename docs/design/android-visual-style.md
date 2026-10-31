@@ -60,3 +60,10 @@ Implementation: `CatCareApp` supplies the shell and editors, `CareScreens` the s
 `CareAgenda` the deadline grouping, and `CareViewModel` the saved navigation/draft state.
 See [ADR 0005](../adr/0005-daily-care-ux.md) and the
 [validation evidence](../../runs/android-daily-ux-2026-10-23/evidence.md).
+
+Observation creation starts from Today using “Record an observation”, with a cat,
+what the owner noticed and an occurrence date/time. A separate “Record care” action
+handles feeding, medication, hygiene, measurements and other completed care.
+History is a browsing surface with no creation action. Observation entries open
+“Observation details” with comments and sharing. One observation remains one stored
+timeline record; no duplicate event or separate Observations tab is introduced.

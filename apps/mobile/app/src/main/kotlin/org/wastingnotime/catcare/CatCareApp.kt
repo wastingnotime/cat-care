@@ -86,7 +86,7 @@ fun CatCareApp(model: CareViewModel) {
                 when (screen) {
                     "cats" -> R.string.nav_cats
                     "history" -> R.string.nav_history
-                    "entry" -> R.string.entry_details
+                    "entry" -> if (state.history.values.flatten().find { it.id == model.entryId.value }?.type == "observation") R.string.observation_details else R.string.entry_details
                     "data" -> R.string.nav_data
                     "settings" -> R.string.settings
                     "about" -> R.string.about
@@ -158,7 +158,7 @@ fun CatCareApp(model: CareViewModel) {
                     }
             },
             floatingActionButton = {
-                if (primary && state.cats.isNotEmpty())
+                if (primary && screen != "history" && state.cats.isNotEmpty())
                     ExtendedFloatingActionButton(
                         onClick = {
                             if (!busy)
@@ -398,7 +398,8 @@ private fun CareEditor(
         when (kind) {
             "cat" -> if (target == null) tr(R.string.add_cat) else tr(R.string.edit_profile)
             "task" -> if (target == null) tr(R.string.plan_care) else tr(R.string.edit_care)
-            "record" -> tr(R.string.register_care)
+            "observation" -> tr(R.string.add_observation)
+            "record" -> tr(R.string.record_care_only)
             "comment" -> tr(R.string.comment_heading)
             "actions" -> tr(R.string.task_details)
             "complete" -> tr(R.string.complete_question)
@@ -412,7 +413,7 @@ private fun CareEditor(
             "export-unavailable" -> tr(R.string.export_unavailable_title)
             else -> tr(R.string.storage_heading)
         }
-    val editable = kind in listOf("cat", "task", "record", "comment", "defer")
+    val editable = kind in listOf("cat", "task", "record", "observation", "comment", "defer")
     val discard by model.discardPrompt.collectAsStateWithLifecycle()
     val errorField by model.errorField.collectAsStateWithLifecycle()
     val fullScreen = editable
@@ -523,19 +524,19 @@ private fun CareEditor(
                             ScheduleFields(draft, model)
                             RepeatFields(draft, model)
                         }
-                        "record" -> {
+                        "record", "observation" -> {
                             ValidationAnchor("cat", model) {
                                 FormCatPicker(state.cats, value("cat")) { model.field("cat", it) }
                             }
-                            Choice(
+                            if (kind == "record") Choice(
                                 tr(R.string.record_type),
-                                RecordTypes.associateWith { tr(typeLabel(it)) },
+                                RecordTypes.filter { it != "observation" }.associateWith { tr(typeLabel(it)) },
                                 value("type"),
                             ) {
                                 model.field("type", it)
                             }
                             FormField(
-                                tr(R.string.description),
+                                tr(if (kind == "observation") R.string.observation_prompt else R.string.description),
                                 value("description"),
                                 "description",
                                 model,

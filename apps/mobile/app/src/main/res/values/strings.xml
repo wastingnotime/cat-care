@@ -318,4 +318,8 @@
     <string name="task_no_longer_pending">This care is no longer pending.</string>
     <string name="entry_unavailable">This record is no longer available.</string>
     <string name="care_title_other">Care</string>
+    <string name="add_observation">Record an observation</string>
+    <string name="record_care_only">Record care</string>
+    <string name="observation_prompt">What did you notice?</string>
+    <string name="observation_details">Observation details</string>
 </resources>

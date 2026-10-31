@@ -326,4 +326,8 @@
     <string name="task_no_longer_pending">Este cuidado não está mais pendente.</string>
     <string name="entry_unavailable">Este registro não está mais disponível.</string>
     <string name="care_title_other">Cuidado</string>
+    <string name="add_observation">Registrar observação</string>
+    <string name="record_care_only">Registrar cuidado</string>
+    <string name="observation_prompt">O que você percebeu?</string>
+    <string name="observation_details">Detalhes da observação</string>
 </resources>

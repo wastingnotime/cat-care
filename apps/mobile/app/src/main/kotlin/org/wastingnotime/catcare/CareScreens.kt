@@ -99,6 +99,16 @@ internal fun CareScreen(
                                     Text(tr(R.string.today_clear), color = Muted)
                             }
                         }
+                        item {
+                            Column {
+                                TextButton(onClick = { model.openEditor("observation") }, enabled = !busy) {
+                                    Text(tr(R.string.add_observation))
+                                }
+                                TextButton(onClick = { model.openEditor("record") }, enabled = !busy) {
+                                    Text(tr(R.string.record_care_only))
+                                }
+                            }
+                        }
                         AgendaSection.entries.forEach { section ->
                             val tasks = agenda[section].orEmpty()
                             if (tasks.isNotEmpty()) {
