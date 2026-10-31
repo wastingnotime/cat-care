@@ -713,14 +713,9 @@ class CareComposeTest {
         nav("cats")
         capture("cats")
         compose.onNodeWithTag("cat-card-$mimi").performClick()
-        compose.waitUntil(10000) {
-            compose
-                .onAllNodesWithTag("activity-title")
-                .fetchSemanticsNodes()
-                .any { "Perfil do gato" in it.config.toString() }
-        }
-        compose.onNodeWithTag("activity-title").assertTextContains("Perfil do gato")
-        capture("profile")
+        compose.onNodeWithTag("field-name").assertTextContains("Mimi")
+        capture("profile-editing")
+        compose.onNodeWithTag("close-editor").performClick()
         nav("history")
         compose.onNodeWithTag("activity-title").assertTextContains("Histórico")
         compose.onNodeWithTag("filter-$mimi").performClick()

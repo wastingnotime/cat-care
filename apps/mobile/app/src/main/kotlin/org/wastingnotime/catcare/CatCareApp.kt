@@ -86,7 +86,6 @@ fun CatCareApp(model: CareViewModel) {
                 when (screen) {
                     "cats" -> R.string.nav_cats
                     "history" -> R.string.nav_history
-                    "profile" -> R.string.profile
                     "entry" -> R.string.entry_details
                     "data" -> R.string.nav_data
                     "settings" -> R.string.settings

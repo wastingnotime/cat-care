@@ -36,10 +36,8 @@ internal fun CareScreen(
     var upcoming by rememberSaveable { mutableStateOf(false) }
     var historyType by rememberSaveable { mutableStateOf("all") }
     var historyPeriod by rememberSaveable { mutableStateOf("all") }
-    val profileId by model.profileCat.collectAsStateWithLifecycle()
     val entryId by model.entryId.collectAsStateWithLifecycle()
     val selectedCat = state.cats.find { it.id == selected }
-    val profile = state.cats.find { it.id == profileId }
     val history = state.history[selected].orEmpty()
     val zone = ZoneId.systemDefault()
     val agenda = careAgenda(state.tasks, now, zone)
@@ -145,8 +143,8 @@ internal fun CareScreen(
                         items(state.cats, key = { it.id }) { cat ->
                             ClickCard(
                                 "cat-card-${cat.id}",
-                                tr(R.string.open_profile, cat.name),
-                                { model.openProfile(cat.id) },
+                                tr(R.string.edit_profile) + ": " + cat.name,
+                                { model.openEditor("cat", cat.id) },
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     CatAvatar(cat.coat, Modifier.size(56.dp))
@@ -168,40 +166,6 @@ internal fun CareScreen(
                                 }
                             }
                         }
-                    "profile" -> {
-                        if (profile == null) item { Text(tr(R.string.error_cat_missing)) }
-                        else {
-                            item {
-                                CareCard {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        CatAvatar(profile.coat, Modifier.size(64.dp))
-                                        Text(
-                                            profile.name,
-                                            Modifier.weight(1f).padding(start = 12.dp),
-                                            style = MaterialTheme.typography.headlineSmall,
-                                        )
-                                        CardMenu(
-                                            "profile-menu",
-                                            listOf(
-                                                CardAction(tr(R.string.edit_profile)) {
-                                                    model.openEditor("cat", profile.id)
-                                                }
-                                            ),
-                                            !busy,
-                                        )
-                                    }
-                                    if (profile.birth.isNotEmpty())
-                                        Text(tr(R.string.birth) + ": " + localDate(profile.birth))
-                                    if (profile.adoption.isNotEmpty())
-                                        Text(
-                                            tr(R.string.adoption) +
-                                                ": " +
-                                                localDate(profile.adoption)
-                                        )
-                                }
-                            }
-                        }
-                    }
                     "history" -> {
                         item {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

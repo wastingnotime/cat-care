@@ -44,7 +44,6 @@ class CareViewModel(
     val draft = saved.getStateFlow("draft", Bundle())
     val discardPrompt = saved.getStateFlow("discardPrompt", false)
     val reminderPrompt = saved.getStateFlow("reminderPrompt", false)
-    val profileCat = saved.getStateFlow("profileCat", "")
     val entryId = saved.getStateFlow("entryId", "")
     val errorField = saved.getStateFlow("errorField", "")
     private val mutableBusy = MutableStateFlow(false)
@@ -141,11 +140,6 @@ class CareViewModel(
         saved["screen"] = stack.lastOrNull() ?: "today"
         saved["backStack"] = ArrayList(stack.dropLast(1))
         clearError()
-    }
-
-    fun openProfile(id: String) {
-        saved["profileCat"] = id
-        navigate("profile")
     }
 
     fun openHistoryEntry(id: String) {
@@ -393,7 +387,7 @@ class CareViewModel(
             when (value("kind")) {
                 "cat" -> {
                     selectCat(result.orEmpty())
-                    if (screen.value != "profile") navigate("cats")
+                    navigate("cats")
                     mutableReveal.value = result
                 }
                 "record" -> {

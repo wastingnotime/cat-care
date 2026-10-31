@@ -34,3 +34,6 @@ and editing, including optional birth/adoption dates. Remove care summaries,
 upcoming tasks, recent history and care creation actions from this surface.
 Today and History retain care planning and activity. This supersedes the profile
 overview decision above following the owner's review.
+
+Cat cards now open the profile editor directly. The intermediate read-only profile
+screen is removed; saving or canceling returns to Cats.
