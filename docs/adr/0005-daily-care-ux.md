@@ -50,3 +50,6 @@ provides Add note; these are presented as notes throughout the UI. Existing
 observations are reused without migration. Notes remain visible in History.
 Creation moves from Today to Notes, superseding the preceding creation-placement
 decision. Today retains Record care, and History remains a browsing surface.
+
+Move Record care from Today to Notes and include direct care records in its list.
+Use visual category tiles matching Plan care while retaining existing record types.

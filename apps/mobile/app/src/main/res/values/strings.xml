@@ -323,5 +323,5 @@
     <string name="observation_prompt">What did you notice?</string>
     <string name="observation_details">Note details</string>
     <string name="nav_notes">Notes</string>
-    <string name="no_notes">No notes for this cat yet. Add a note about their day, behavior or wellbeing.</string>
+    <string name="no_notes">No notes or care records for this cat yet.</string>
 </resources>

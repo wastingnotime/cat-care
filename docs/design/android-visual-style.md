@@ -69,3 +69,7 @@ feeding, medication, hygiene, measurements and other completed care.
 History browses all events, including notes, without a creation action. Notes and
 History display the same stored records; no duplicate events or schema migration
 are introduced. Back from note details returns to the originating tab.
+
+Notes also contains direct care records and the Record care action. Today focuses
+on planned care. Record care uses the same icon-tile selection as Plan care, with
+measurement, feeding, medication, hygiene and care types preserved.

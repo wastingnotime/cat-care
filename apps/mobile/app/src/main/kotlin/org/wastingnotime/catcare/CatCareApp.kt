@@ -530,13 +530,10 @@ private fun CareEditor(
                             ValidationAnchor("cat", model) {
                                 FormCatPicker(state.cats, value("cat")) { model.field("cat", it) }
                             }
-                            if (kind == "record") Choice(
-                                tr(R.string.record_type),
-                                RecordTypes.filter { it != "observation" }.associateWith { tr(typeLabel(it)) },
-                                value("type"),
-                            ) {
-                                model.field("type", it)
-                            }
+                            if (kind == "record")
+                                CareCategoryPicker(value("type"), recordCare = true) {
+                                    model.field("type", it)
+                                }
                             FormField(
                                 tr(if (kind == "observation") R.string.observation_prompt else R.string.description),
                                 value("description"),

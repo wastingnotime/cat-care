@@ -99,13 +99,6 @@ internal fun CareScreen(
                                     Text(tr(R.string.today_clear), color = Muted)
                             }
                         }
-                        item {
-                            Column {
-                                TextButton(onClick = { model.openEditor("record") }, enabled = !busy) {
-                                    Text(tr(R.string.record_care_only))
-                                }
-                            }
-                        }
                         AgendaSection.entries.forEach { section ->
                             val tasks = agenda[section].orEmpty()
                             if (tasks.isNotEmpty()) {
@@ -175,7 +168,12 @@ internal fun CareScreen(
                         }
                     "notes" -> {
                         item { CatFilter(state.cats, selected, model::selectCat) }
-                        val notes = history.filter { it.type == "observation" }
+                        item {
+                            TextButton(onClick = { model.openEditor("record") }, enabled = !busy) {
+                                Text(tr(R.string.record_care_only))
+                            }
+                        }
+                        val notes = history.filter { it.type in RecordTypes }
                         if (notes.isEmpty())
                             item { Text(tr(R.string.no_notes), color = Muted) }
                         notes.groupBy { historyDay(it, zone) }.forEach { (day, entries) ->
