@@ -53,3 +53,11 @@ decision. Today retains Record care, and History remains a browsing surface.
 
 Move Record care from Today to Notes and include direct care records in its list.
 Use visual category tiles matching Plan care while retaining existing record types.
+
+## Amendment: unified categorized notes, 2026-10-31
+
+Treat completed care records as kinds of cat notes. Notes offers a single Add note
+flow with visual categories Note, Measurement, Feeding, Medication, Hygiene and
+Care. Note is the default category. Remove the separate Record care action.
+All these entries open Note details and remain in History. Preserve existing
+stored record types and backups; no migration is needed.

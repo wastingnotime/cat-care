@@ -88,7 +88,7 @@ fun CatCareApp(model: CareViewModel) {
                     "cats" -> R.string.nav_cats
                     "notes" -> R.string.nav_notes
                     "history" -> R.string.nav_history
-                    "entry" -> if (state.history.values.flatten().find { it.id == model.entryId.value }?.type == "observation") R.string.observation_details else R.string.entry_details
+                    "entry" -> if (state.history.values.flatten().find { it.id == model.entryId.value }?.type in RecordTypes) R.string.observation_details else R.string.entry_details
                     "data" -> R.string.nav_data
                     "settings" -> R.string.settings
                     "about" -> R.string.about
@@ -401,7 +401,7 @@ private fun CareEditor(
             "cat" -> if (target == null) tr(R.string.add_cat) else tr(R.string.edit_profile)
             "task" -> if (target == null) tr(R.string.plan_care) else tr(R.string.edit_care)
             "observation" -> tr(R.string.add_observation)
-            "record" -> tr(R.string.record_care_only)
+            "record" -> tr(R.string.add_observation)
             "comment" -> tr(R.string.comment_heading)
             "actions" -> tr(R.string.task_details)
             "complete" -> tr(R.string.complete_question)
@@ -530,12 +530,11 @@ private fun CareEditor(
                             ValidationAnchor("cat", model) {
                                 FormCatPicker(state.cats, value("cat")) { model.field("cat", it) }
                             }
-                            if (kind == "record")
-                                CareCategoryPicker(value("type"), recordCare = true) {
-                                    model.field("type", it)
-                                }
+                            CareCategoryPicker(value("type"), noteCategories = true) {
+                                model.field("type", it)
+                            }
                             FormField(
-                                tr(if (kind == "observation") R.string.observation_prompt else R.string.description),
+                                tr(R.string.description),
                                 value("description"),
                                 "description",
                                 model,

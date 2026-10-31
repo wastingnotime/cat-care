@@ -61,15 +61,10 @@ Implementation: `CatCareApp` supplies the shell and editors, `CareScreens` the s
 See [ADR 0005](../adr/0005-daily-care-ux.md) and the
 [validation evidence](../../runs/android-daily-ux-2026-10-23/evidence.md).
 
-Notes is a primary destination for cat observations, with a cat filter, dated note
-cards and an Add note action. Existing observations are included automatically.
-Opening a note shows Note details, comments and sharing. Creation asks for a cat,
-what the owner noticed and an occurrence date/time. Today retains Record care for
-feeding, medication, hygiene, measurements and other completed care.
-History browses all events, including notes, without a creation action. Notes and
-History display the same stored records; no duplicate events or schema migration
-are introduced. Back from note details returns to the originating tab.
-
-Notes also contains direct care records and the Record care action. Today focuses
-on planned care. Record care uses the same icon-tile selection as Plan care, with
-measurement, feeding, medication, hygiene and care types preserved.
+Notes is a primary destination for all cat notes, including completed care. The
+Add note editor uses visual category tiles: Note, Measurement, Feeding, Medication,
+Hygiene and Care. Note is selected initially. Each entry has a cat, description and
+occurrence date/time. Existing observations and direct care records appear in the
+same dated list, with cat filtering. Tapping any note opens Note details, comments
+and sharing. History includes these same records alongside other events. No data
+migration or duplicate timeline record is introduced. Today focuses on planned care.

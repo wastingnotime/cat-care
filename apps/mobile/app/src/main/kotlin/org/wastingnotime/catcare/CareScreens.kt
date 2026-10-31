@@ -168,11 +168,6 @@ internal fun CareScreen(
                         }
                     "notes" -> {
                         item { CatFilter(state.cats, selected, model::selectCat) }
-                        item {
-                            TextButton(onClick = { model.openEditor("record") }, enabled = !busy) {
-                                Text(tr(R.string.record_care_only))
-                            }
-                        }
                         val notes = history.filter { it.type in RecordTypes }
                         if (notes.isEmpty())
                             item { Text(tr(R.string.no_notes), color = Muted) }

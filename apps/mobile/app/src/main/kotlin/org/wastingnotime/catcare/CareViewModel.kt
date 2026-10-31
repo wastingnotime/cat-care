@@ -285,7 +285,7 @@ class CareViewModel(
                 }
                 if (kind in listOf("record", "observation")) {
                     putString("cat", catId ?: selected.value)
-                    putString("type", if (kind == "observation") "observation" else "care")
+                    putString("type", "observation")
                     val moment = ZonedDateTime.now().withSecond(0).withNano(0)
                     putString("dueDate", moment.toLocalDate().toString())
                     putString("dueTime", moment.toLocalTime().toString())

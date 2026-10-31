@@ -331,5 +331,5 @@
     <string name="observation_prompt">O que você percebeu?</string>
     <string name="observation_details">Detalhes da nota</string>
     <string name="nav_notes">Notas</string>
-    <string name="no_notes">Este gato ainda não tem notas ou registros de cuidado.</string>
+    <string name="no_notes">Este gato ainda não tem notas. Adicione uma nota e escolha uma categoria.</string>
 </resources>

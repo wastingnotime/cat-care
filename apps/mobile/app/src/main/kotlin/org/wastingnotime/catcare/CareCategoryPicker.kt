@@ -17,10 +17,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun CareCategoryPicker(selected: String, recordCare: Boolean = false, choose: (String) -> Unit) {
+internal fun CareCategoryPicker(selected: String, noteCategories: Boolean = false, choose: (String) -> Unit) {
     val columns = if (LocalDensity.current.fontScale > 1.2f) 1 else 2
-    val ids = if (recordCare) RecordTypes.filter { it != "observation" } else Categories
-    val icons = if (recordCare) listOf(
+    val ids = if (noteCategories) listOf("observation") + RecordTypes.filter { it != "observation" } else Categories
+    val icons = if (noteCategories) listOf(
+        R.drawable.ic_nav_notes,
         R.drawable.ic_care_measurement, R.drawable.ic_care_feeding,
         R.drawable.ic_care_medication, R.drawable.ic_care_hygiene, R.drawable.ic_care_other,
     ) else listOf(
@@ -33,7 +34,7 @@ internal fun CareCategoryPicker(selected: String, recordCare: Boolean = false, c
             ids.zip(icons).chunked(columns).forEach { row ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     row.forEach { (category, icon) ->
-                        val active = if (recordCare) category == selected else categoryLabel(category) == categoryLabel(selected)
+                        val active = if (noteCategories) category == selected else categoryLabel(category) == categoryLabel(selected)
                         Surface(
                             modifier = Modifier.weight(1f),
                             color = if (active) Sage else MaterialTheme.colorScheme.surfaceContainerLowest,
@@ -49,7 +50,7 @@ internal fun CareCategoryPicker(selected: String, recordCare: Boolean = false, c
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
                                 Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(32.dp), tint = Forest)
-                                Text(tr(if (recordCare) typeLabel(category) else categoryLabel(category)), fontWeight = if (active) FontWeight.Bold else FontWeight.Normal)
+                                Text(tr(if (noteCategories) typeLabel(category) else categoryLabel(category)), fontWeight = if (active) FontWeight.Bold else FontWeight.Normal)
                             }
                         }
                     }
