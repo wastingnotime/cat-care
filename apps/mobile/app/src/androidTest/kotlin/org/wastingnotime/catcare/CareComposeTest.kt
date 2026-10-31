@@ -659,8 +659,9 @@ class CareComposeTest {
         compose.onNodeWithText("Future appointment").assertIsDisplayed()
         nav("history")
         compose.onNodeWithTag("filter-$mimi").performClick()
-        click("Todos os tipos")
-        compose.onNode(hasText("Observação (não é diagnóstico)") and hasAnyAncestor(isPopup())).performClick()
+        compose.onNodeWithTag("history-filter-type")
+            .performScrollToNode(hasTestTag("history-filter-type-observation"))
+        compose.onNodeWithTag("history-filter-type-observation").performClick().assertIsSelected()
         compose.onNodeWithText("Mimi brincou").assertExists()
         compose.onNodeWithText("Cuidado criado: Água da Mimi").assertDoesNotExist()
     }

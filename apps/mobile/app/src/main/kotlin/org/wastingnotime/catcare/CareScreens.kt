@@ -186,7 +186,8 @@ internal fun CareScreen(
                         item {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 CatFilter(state.cats, selected, model::selectCat)
-                                Choice(
+                                HistoryFilterChips(
+                                    "type",
                                     tr(R.string.history_type_filter),
                                     linkedMapOf("all" to tr(R.string.all_types)).apply {
                                         (RecordTypes +
@@ -204,7 +205,8 @@ internal fun CareScreen(
                                 ) {
                                     historyType = it
                                 }
-                                Choice(
+                                HistoryFilterChips(
+                                    "period",
                                     tr(R.string.history_period),
                                     linkedMapOf(
                                         "all" to tr(R.string.all_dates),
@@ -212,6 +214,7 @@ internal fun CareScreen(
                                         "30" to tr(R.string.last_month),
                                     ),
                                     historyPeriod,
+                                    scrollable = false,
                                 ) {
                                     historyPeriod = it
                                 }
