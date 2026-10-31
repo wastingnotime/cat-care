@@ -69,7 +69,8 @@ same dated list, with cat filtering. Tapping any note opens Note details, commen
 and sharing. History includes these same records alongside other events. No data
 migration or duplicate timeline record is introduced. Today focuses on planned care.
 
-History filters use single-selection chips. Record type scrolls horizontally to
+History defaults to Last 7 days; the selected period is retained while navigating
+and across recreation. History filters use single-selection chips. Record type scrolls horizontally to
 keep the timeline in view; period options (All dates, Last 7 days, Last 30 days)
 wrap when space is limited. Active choices remain selected and filters retain
 existing date semantics and saved screen state.

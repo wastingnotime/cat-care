@@ -35,7 +35,7 @@ internal fun CareScreen(
     var now by remember { mutableStateOf(Instant.now()) }
     var upcoming by rememberSaveable { mutableStateOf(false) }
     var historyType by rememberSaveable { mutableStateOf("all") }
-    var historyPeriod by rememberSaveable { mutableStateOf("all") }
+    var historyPeriod by rememberSaveable { mutableStateOf("7") }
     val entryId by model.entryId.collectAsStateWithLifecycle()
     val selectedCat = state.cats.find { it.id == selected }
     val history = state.history[selected].orEmpty()
