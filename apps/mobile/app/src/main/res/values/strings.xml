@@ -341,4 +341,5 @@
         <item quantity="one">%d overdue care task.</item>
         <item quantity="other">%d overdue care tasks.</item>
     </plurals>
+    <string name="privacy_policy">Privacy policy</string>
 </resources>

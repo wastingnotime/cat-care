@@ -31,6 +31,7 @@ internal fun CareScreen(
     reveal: String?,
     model: CareViewModel,
 ) {
+    val context = LocalContext.current
     val list = rememberLazyListState()
     var now by remember { mutableStateOf(Instant.now()) }
     var upcoming by rememberSaveable { mutableStateOf(false) }
@@ -346,6 +347,13 @@ internal fun CareScreen(
                                     Text(tr(R.string.privacy_storage))
                                     Text(tr(R.string.privacy_files))
                                     Text(tr(R.string.privacy_delete))
+                                    Secondary(tr(R.string.privacy_policy), true) {
+                                        context.startActivity(
+                                            Intent(Intent.ACTION_VIEW, android.net.Uri.parse(
+                                                "https://github.com/wastingnotime/cat-care/blob/main/docs/privacy-policy.md"
+                                            ))
+                                        )
+                                    }
                                 }
                             }
                         }

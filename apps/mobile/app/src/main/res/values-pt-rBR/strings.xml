@@ -349,4 +349,5 @@
         <item quantity="one">%d cuidado em atraso.</item>
         <item quantity="other">%d cuidados em atraso.</item>
     </plurals>
+    <string name="privacy_policy">Política de privacidade</string>
 </resources>
