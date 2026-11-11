@@ -70,7 +70,11 @@ fun CatCareApp(model: CareViewModel) {
             ActivityResultContracts.CreateDocument("application/json"),
             model::export,
         )
-    val messageText = message?.let { tr(it) }
+    val messageText = message?.let {
+        val text = tr(it.resource, *it.arguments.toTypedArray())
+        if (it.nextDue.isNullOrEmpty()) text
+        else text + " " + tr(R.string.next_care_scheduled, localMoment(it.nextDue))
+    }
     LaunchedEffect(messageText) {
         messageText?.let {
             snackbar.showSnackbar(it)
@@ -534,10 +538,20 @@ private fun CareEditor(
                                 model.field("type", it)
                             }
                             FormField(
-                                tr(R.string.description),
+                                tr(
+                                    when (value("type")) {
+                                        "observation" -> R.string.observation_prompt
+                                        "measurement" -> R.string.measurement_prompt
+                                        "feeding" -> R.string.feeding_prompt
+                                        "medication" -> R.string.medication_prompt
+                                        "hygiene" -> R.string.hygiene_prompt
+                                        else -> R.string.care_prompt
+                                    }
+                                ),
                                 value("description"),
                                 "description",
                                 model,
+                                hint = if (value("type") == "measurement") tr(R.string.measurement_example) else null,
                             )
                             ValidationAnchor("dueDate", model) {
                                 DateField(
@@ -724,6 +738,7 @@ internal fun FormField(
     model: CareViewModel,
     singleLine: Boolean = false,
     number: Boolean = false,
+    hint: String? = null,
 ) {
     val error by model.error.collectAsStateWithLifecycle()
     val field by model.errorField.collectAsStateWithLifecycle()
@@ -736,6 +751,7 @@ internal fun FormField(
             Modifier.fillMaxWidth().focusRequester(focus).testTag("field-$key"),
             isError = error != null && field == key,
             label = { Text(label) },
+            supportingText = hint?.let { text -> { Text(text) } },
             singleLine = singleLine,
             minLines = if (singleLine) 1 else 3,
             shape = RoundedCornerShape(12.dp),

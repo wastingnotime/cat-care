@@ -306,8 +306,12 @@ class CareComposeTest {
         click("+ Plan care")
         field("title", "Owner text stays exactly the same")
         compose.onNodeWithTag("save-editor").performClick()
+        compose.waitUntil(10000) {
+            compose.onAllNodesWithTag("validation-error").fetchSemanticsNodes().isNotEmpty() &&
+                compose.onAllNodesWithTag("loading").fetchSemanticsNodes().isEmpty()
+        }
         compose.onNodeWithTag("validation-error").assertTextContains("Choose a cat.")
-        compose.onNodeWithTag("avatar-$mimi").performClick()
+        compose.onNodeWithTag("avatar-$mimi").performScrollTo().performClick().assertIsSelected()
         save()
         nav("history")
         compose.onNodeWithTag("filter-$mimi").performClick()
@@ -502,6 +506,90 @@ class CareComposeTest {
         compose.onNodeWithTag("nav-today").assertTextContains("Hoje")
     }
 
+    private fun captureCozy(name: String) {
+        compose.waitForIdle()
+        android.os.SystemClock.sleep(300)
+        val instrumentation = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+        val bitmap = instrumentation.uiAutomation.takeScreenshot()
+        val directory = java.io.File(compose.activity.getExternalFilesDir(null), "cozy-ux")
+        directory.mkdirs()
+        java.io.File(directory, "$name.png").outputStream().use {
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
+        }
+        bitmap.recycle()
+    }
+
+    @Test
+    fun emptyNotesWelcomeTheSelectedCatAndPromptsFollowCategory() {
+        val nina = store.saveCat(null, "Nina", "", "", "calico")
+        compose.activityRule.scenario.recreate()
+        ready()
+        compose.onNodeWithText("Nenhum cuidado agendado para hoje. Aproveitem um tempo juntos.").assertExists()
+        captureCozy("today-clear-pt")
+        nav("notes")
+        compose.onNodeWithTag("filter-$nina").performClick()
+        compose.onNodeWithText("Os pequenos momentos com Nina têm lugar aqui. Adicione a primeira nota.").assertIsDisplayed()
+        captureCozy("notes-empty-pt")
+        compose.onNodeWithTag("create-action").performClick()
+        compose.onNodeWithTag("category-measurement").performScrollTo().performClick()
+        compose.onNodeWithTag("field-description").performScrollTo()
+        compose.onNodeWithText("O que você mediu?").assertExists()
+        compose.onNodeWithText("Inclua o valor e a unidade, por exemplo, 4,2 kg.").assertIsDisplayed()
+        captureCozy("measurement-pt")
+        compose.onNodeWithTag("category-observation").performScrollTo().performClick()
+        compose.onNodeWithTag("field-description").performScrollTo()
+        compose.onNodeWithText("O que você percebeu?").assertExists()
+        compose.onNodeWithText("Inclua o valor e a unidade, por exemplo, 4,2 kg.").assertDoesNotExist()
+        field("description", "Nina brincou")
+        save()
+        compose.onNodeWithText("Nota de Nina salva.").assertExists()
+        assertEquals("Nina brincou", store.history(nina).first { it.type == "observation" }.description)
+    }
+
+    @Test
+    fun emptyHistoryFiltersCanBeClearedTogether() {
+        ready()
+        nav("history")
+        compose.onNodeWithTag("filter-$mimi").performClick()
+        compose.onNodeWithTag("history-filter-type")
+            .performScrollToNode(hasTestTag("history-filter-type-measurement"))
+        compose.onNodeWithTag("history-filter-type-measurement").performClick()
+        compose.onNodeWithTag("clear-history-filters").performScrollTo().assertIsDisplayed()
+        captureCozy("history-filter-empty-pt")
+        compose.onNodeWithTag("clear-history-filters").performClick()
+        compose.onNodeWithTag("history-filter-type-all").assertIsSelected()
+        compose.onNodeWithTag("history-filter-period-all").assertIsSelected()
+        compose.onNodeWithText("Mimi brincou").assertExists()
+    }
+
+    @Test
+    fun recurringCompletionNamesCatAndShowsActualNextDateInEnglish() {
+        val due = java.time.Instant.now().minusSeconds(3600).toString()
+        store.saveTask(mimi, null, "Brush Mimi", "hygiene", due, 1, 0)
+        compose.activityRule.scenario.recreate()
+        ready()
+        nav("settings")
+        click("Português (Brasil)")
+        click("English (US)")
+        compose.waitUntil(10000) {
+            compose.onAllNodesWithText("Language").fetchSemanticsNodes().isNotEmpty()
+        }
+        nav("today")
+        val task = store.tasks(mimi).first { it.title == "Brush Mimi" }
+        compose.onNodeWithTag("care-list").performScrollToNode(hasTestTag("complete-${task.id}"))
+        compose.onNodeWithTag("complete-${task.id}").performClick()
+        save()
+        val next = store.tasks(mimi).single { it.title == "Brush Mimi" && it.state == "planned" }
+        val expected = CareRules.successor(due, 1, 0, java.time.ZoneId.of(task.zone))
+        assertEquals(expected, next.due)
+        val date = CareDates.moment(
+            java.time.Instant.parse(expected), java.util.Locale.US, java.time.ZoneId.systemDefault(),
+            android.text.format.DateFormat.is24HourFormat(compose.activity),
+        )
+        compose.onNodeWithText("Care for Mimi marked done. Next scheduled care: $date.").assertIsDisplayed()
+        captureCozy("completion-en")
+    }
+
     @Test
     fun overdueHeaderIncludesPastDueCare() {
         store.saveTask(
@@ -515,7 +603,7 @@ class CareComposeTest {
         )
         compose.activityRule.scenario.recreate()
         ready()
-        compose.onNodeWithText("Hoje: 0 · Em atraso: 1").assertIsDisplayed()
+        compose.onNodeWithText("1 cuidado em atraso.").assertIsDisplayed()
         compose.onNodeWithText("Atrasados").assertIsDisplayed()
         val task = store.tasks(mimi).first { it.title == "Exame atrasado" }
         compose.onNodeWithTag("care-list").performScrollToNode(hasTestTag("complete-${task.id}"))

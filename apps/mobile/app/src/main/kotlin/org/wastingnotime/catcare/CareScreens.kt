@@ -84,19 +84,20 @@ internal fun CareScreen(
                         item {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 TodayDate(now)
-                                Text(
-                                    tr(
-                                        R.string.agenda_summary,
-                                        agenda[AgendaSection.TODAY].orEmpty().size,
-                                        agenda[AgendaSection.OVERDUE].orEmpty().size,
-                                    ),
-                                    style = MaterialTheme.typography.titleLarge,
-                                )
-                                if (
-                                    agenda[AgendaSection.TODAY].isNullOrEmpty() &&
-                                        agenda[AgendaSection.OVERDUE].isNullOrEmpty()
-                                )
-                                    Text(tr(R.string.today_clear), color = Muted)
+                                val todayCount = agenda[AgendaSection.TODAY].orEmpty().size
+                                val overdueCount = agenda[AgendaSection.OVERDUE].orEmpty().size
+                                if (todayCount > 0)
+                                    Text(
+                                        quantity(R.plurals.today_care_summary, todayCount),
+                                        style = MaterialTheme.typography.titleLarge,
+                                    )
+                                if (overdueCount > 0)
+                                    Text(quantity(R.plurals.overdue_care_summary, overdueCount), color = Rust)
+                                if (todayCount == 0 && overdueCount == 0)
+                                    CareCard {
+                                        CatIllustration(Modifier.fillMaxWidth().height(96.dp))
+                                        Text(tr(R.string.today_clear), color = Muted)
+                                    }
                             }
                         }
                         AgendaSection.entries.forEach { section ->
@@ -170,7 +171,12 @@ internal fun CareScreen(
                         item { CatFilter(state.cats, selected, model::selectCat) }
                         val notes = history.filter { it.type in RecordTypes }
                         if (notes.isEmpty())
-                            item { Text(tr(R.string.no_notes), color = Muted) }
+                            item {
+                                CareCard {
+                                    CatIllustration(Modifier.fillMaxWidth().height(96.dp))
+                                    Text(tr(R.string.no_notes, selectedCat?.name.orEmpty()), color = Muted)
+                                }
+                            }
                         notes.groupBy { historyDay(it, zone) }.forEach { (day, entries) ->
                             item(key = day.toString()) {
                                 Text(
@@ -231,13 +237,18 @@ internal fun CareScreen(
                             }
                         if (filtered.isEmpty())
                             item {
-                                Text(
-                                    tr(
-                                        if (history.isEmpty()) R.string.no_history
-                                        else R.string.no_matching_history
-                                    ),
-                                    color = Muted,
-                                )
+                                CareCard {
+                                    Text(
+                                        if (history.isEmpty()) tr(R.string.no_history, selectedCat?.name.orEmpty())
+                                        else tr(R.string.no_matching_history),
+                                        color = Muted,
+                                    )
+                                    if (historyType != "all" || historyPeriod != "all")
+                                        TextButton(
+                                            onClick = { historyType = "all"; historyPeriod = "all" },
+                                            modifier = Modifier.testTag("clear-history-filters"),
+                                        ) { Text(tr(R.string.clear_filters)) }
+                                }
                             }
                         filtered
                             .groupBy { historyDay(it, zone) }

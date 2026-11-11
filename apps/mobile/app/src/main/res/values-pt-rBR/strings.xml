@@ -24,7 +24,7 @@
     <string name="add_cat_action">+ Adicionar gato</string>
     <string name="history_hint">Os pequenos gestos também ficam na memória.</string>
     <string name="register_action">Registrar cuidado ou observação</string>
-    <string name="no_history">Nenhum registro por aqui ainda.</string>
+    <string name="no_history">Os cuidados que você planejar e as notas que adicionar para %1$s aparecerão aqui.</string>
     <string name="no_comments">Sem comentários</string>
     <string name="comment_action">Comentar</string>
     <string name="local_data">Salvos neste aparelho</string>
@@ -283,8 +283,7 @@
     <string name="agenda_today">Hoje</string>
     <string name="agenda_upcoming">Próximos</string>
     <string name="agenda_undated">Sem data</string>
-    <string name="agenda_summary">Hoje: %1$d · Em atraso: %2$d</string>
-    <string name="today_clear">Nenhum outro cuidado para hoje.</string>
+    <string name="today_clear">Nenhum cuidado agendado para hoje. Aproveitem um tempo juntos.</string>
     <string name="section_count">%1$s · %2$d</string>
     <string name="tomorrow">Amanhã</string>
     <string name="yesterday">Ontem</string>
@@ -331,5 +330,23 @@
     <string name="observation_prompt">O que você percebeu?</string>
     <string name="observation_details">Detalhes da nota</string>
     <string name="nav_notes">Notas</string>
-    <string name="no_notes">Este gato ainda não tem notas. Adicione uma nota e escolha uma categoria.</string>
+    <string name="no_notes">Os pequenos momentos com %1$s têm lugar aqui. Adicione a primeira nota.</string>
+    <string name="clear_filters">Limpar filtros</string>
+    <string name="message_completed">Cuidado de %1$s marcado como concluído.</string>
+    <string name="message_note_saved">Nota de %1$s salva.</string>
+    <string name="next_care_scheduled">Próximo cuidado agendado: %1$s.</string>
+    <string name="measurement_prompt">O que você mediu?</string>
+    <string name="measurement_example">Inclua o valor e a unidade, por exemplo, 4,2 kg.</string>
+    <string name="feeding_prompt">O que seu gato comeu?</string>
+    <string name="medication_prompt">Qual medicamento você deu?</string>
+    <string name="hygiene_prompt">Que cuidado de higiene você fez?</string>
+    <string name="care_prompt">Que cuidado você fez?</string>
+    <plurals name="today_care_summary">
+        <item quantity="one">%d cuidado planejado para hoje.</item>
+        <item quantity="other">%d cuidados planejados para hoje.</item>
+    </plurals>
+    <plurals name="overdue_care_summary">
+        <item quantity="one">%d cuidado em atraso.</item>
+        <item quantity="other">%d cuidados em atraso.</item>
+    </plurals>
 </resources>

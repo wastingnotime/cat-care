@@ -31,6 +31,12 @@ data class CareSnapshot(
     val loaded: Boolean = false,
 )
 
+data class CareMessage(
+    val resource: Int,
+    val arguments: List<String> = emptyList(),
+    val nextDue: String? = null,
+)
+
 class CareViewModel(
     application: Application,
     private val saved: SavedStateHandle,
@@ -50,7 +56,7 @@ class CareViewModel(
     val busy = mutableBusy.asStateFlow()
     private val mutableError = MutableStateFlow<Int?>(null)
     val error = mutableError.asStateFlow()
-    private val mutableMessage = MutableStateFlow<Int?>(null)
+    private val mutableMessage = MutableStateFlow<CareMessage?>(null)
     val message = mutableMessage.asStateFlow()
     private val mutableReveal = MutableStateFlow<String?>(null)
     val reveal = mutableReveal.asStateFlow()
@@ -164,7 +170,7 @@ class CareViewModel(
         navigate("today")
         if (snapshot.value.tasks.any { it.id == id && it.state == "planned" })
             openEditor("actions", id)
-        else mutableMessage.value = R.string.task_no_longer_pending
+        else mutableMessage.value = CareMessage(R.string.task_no_longer_pending)
     }
 
     fun selectCat(id: String) {
@@ -364,8 +370,9 @@ class CareViewModel(
                             null
                         }
                         "complete" -> {
-                            store.transition(requireTask(), "completed", "")
-                            null
+                            val completed = requireTask()
+                            store.transition(completed, "completed", "")
+                            CareRules.successor(completed.due, completed.days, completed.months, ZoneId.of(completed.zone))
                         }
                         "cancel" -> {
                             store.transition(requireTask(), "cancelled", "")
@@ -381,8 +388,15 @@ class CareViewModel(
             // A committed mutation must not be resubmitted if refreshing the UI fails.
             saved["draft"] = Bundle()
             saved["draftBaseline"] = null
-            mutableMessage.value =
-                if (value("kind") == "delete") R.string.message_deleted else R.string.message_saved
+            val catId = snapshot.value.tasks.find { it.id == values.getString("target") }?.catId
+                ?: value("cat")
+            val catName = snapshot.value.cats.find { it.id == catId }?.name.orEmpty()
+            mutableMessage.value = when (value("kind")) {
+                "delete" -> CareMessage(R.string.message_deleted)
+                "complete" -> CareMessage(R.string.message_completed, listOf(catName), result)
+                "record", "observation" -> CareMessage(R.string.message_note_saved, listOf(catName))
+                else -> CareMessage(R.string.message_saved)
+            }
             withContext(Dispatchers.IO) { reload() }
             when (value("kind")) {
                 "cat" -> {
@@ -449,7 +463,7 @@ class CareViewModel(
                         )
                         .use { it.write(bytes) }
                 }
-                mutableMessage.value = R.string.message_exported
+                mutableMessage.value = CareMessage(R.string.message_exported)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
@@ -475,7 +489,7 @@ class CareViewModel(
         runAction {
             try {
                 withContext(Dispatchers.IO) { action() }
-                mutableMessage.value = success
+                mutableMessage.value = CareMessage(success)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
@@ -559,7 +573,7 @@ class CareViewModel(
         discardRestore()
         saved["draft"] = Bundle()
         saved["selected"] = ""
-        mutableMessage.value = R.string.restore_success
+        mutableMessage.value = CareMessage(R.string.restore_success)
         withContext(Dispatchers.IO) { reload() }
     }
 

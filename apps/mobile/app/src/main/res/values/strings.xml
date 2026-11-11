@@ -24,7 +24,7 @@
     <string name="add_cat_action">+ Add cat</string>
     <string name="history_hint">Even the small acts of care are remembered.</string>
     <string name="register_action">Record care or observation</string>
-    <string name="no_history">No records yet.</string>
+    <string name="no_history">Care you plan and notes you add for %1$s will appear here.</string>
     <string name="no_comments">No comments</string>
     <string name="comment_action">Comment</string>
     <string name="local_data">Stored on this device</string>
@@ -275,8 +275,7 @@
     <string name="agenda_today">Today</string>
     <string name="agenda_upcoming">Upcoming</string>
     <string name="agenda_undated">No date</string>
-    <string name="agenda_summary">Today: %1$d · Overdue: %2$d</string>
-    <string name="today_clear">Nothing else due today.</string>
+    <string name="today_clear">Nothing scheduled for today. Enjoy some time together.</string>
     <string name="section_count">%1$s · %2$d</string>
     <string name="tomorrow">Tomorrow</string>
     <string name="yesterday">Yesterday</string>
@@ -323,5 +322,23 @@
     <string name="observation_prompt">What did you notice?</string>
     <string name="observation_details">Note details</string>
     <string name="nav_notes">Notes</string>
-    <string name="no_notes">No notes for this cat yet. Add a note and choose a category.</string>
+    <string name="no_notes">Little moments with %1$s belong here. Add your first note.</string>
+    <string name="clear_filters">Clear filters</string>
+    <string name="message_completed">Care for %1$s marked done.</string>
+    <string name="message_note_saved">Note for %1$s saved.</string>
+    <string name="next_care_scheduled">Next scheduled care: %1$s.</string>
+    <string name="measurement_prompt">What did you measure?</string>
+    <string name="measurement_example">Include the value and unit, for example, 4.2 kg.</string>
+    <string name="feeding_prompt">What did they eat?</string>
+    <string name="medication_prompt">What medication did you give?</string>
+    <string name="hygiene_prompt">What grooming or cleaning did you do?</string>
+    <string name="care_prompt">What care did you give?</string>
+    <plurals name="today_care_summary">
+        <item quantity="one">%d care task planned for today.</item>
+        <item quantity="other">%d care tasks planned for today.</item>
+    </plurals>
+    <plurals name="overdue_care_summary">
+        <item quantity="one">%d overdue care task.</item>
+        <item quantity="other">%d overdue care tasks.</item>
+    </plurals>
 </resources>

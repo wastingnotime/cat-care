@@ -74,3 +74,18 @@ and across recreation. History filters use single-selection chips. Record type s
 keep the timeline in view; period options (All dates, Last 7 days, Last 30 days)
 wrap when space is limited. Active choices remain selected and filters retain
 existing date semantics and saved screen state.
+
+## Everyday reassurance
+
+Today uses natural, pluralized summaries and only shows an overdue count when
+there is overdue care. A clear dated agenda shows a small cat illustration and
+an invitation to enjoy time together; upcoming and undated care remain listed.
+Notes welcomes the selected cat by name when empty, with a small illustration
+and the persistent Add note action. Empty History explains where entries come from;
+an empty filtered result offers Clear filters, resetting both type and period.
+
+Note prompts follow the selected category. Measurements alone show an example
+with a value and unit. Saving a note names its cat; completing care names the cat
+and, for recurring care, displays the next scheduled local date/time. Completion
+confirmation remains required. English and Brazilian Portuguese cover these
+messages; no care-state, storage or backup semantics change.
