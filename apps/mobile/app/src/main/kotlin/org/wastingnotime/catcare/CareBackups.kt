@@ -15,12 +15,18 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 import kotlinx.coroutines.*
 
-internal data class BackupStatus(val enabled: Boolean, val lastSuccess: Long, val failed: Boolean)
+internal data class BackupStatus(val enabled: Boolean, val lastSuccess: Long, val failed: Boolean, val folder: String? = null, val needsAccess: Boolean = false)
 
 /** User-authorized document-tree access; the Android device-backup service stays disabled. */
 internal class CareBackups(private val context: Context) {
     val preferences = context.getSharedPreferences("care_backups", Context.MODE_PRIVATE)
-    fun status() = BackupStatus(preferences.contains("folder"), preferences.getLong("last_success", 0), preferences.getBoolean("failed", false))
+    fun status(): BackupStatus {
+        val selected = preferences.getString("folder", null)
+        val access = selected != null && context.contentResolver.persistedUriPermissions.any {
+            it.uri.toString() == selected && it.isReadPermission && it.isWritePermission
+        }
+        return BackupStatus(access, preferences.getLong("last_success", 0), preferences.getBoolean("failed", false), selected, selected != null && !access)
+    }
 
     fun configure(uri: Uri) = synchronized(lock) {
         val old = preferences.getString("folder", null)
@@ -68,7 +74,9 @@ internal class CareBackups(private val context: Context) {
             val name = "cat-care-auto-$timestamp-${UUID.randomUUID()}.json"
             val pending = requireNotNull(folder.createFile("application/octet-stream", "cat-care-pending-${UUID.randomUUID()}.tmp"))
             try {
-                val json = CareStore(context).use { it.export(null) }
+                val json = org.json.JSONObject(CareStore(context).use { it.export(null) }).apply {
+                    getJSONObject("settings").put("backup_last_success", System.currentTimeMillis()).put("backup_failed", false)
+                }.toString(2)
                 require(json.toByteArray(Charsets.UTF_8).size <= CareBackupDocument.MAX_BYTES)
                 requireNotNull(context.contentResolver.openOutputStream(pending.uri, "wt"))
                     .bufferedWriter(Charsets.UTF_8).use { it.write(json) }

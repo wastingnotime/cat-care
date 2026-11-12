@@ -250,9 +250,9 @@
     <string name="about_purpose">Plan everyday care, keep a history, and make time for your cats. Cat Care works offline without an account. Observations are not diagnoses.</string>
     <string name="privacy_storage">Cat profiles, schedules, care records and comments stay on this device. The app has no internet permission, ads, analytics, or remote crash reporting. We do not receive your care data.</string>
     <string name="privacy_files">Exports, backups and shared cards may contain private information. You choose their destination. A document provider or sharing app may store or sync them under its own policy. Automatic backups require a folder you explicitly choose.</string>
-    <string name="privacy_delete">Delete one cat or all care data in Data. Clearing Android app storage or uninstalling also removes local data. Exported and backup files remain outside the app; delete them separately, including cloud copies. Android device backup and device transfer are disabled. Restore replaces local care data only after confirmation; it keeps this installation’s settings and backup folder.</string>
+    <string name="privacy_delete">Delete one cat or all care data in Data. Clearing Android app storage or uninstalling also removes local data. Exported and backup files remain outside the app; delete them separately, including cloud copies. Android device backup and device transfer are disabled. Restore replaces local care data only after confirmation; new backups also restore settings and the remembered backup folder. Folder access may need to be granted again.</string>
     <string name="backup_restore">Backup and restore</string>
-    <string name="backup_description">Choose a folder once to enable automatic saving of a full care backup about once a day. Keep the 7 newest copies. Android may delay background work. Choose a safe folder; its provider may sync files. Settings and folder access are not included in backups.</string>
+    <string name="backup_description">Backups include all care records, language, appearance, reminders, and backup folder/status. Automatic saving runs about daily and keeps the 7 newest copies. Android may delay work. After reinstall, grant folder access again to resume. The folder provider may sync files.</string>
     <string name="backup_enabled">Automatic saving is on.</string>
     <string name="backup_disabled">Automatic saving is off. Existing backup files are kept.</string>
     <string name="backup_never">Last successful backup: none yet</string>
@@ -266,10 +266,10 @@
     <string name="restore_action">Restore backup</string>
     <string name="restore_heading">Replace local care data?</string>
     <string name="restore_preview">Backup contains %1$d cats, %2$d care tasks, %3$d history records and %4$d comments.</string>
-    <string name="restore_warning">This replaces every local cat and care record with the selected backup. There is no merge or undo. Back up current data first if you want to keep it. Settings and the backup folder stay as they are.</string>
+    <string name="restore_warning">Replace all local cats and care records. New backups also restore settings and backup folder/status; older backups keep current settings. There is no merge or undo. Back up current data first.</string>
     <string name="restore_confirm">Replace and restore</string>
     <string name="restore_success">Care data restored.</string>
-    <string name="restore_error">Could not restore this file. Choose a valid full Cat Care version 3 backup up to 16 MiB. Scoped cat exports cannot replace all data. No partial restore was applied.</string>
+    <string name="restore_error">Could not restore this file. Choose a valid full Cat Care version 3 or 4 backup up to 16 MiB. Scoped cat exports cannot replace all data. No partial restore was applied.</string>
     <string name="backup_saved">Backup saved.</string>
     <string name="agenda_overdue">Overdue</string>
     <string name="agenda_today">Today</string>
@@ -342,4 +342,5 @@
         <item quantity="other">%d overdue care tasks.</item>
     </plurals>
     <string name="privacy_policy">Privacy policy</string>
+    <string name="backup_reauthorize">Allow access to the saved folder again to resume automatic backups.</string>
 </resources>

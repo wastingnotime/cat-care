@@ -258,9 +258,9 @@
     <string name="about_purpose">Planeje os cuidados do dia a dia, guarde a história e tenha tempo para seus gatos. O Cat Care funciona offline, sem conta. Observações não são diagnósticos.</string>
     <string name="privacy_storage">Perfis dos gatos, planos, registros e comentários ficam neste aparelho. O app não tem permissão de internet, anúncios, análise de uso nem envio remoto de falhas. Não recebemos seus dados de cuidado.</string>
     <string name="privacy_files">Exportações, backups e cartões compartilhados podem conter informações privadas. Você escolhe o destino. O provedor de documentos ou app de compartilhamento pode armazená-los ou sincronizá-los conforme sua própria política. Backups automáticos exigem uma pasta escolhida por você.</string>
-    <string name="privacy_delete">Apague um gato ou todos os cuidados em Dados. Limpar o armazenamento do app no Android ou desinstalá-lo também remove os dados locais. Arquivos exportados e backups ficam fora do app; apague-os separadamente, inclusive cópias na nuvem. O backup do Android e a transferência entre aparelhos estão desativados. A restauração substitui os cuidados locais somente após confirmação; mantém as configurações e a pasta de backup desta instalação.</string>
+    <string name="privacy_delete">Apague um gato ou todos os cuidados em Dados. Limpar o armazenamento do app no Android ou desinstalá-lo também remove os dados locais. Arquivos exportados e backups ficam fora do app; apague-os separadamente, inclusive cópias na nuvem. O backup do Android e a transferência entre aparelhos estão desativados. A restauração substitui os cuidados locais somente após confirmação; novos backups também restauram as configurações e a pasta de backup salva. Pode ser necessário autorizar a pasta novamente.</string>
     <string name="backup_restore">Backup e restauração</string>
-    <string name="backup_description">Escolha uma pasta para salvar automaticamente um backup completo dos cuidados aproximadamente uma vez por dia. São mantidas as 7 cópias mais recentes. O Android pode adiar o trabalho em segundo plano. Escolha uma pasta segura; o provedor pode sincronizar os arquivos. Configurações e acesso à pasta não fazem parte do backup.</string>
+    <string name="backup_description">O backup inclui os cuidados, idioma, aparência, lembretes e pasta/status de backup. O salvamento automático ocorre aproximadamente uma vez por dia e mantém as 7 cópias mais recentes. O Android pode adiar o trabalho. Após reinstalar, autorize a pasta novamente para retomar. O provedor pode sincronizar arquivos.</string>
     <string name="backup_enabled">Salvamento automático ativado.</string>
     <string name="backup_disabled">Salvamento automático desativado. Os arquivos de backup existentes são mantidos.</string>
     <string name="backup_never">Último backup concluído: nenhum ainda</string>
@@ -274,10 +274,10 @@
     <string name="restore_action">Restaurar backup</string>
     <string name="restore_heading">Substituir os cuidados locais?</string>
     <string name="restore_preview">O backup contém %1$d gatos, %2$d cuidados, %3$d registros de histórico e %4$d comentários.</string>
-    <string name="restore_warning">Isso substitui todos os gatos e registros locais pelo backup escolhido. Não há mesclagem nem desfazer. Faça um backup dos dados atuais se quiser guardá-los. As configurações e a pasta de backup são mantidas.</string>
+    <string name="restore_warning">Substituir todos os gatos e registros locais. Novos backups também restauram configurações e pasta/status de backup; backups antigos mantêm as configurações atuais. Não há mesclagem nem desfazer. Faça um backup dos dados atuais primeiro.</string>
     <string name="restore_confirm">Substituir e restaurar</string>
     <string name="restore_success">Cuidados restaurados.</string>
-    <string name="restore_error">Não foi possível restaurar este arquivo. Escolha um backup completo e válido do Cat Care versão 3 de até 16 MiB. Exportações de um gato não podem substituir todos os dados. Nenhuma restauração parcial foi aplicada.</string>
+    <string name="restore_error">Não foi possível restaurar este arquivo. Escolha um backup completo e válido do Cat Care versão 3 ou 4 de até 16 MiB. Exportações de um gato não podem substituir todos os dados. Nenhuma restauração parcial foi aplicada.</string>
     <string name="backup_saved">Backup salvo.</string>
     <string name="agenda_overdue">Atrasados</string>
     <string name="agenda_today">Hoje</string>
@@ -350,4 +350,5 @@
         <item quantity="other">%d cuidados em atraso.</item>
     </plurals>
     <string name="privacy_policy">Política de privacidade</string>
+    <string name="backup_reauthorize">Autorize o acesso à pasta salva novamente para retomar os backups automáticos.</string>
 </resources>

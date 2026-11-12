@@ -99,7 +99,7 @@ Full-screen editors use compact cat chips, inline validation and discard protect
 records allow past occurrence times and retain the actual entry timestamp separately.
 Dados exports or deletes one cat/all local care data after a scope preview. Dates use calendar pickers and times use a numeric/clock dialog. Repetition
 offers none, daily, weekly, monthly or a custom days/months interval and a next-date preview. Export is versioned JSON via
-Android's document picker. Full-data version 3 files can be restored after a scope preview and replacement
+Android's document picker. Full-data version 3 and 4 files can be restored after a scope preview and replacement
 confirmation. Scoped cat exports are for reference. Cloud sync is not included. Android OS backup/device transfer of app data is disabled by app
 policy. Uninstall, storage clearing or device loss may permanently remove data;
 exported files remain in the destination chosen by the owner.
@@ -181,11 +181,11 @@ Data retains scoped export and deletion and adds backup/restore. Choose a folder
 to enable a first backup and roughly daily automatic saving through Android’s
 persisted JobScheduler. Android can defer background execution. Manual backup
 uses the same folder, and the seven newest completed app backups are kept.
-Disabling automatic saving leaves existing files. Folder access and settings
-belong to the installation and are not restored from a file. OS device backup
+Disabling automatic saving leaves existing files. New full backups include settings and the remembered folder/status. After reinstall,
+Android requires folder access to be granted again before automatic backups resume. OS device backup
 and device transfer remain disabled.
 
-Restore accepts full-data `cat-care-offline` version 3 JSON up to 16 MiB, validates
+Restore accepts full-data `cat-care-offline` version 3 or 4 JSON up to 16 MiB, validates
 all rows and relationships, previews counts and requires confirmation to replace
 local care data atomically. Invalid files and failed writes leave existing data
 intact. Backups/exports can contain private information, and a selected document
@@ -198,3 +198,9 @@ Navigation and backup verification: [evidence](../../runs/android-menu-backup-20
 Namespace and Play package: `org.wastingnotime.catcare`. The initial
 `care.cat.offline` internal test is a separate app installation. Export full data
 from that installation and restore it in the WNT app to transfer existing records.
+
+Full exports and automatic backups now write version 4 with language, appearance,
+reminder preferences and backup folder/status. Version 3 files remain supported
+and leave current settings unchanged. Notification permission is device controlled.
+The backup panel shows the saved folder and requests access again after reinstall;
+selecting the same folder preserves the restored last-success timestamp.

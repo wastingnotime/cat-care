@@ -45,7 +45,7 @@ Changing device time changes derived scheduling labels, never clinical urgency.
 
 ## Export and deletion
 
-Export format: UTF-8 JSON, `format=cat-care-offline`, `version=3`, `exported_at`
+Export format: UTF-8 JSON, `format=cat-care-offline`, `version=4` for full data (`3` for scoped exports), `exported_at`
 UTC timestamp, `scope=cat|all_local_data`, and arrays `cats`, `tasks`, `history`,
 `observation_comments`. Comments retain `id`, `observation_id`, `description` and UTC `at`.
 Rows retain stable UUID identifiers and cat references. Cat rows include `coat`,
@@ -60,7 +60,7 @@ Android's document picker writes to a user-selected destination. A local documen
 provider works offline; a cloud document provider may require connectivity. No
 broad storage permission is requested. Export success is shown only after the
 stream closes successfully; failure warns that a partial file may need removal.
-Scoped cat exports are for inspection. Full-data version 3 files can also be
+Scoped cat exports are for inspection. Full-data version 3 and 4 files can also be
 restored after validation and explicit replacement confirmation; see Backup and restore below.
 
 Local cat deletion cascades to tasks/history and record comments. Delete-all clears all cats and
@@ -233,7 +233,7 @@ and does not advance the last-success time. Disabling cancels future jobs and
 releases folder access while retaining external files. Local care changes still
 persist immediately in SQLite independently of automatic backups.
 
-Restore accepts full-data `cat-care-offline` version 3 JSON up to 16 MiB. Older
+Restore accepts full-data `cat-care-offline` version 3 or 4 JSON up to 16 MiB. Older
 version 3 files with zoned deadlines are normalized to UTC while preserving the
 recurrence zone. Files must contain all four arrays, unique nonblank row IDs,
 valid dates, domain values and parent references. Scoped, unknown-version,
@@ -242,7 +242,17 @@ comments, recurrence and date-precision metadata are retained. A staged private
 cache copy supports a count preview and recreation of the confirmation dialog.
 Confirmation replaces all care rows in one SQLite transaction; failed insertion
 rolls back deletion and inserted rows. Cancel leaves live data unchanged.
-Settings, notification permission and backup-folder access remain local to this
-installation. There is no merge or undo; the preview tells the owner to back up
+Version 4 includes a required validated `settings` object: theme (`system`, `light`,
+`dark`), language (`system`, `pt-BR`, `en-US`), `reminders_enabled` boolean,
+`reminder_minutes` (0–10080), nullable content tree URI `backup_folder`,
+nonnegative `backup_last_success` epoch milliseconds, and `backup_failed` boolean.
+Full exports and automatic backups emit version 4; version 3 restores leave settings
+unchanged. Invalid settings reject the file before replacing care data. Automatic
+copies record their own completion time. Notification permission and delivered-alarm
+bookkeeping are never restored. The remembered folder is not an access grant:
+when no persisted read/write grant exists, the UI shows that reauthorization is
+needed, preselects that folder in the picker, and schedules no backup job until
+access is granted. Normal updates retain settings and access. Android reinstalls
+require restoring a file and granting folder access again. There is no merge or undo; the preview tells the owner to back up
 current data first. Restore refreshes selection and reconciles local reminders.
 Backup files and full exports are interchangeable within this format/size limit.

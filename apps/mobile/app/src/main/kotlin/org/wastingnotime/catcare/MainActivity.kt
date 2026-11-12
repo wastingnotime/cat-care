@@ -11,6 +11,14 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 
 class MainActivity : ComponentActivity() {
+    private val languageListener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == "language" && android.os.Build.VERSION.SDK_INT < 33) runOnUiThread { recreate() }
+    }
+    override fun onDestroy() {
+        getSharedPreferences("appearance", 0).unregisterOnSharedPreferenceChangeListener(languageListener)
+        super.onDestroy()
+    }
+
     private val model: CareViewModel by viewModels {
         viewModelFactory {
             initializer {
@@ -36,6 +44,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        getSharedPreferences("appearance", 0).registerOnSharedPreferenceChangeListener(languageListener)
         enableEdgeToEdge()
         if (savedInstanceState == null)
             intent.getStringExtra("taskId")?.let(model::openNotificationTask)

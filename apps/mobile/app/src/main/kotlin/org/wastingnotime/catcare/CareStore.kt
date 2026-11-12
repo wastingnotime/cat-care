@@ -14,7 +14,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /** Database name, schema, identifiers and transaction boundaries survive the UI migration. */
-class CareStore(context: Context, name: String = "cat-care.db") :
+class CareStore(private val context: Context, name: String = "cat-care.db") :
     SQLiteOpenHelper(context, name, null, 5) {
     data class Cat(
         val id: String,
@@ -526,7 +526,7 @@ class CareStore(context: Context, name: String = "cat-care.db") :
             val root =
                 JSONObject()
                     .put("format", "cat-care-offline")
-                    .put("version", 3)
+                    .put("version", if (cat == null) 4 else 3)
                     .put("exported_at", Instant.now().toString())
                     .put("scope", if (cat == null) "all_local_data" else "cat")
             for (table in listOf("cats", "tasks", "history", "observation_comments")) {
@@ -563,6 +563,7 @@ class CareStore(context: Context, name: String = "cat-care.db") :
                     }
                 root.put(table, rows)
             }
+            if (cat == null) root.put("settings", CareBackupSettings.snapshot(context))
             db.setTransactionSuccessful()
             return root.toString(2)
         } finally {
@@ -573,11 +574,18 @@ class CareStore(context: Context, name: String = "cat-care.db") :
     /** Validate before touching live data; any insertion failure rolls back the replacement. */
     fun restore(text: String) {
         val backup = CareBackupDocument.parse(text)
-        transaction { db ->
-            db.delete("cats", null, null)
-            backup.tables.forEach { (table, rows) ->
-                rows.forEach { db.insertOrThrow(table, null, it) }
+        val previousSettings = backup.settings?.let { CareBackupSettings.snapshot(context) }
+        try {
+            transaction { db ->
+                db.delete("cats", null, null)
+                backup.tables.forEach { (table, rows) ->
+                    rows.forEach { db.insertOrThrow(table, null, it) }
+                }
+                backup.settings?.let { CareBackupSettings.restore(context, it) }
             }
+        } catch (error: Exception) {
+            previousSettings?.let { runCatching { CareBackupSettings.restore(context, it) } }
+            throw error
         }
     }
 

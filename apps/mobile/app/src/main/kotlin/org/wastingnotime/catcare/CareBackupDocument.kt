@@ -7,7 +7,7 @@ import java.time.ZonedDateTime
 import org.json.JSONObject
 
 /** A validated full-data snapshot. Scoped exports are deliberately not replacement backups. */
-internal class CareBackupDocument private constructor(val tables: Map<String, List<ContentValues>>) {
+internal class CareBackupDocument private constructor(val tables: Map<String, List<ContentValues>>, val settings: JSONObject?) {
     fun count(table: String) = tables.getValue(table).size
 
     companion object {
@@ -17,7 +17,8 @@ internal class CareBackupDocument private constructor(val tables: Map<String, Li
             require(text.toByteArray(Charsets.UTF_8).size <= MAX_BYTES)
             val root = JSONObject(text)
             require(root.getString("format") == "cat-care-offline")
-            require(root.get("version") == 3)
+            require(root.get("version") in listOf(3, 4))
+            val settings = if (root.getInt("version") == 4) CareBackupSettings.validate(root.getJSONObject("settings")) else null
             require(root.getString("scope") == "all_local_data")
             Instant.parse(root.getString("exported_at"))
             val columns = linkedMapOf(
@@ -102,7 +103,7 @@ internal class CareBackupDocument private constructor(val tables: Map<String, Li
                 it.getAsString("task_id")?.let { task -> require(tasks[task] == cat) }
             }
             tables.getValue("observation_comments").forEach { require(it.getAsString("observation_id") in history) }
-            return CareBackupDocument(tables)
+            return CareBackupDocument(tables, settings)
         }
     }
 }

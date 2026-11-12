@@ -46,6 +46,8 @@ internal fun BackupSettings(model: CareViewModel, busy: Boolean) {
                 ),
             modifier = Modifier.testTag("last-backup"),
         )
+        status.folder?.let { Text(android.net.Uri.decode(it.substringAfterLast('/'))) }
+        if (status.needsAccess) Text(tr(R.string.backup_reauthorize), color = MaterialTheme.colorScheme.error)
         var details by rememberSaveable { mutableStateOf(false) }
         TextButton(onClick = { details = !details }) { Text(tr(R.string.backup_details)) }
         if (details) Text(tr(R.string.backup_description), color = Muted)
@@ -53,7 +55,7 @@ internal fun BackupSettings(model: CareViewModel, busy: Boolean) {
         Button(
             onClick = {
                 try {
-                    folder.launch(null)
+                    folder.launch(status.folder?.let(android.net.Uri::parse))
                 } catch (_: android.content.ActivityNotFoundException) {
                     model.field("kind", "export-unavailable")
                 }
@@ -76,6 +78,8 @@ internal fun BackupSettings(model: CareViewModel, busy: Boolean) {
             ) {
                 Text(tr(R.string.backup_now))
             }
+        }
+        if (status.folder != null) {
             TextButton(onClick = model::disableBackup, enabled = !busy) {
                 Text(tr(R.string.backup_disable))
             }

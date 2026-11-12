@@ -21,7 +21,9 @@ Language, appearance and reminder preferences are also stored locally.
 
 You can export your records or choose a folder for automatic daily backups
 using Android's document picker. Automatic backups retain the seven newest
-copies. Full backups can restore your care records. Backups and exports may
+copies. New full backups include care records, language, appearance, reminder preferences,
+and backup folder/status. Restoring after reinstall may require granting access
+to the remembered folder again. Notification permission is managed by Android. Backups and exports may
 contain private information, so choose a secure destination. Your chosen
 Android document provider may store or synchronize files with its own service.
 Its privacy policy applies to that processing.

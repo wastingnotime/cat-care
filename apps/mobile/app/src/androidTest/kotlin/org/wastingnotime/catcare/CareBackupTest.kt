@@ -38,6 +38,45 @@ class CareBackupTest {
         if (::folder.isInitialized) folder.listFiles().forEach { it.delete() }
         InstrumentationRegistry.getInstrumentation().uiAutomation.dropShellPermissionIdentity()
         context.deleteDatabase("cat-care.db")
+        context.getSharedPreferences("appearance", 0).edit().clear().commit()
+        CareReminders.preferences(context).edit().clear().commit()
+    }
+
+    @Test fun restoresPortableSettingsAndRequiresFolderAccessAfterReinstall() {
+        context.getSharedPreferences("appearance", 0).edit().putString("theme", "dark").commit()
+        CareReminders.preferences(context).edit().putBoolean("enabled", false).putLong("minutes", 15).commit()
+        backups.write()
+        val file = folder.listFiles().filter { it.name?.startsWith("cat-care-auto-") == true }.maxBy { it.name.orEmpty() }
+        val text = requireNotNull(context.contentResolver.openInputStream(file.uri)).bufferedReader().use { it.readText() }
+        backups.disable() // Releases the persisted grant, as uninstall would.
+        context.getSharedPreferences("appearance", 0).edit().putString("theme", "light").commit()
+        CareReminders.preferences(context).edit().putBoolean("enabled", true).commit()
+        CareStore(context).use { it.restore(text) }
+        assertEquals("dark", context.getSharedPreferences("appearance", 0).getString("theme", ""))
+        assertFalse(CareReminders.preferences(context).getBoolean("enabled", true))
+        assertEquals(15L, CareReminders.preferences(context).getLong("minutes", 0))
+        assertEquals(uri.toString(), backups.status().folder)
+        assertTrue(backups.status().needsAccess)
+        assertFalse(backups.status().enabled)
+        assertTrue(backups.status().lastSuccess > 0)
+        assertNull(context.getSystemService(android.app.job.JobScheduler::class.java).getPendingJob(23001))
+        backups.configure(uri)
+        assertTrue(backups.status().enabled)
+        assertTrue(backups.status().lastSuccess > 0)
+    }
+
+    @Test fun legacyBackupPreservesSettingsAndInvalidSettingsRejectBeforeReplacement() {
+        CareStore(context).use { store ->
+            val root = org.json.JSONObject(store.export(null))
+            root.getJSONObject("settings").put("reminder_minutes", -1)
+            assertThrows(Exception::class.java) { store.restore(root.toString()) }
+            assertEquals(1, store.cats().size)
+            root.put("version", 3).remove("settings")
+            context.getSharedPreferences("appearance", 0).edit().putString("theme", "light").commit()
+            store.restore(root.toString())
+            assertEquals("light", context.getSharedPreferences("appearance", 0).getString("theme", ""))
+            assertTrue(backups.status().enabled)
+        }
     }
 
     @Test fun automaticCopiesAreRestorableAndKeepSevenWithoutDeletingUnrelatedFiles() {
