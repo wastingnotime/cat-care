@@ -22,7 +22,8 @@ adb shell am start -n org.wastingnotime.catcare/.MainActivity
 
 Root shortcuts: `make mobile-test`, `make mobile-build`, `make mobile-apk`.
 Run `make mobile-run` from the repository root to reuse a running emulator or
-start one, wait for boot, build/install the debug APK and launch Cat Care. The
+start one, wait for boot, build/install the debug APK and launch Cat Care. A reused headless emulator is restarted with a visible window (its data is
+preserved); an existing window is raised when `wmctrl` is available. The
 emulator stays running, and installation preserves existing app data. Python 3,
 the SDK Emulator/Platform-Tools and an existing API 26+ AVD are required. Create
 an AVD in Android Studio Device Manager if needed. SDK discovery uses

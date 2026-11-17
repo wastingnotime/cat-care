@@ -2,6 +2,8 @@
 """Build and launch Cat Care on an existing or newly started Android emulator."""
 
 import os
+from pathlib import Path
+import shutil
 import subprocess
 import sys
 import time
@@ -25,6 +27,26 @@ def avd_name(adb, serial):
         return None
 
 
+def is_headless(name):
+    """Inspect the selected local AVD before deciding whether to reopen it."""
+    for entry in Path("/proc").glob("[0-9]*/cmdline"):
+        try:
+            args = entry.read_bytes().decode().split("\0")
+        except (OSError, UnicodeError):
+            continue
+        if args and "qemu-system" in args[0] and "-avd" in args:
+            index = args.index("-avd")
+            if index + 1 < len(args) and args[index + 1] == name:
+                return "-no-window" in args
+    return False
+
+
+def show_window(name):
+    # A visible emulator may have been minimized or left on another workspace.
+    if shutil.which("wmctrl"):
+        subprocess.run(["wmctrl", "-a", name or "Android Emulator"], check=False)
+
+
 def main():
     sdk = sdk_path()
     adb = sdk / "platform-tools" / "adb"
@@ -39,6 +61,22 @@ def main():
     run([adb, "start-server"])
     running = emulators(adb)
     serial = next((item for item in running if not requested or avd_name(adb, item) == requested), None)
+    headless = os.environ.get("CAT_CARE_EMULATOR_HEADLESS") == "1"
+    if serial and not headless and is_headless(avd_name(adb, serial)):
+        # A -no-window process cannot acquire a GUI in place. Restart the same
+        # AVD normally, preserving its disk and installed application data.
+        requested = avd_name(adb, serial)
+        if not requested:
+            raise RuntimeError("Cannot identify the headless AVD to reopen visibly.")
+        print(f"Reopening headless emulator {requested} with a window…", flush=True)
+        run([adb, "-s", serial, "emu", "kill"])
+        deadline = time.monotonic() + timeout
+        while serial in emulators(adb):
+            if time.monotonic() >= deadline:
+                raise RuntimeError("Headless emulator did not stop in time.")
+            time.sleep(1)
+        running = emulators(adb)
+        serial = None
     process = None
     log_path = MOBILE / ".local" / "emulator.log"
     if serial:
@@ -53,7 +91,7 @@ def main():
         print(f"Starting emulator {name}. Log: {log_path}", flush=True)
         log_path.parent.mkdir(parents=True, exist_ok=True)
         command = [emulator, "-avd", name, "-no-snapshot-load"]
-        if os.environ.get("CAT_CARE_EMULATOR_HEADLESS") == "1":
+        if headless:
             command += ["-no-window", "-no-audio", "-gpu", "swiftshader"]
         with log_path.open("w") as log:
             process = subprocess.Popen([str(part) for part in command], stdout=log, stderr=subprocess.STDOUT, env=env, start_new_session=True)
@@ -83,6 +121,8 @@ def main():
     run([MOBILE / "gradlew", "-p", MOBILE, "assembleDebug"], timeout=None, capture=False, env=env)
     run([adb, "-s", serial, "install", "-r", MOBILE / "app/build/outputs/apk/debug/app-debug.apk"], timeout=120, capture=False)
     run([adb, "-s", serial, "shell", "am", "start", "-W", "-n", "org.wastingnotime.catcare/.MainActivity"], capture=False)
+    if not headless:
+        show_window(avd_name(adb, serial))
     print(f"Cat Care launched on {serial}. The emulator stays running.", flush=True)
 
 
