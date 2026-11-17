@@ -1,7 +1,8 @@
-# Cat Care 0.1.5 internal release preparation
+# Cat Care 0.1.5 internal release
 
-Prepared November 17, 2026 for the authorized internal-testing update.
-Publication is pending Google Play Console sign-in in Brave.
+Published November 17, 2026 at 09:39 America/Sao_Paulo using Brave’s
+Wasting No Time profile. Play Console confirms **Available to internal testers**
+for release `7 (0.1.5) Quiet interactions`, with one version code.
 
 - Package `org.wastingnotime.catcare`, version code 7, version name 0.1.5.
 - Includes coat and category feedback, editor Save progress and Today completion placement through `b0acc4e`.
@@ -24,3 +25,14 @@ Indicador de progresso ao salvar.
 Atualização mais suave da tela Hoje ao concluir cuidados.
 Os efeitos respeitam as animações desativadas no sistema.
 </pt-BR>
+
+## Publication
+
+English and Brazilian Portuguese notes were submitted. Play reported two
+non-blocking warnings for missing deobfuscation mapping and native debug symbols.
+Supported device counts show no losses from the previous release. Play says
+updates usually appear within one hour, occasionally longer.
+
+[Publication evidence](published.jpg).
+
+Tester link https://play.google.com/apps/internaltest/4701027572839862558
