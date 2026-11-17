@@ -372,6 +372,47 @@ class CareComposeTest {
         compose.onNodeWithText("Cuidado criado: Owner text stays exactly the same", substring = true).assertExists()
     }
 
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun noteCategoryHandlesRapidChoiceCancellationAndKeyboard() {
+        ready()
+        nav("notes")
+        compose.onNodeWithTag("create-action").performClick()
+        val note = compose.onNodeWithTag("category-observation")
+        val measurement = compose.onNodeWithTag("category-measurement")
+        note.performScrollTo().assertIsSelected()
+        compose.mainClock.autoAdvance = false
+        try {
+            measurement.performClick()
+            compose.mainClock.advanceTimeByFrame()
+            note.performClick()
+            compose.mainClock.advanceTimeByFrame()
+            measurement.performClick()
+            compose.mainClock.advanceTimeByFrame()
+            measurement.assertIsSelected()
+            note.performTouchInput { down(center) }
+            compose.mainClock.advanceTimeBy(120)
+            note.performTouchInput { cancel() }
+            compose.mainClock.advanceTimeBy(500)
+            note.assertIsNotSelected()
+            measurement.assertIsSelected()
+        } finally {
+            compose.mainClock.autoAdvance = true
+        }
+        // Switch from touch input to keyboard navigation before requesting focus.
+        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().setInTouchMode(false)
+        note.performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.RequestFocus) { it() }
+        note.assertIsFocused()
+        note.performKeyInput { pressKey(androidx.compose.ui.input.key.Key.Enter) }
+        note.assertIsSelected()
+        measurement.assertIsNotSelected()
+        captureCozy("category-selection")
+        compose.activityRule.scenario.recreate()
+        compose.onNodeWithTag("category-observation").performScrollTo().assertIsSelected()
+        compose.onNodeWithTag("field-description").performScrollTo()
+        compose.onNodeWithText("O que você percebeu?").assertExists()
+    }
+
     @Test
     fun categorySuggestsTitleUntilCustomizedAndSurvivesRecreation() {
         ready()

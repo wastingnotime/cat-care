@@ -13,3 +13,10 @@ edited titles retain required-field validation.
 Time selection opens the clock face, with a toggle for keyboard entry. The picker
 starts from the saved time or the current time and follows the device's 12/24-hour
 preference. Opening or dismissing it does not change the stored time.
+
+Care and note category tiles share the coat selector's restrained press feedback
+and 180 ms background transition. The selected border, bold label and radio state
+update immediately. Touch targets retain their size during compression; cancelled
+presses do not select. System-disabled animations show the final state directly.
+Category icons remain static. Shared behavior lives in `SelectionCard`, while the
+coat-only blink remains in `CoatSelectionCard`.

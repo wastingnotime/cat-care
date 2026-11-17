@@ -2,9 +2,7 @@ package org.wastingnotime.catcare
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -12,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -35,16 +32,14 @@ internal fun CareCategoryPicker(selected: String, noteCategories: Boolean = fals
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     row.forEach { (category, icon) ->
                         val active = if (noteCategories) category == selected else categoryLabel(category) == categoryLabel(selected)
-                        Surface(
-                            modifier = Modifier.weight(1f),
-                            color = if (active) Sage else MaterialTheme.colorScheme.surfaceContainerLowest,
-                            shape = RoundedCornerShape(16.dp),
+                        SelectionCard(
+                            selected = active,
+                            choose = { choose(category) },
+                            modifier = Modifier.weight(1f).testTag("category-$category"),
                             border = BorderStroke(if (active) 2.dp else 1.dp, if (active) Forest else Line),
                         ) {
                             Column(
                                 Modifier.fillMaxWidth()
-                                    .selectable(active, role = Role.RadioButton, onClick = { choose(category) })
-                                    .testTag("category-$category")
                                     .padding(12.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
