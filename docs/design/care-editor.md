@@ -20,3 +20,12 @@ update immediately. Touch targets retain their size during compression; cancelle
 presses do not select. System-disabled animations show the final state directly.
 Category icons remain static. Shared behavior lives in `SelectionCard`, while the
 coat-only blink remains in `CoatSelectionCard`.
+
+Editable forms show a small progress indicator beside Save while the ViewModel
+reports actual work. The indicator has a reserved slot, keeping button width and
+action placement stable. Save and Cancel remain disabled during work; completion
+or validation errors immediately release the busy state without a minimum display
+duration. The Save label stays visible, with localized “Saving…” / “Salvando…”
+accessibility state and a polite live announcement. Disabled system animations
+use a static open ring without exposing a percentage. Confirmation dialogs keep
+their existing action controls.

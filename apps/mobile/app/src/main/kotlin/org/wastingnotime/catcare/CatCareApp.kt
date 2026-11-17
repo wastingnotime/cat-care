@@ -675,7 +675,9 @@ private fun CareEditor(
                             else if (editable) tr(R.string.cancel_edit) else tr(R.string.close)
                         )
                     }
-                    if (editable || kind in listOf("complete", "cancel", "delete"))
+                    if (editable)
+                        EditorSaveButton(busy, model::saveEditor)
+                    else if (kind in listOf("complete", "cancel", "delete"))
                         TextButton(
                             onClick = model::saveEditor,
                             enabled = !busy,

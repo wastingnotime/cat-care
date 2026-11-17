@@ -75,6 +75,7 @@
     <string name="understood">Got it</string>
     <string name="back">Back</string>
     <string name="save">Save</string>
+    <string name="saving">Saving…</string>
     <string name="delete_everything">Delete everything</string>
     <string name="delete_cat">Delete cat</string>
     <string name="choose_destination">Choose destination</string>

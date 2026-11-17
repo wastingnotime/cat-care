@@ -1,7 +1,8 @@
 # Quiet playfulness: Android interaction review
 
-Status: coat-selector and category-selection feedback authorized and implemented
-on 2026-11-16; broader opportunities remain proposals. Subjective feel review is pending.
+Status: coat-selector, category-selection and editor Save feedback authorized and
+implemented on 2026-11-16; broader opportunities remain proposals. Subjective feel
+review is pending.
 Reviewed: 2026-11-16.
 Input: `~/Downloads/cat-care-microinteractions-handoff.md`.
 

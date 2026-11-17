@@ -75,6 +75,7 @@
     <string name="understood">Entendi</string>
     <string name="back">Voltar</string>
     <string name="save">Salvar</string>
+    <string name="saving">Salvando…</string>
     <string name="delete_everything">Apagar tudo</string>
     <string name="delete_cat">Apagar gato</string>
     <string name="choose_destination">Escolher destino</string>
