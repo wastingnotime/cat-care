@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -27,7 +26,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -920,37 +918,14 @@ private fun AvatarGrid(options: List<AvatarOption>, selected: String, choose: (S
         options.chunked(columns).forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { option ->
-                    val active = option.id == selected
-                    Surface(
-                        color =
-                            if (active) Sage else MaterialTheme.colorScheme.surfaceContainerLowest,
-                        shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(1.dp, Line),
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Column(
-                            Modifier.fillMaxWidth()
-                                .selectable(
-                                    active,
-                                    role = Role.RadioButton,
-                                    onClick = { choose(option.id) },
-                                )
-                                .semantics { contentDescription = option.label }
-                                .testTag("avatar-${option.id}")
-                                .padding(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            CatAvatar(option.coat, Modifier.size(56.dp), describe = false)
-                            Text(
-                                if (active)
-                                    stringResource(R.string.selected_avatar_label, option.label)
-                                else option.label,
-                                Modifier.clearAndSetSemantics {},
-                                color = Forest,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
+                    key(option.id) {
+                        CoatSelectionCard(
+                            coat = option.coat,
+                            label = option.label,
+                            selected = option.id == selected,
+                            modifier = Modifier.weight(1f),
+                            choose = { choose(option.id) },
+                        )
                     }
                 }
                 repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }

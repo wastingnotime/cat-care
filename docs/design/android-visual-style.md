@@ -89,3 +89,15 @@ with a value and unit. Saving a note names its cat; completing care names the ca
 and, for recurring care, displays the next scheduled local date/time. Completion
 confirmation remains required. English and Brazilian Portuguese cover these
 messages; no care-state, storage or backup semantics change.
+
+## Coat selection feedback
+
+The profile coat selector compresses the pressed card slightly and transitions
+its selected background to Sage. The checkmark and radio selection state update
+immediately. Selecting a different coat triggers one brief blink; opening or
+restoring the editor and reselecting the same coat do not. Rapid changes cancel
+the previous reaction. System-disabled animations keep the artwork at rest.
+The touch target stays fixed, and other cat illustrations remain static.
+This is the first quiet-playfulness prototype; see the
+[proposal](microinteractions-proposal.md) and
+[validation evidence](../../runs/android-coat-motion-2026-11-16/evidence.md).

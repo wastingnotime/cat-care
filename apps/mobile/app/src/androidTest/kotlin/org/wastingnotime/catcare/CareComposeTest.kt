@@ -256,7 +256,7 @@ class CareComposeTest {
         compose.onNodeWithTag("cat-menu-${nina.id}").performClick()
         click("Editar perfil")
         field("name", "Nina Nova")
-        compose.onNodeWithTag("avatar-calico").performScrollTo().performClick()
+        compose.onNodeWithTag("avatar-calico").performScrollTo().performClick().assertIsSelected()
         compose.activityRule.scenario.recreate()
         compose.onNodeWithTag("avatar-calico").performScrollTo().assertIsSelected()
         save()
@@ -264,6 +264,45 @@ class CareComposeTest {
         assertEquals("calico", edited.coat)
         assertEquals(3, store.cats().size)
         compose.onNodeWithTag("cat-card-${edited.id}").assertIsDisplayed()
+    }
+
+    @Test
+    fun coatSelectionSurvivesRapidChangesAndCancelledPress() {
+        ready()
+        nav("cats")
+        compose.onNodeWithTag("cat-card-$mimi").performClick()
+        val orange = compose.onNodeWithTag("avatar-orange-tabby")
+        val brown = compose.onNodeWithTag("avatar-brown-tabby")
+        orange.performScrollTo()
+        compose.mainClock.autoAdvance = false
+        try {
+            // Change selection before the preceding reaction finishes.
+            orange.performClick()
+            compose.mainClock.advanceTimeByFrame()
+            brown.performClick()
+            compose.mainClock.advanceTimeByFrame()
+            orange.performClick()
+            compose.mainClock.advanceTimeByFrame()
+            orange.assertIsSelected()
+            brown.assertIsNotSelected()
+            // A cancelled press must never select the card or leave it compressed.
+            brown.performTouchInput { down(center) }
+            compose.mainClock.advanceTimeBy(120)
+            brown.performTouchInput { cancel() }
+            compose.mainClock.advanceTimeBy(500)
+            orange.assertIsSelected()
+            brown.assertIsNotSelected()
+            // Repeated activation of the selected coat preserves the final choice.
+            orange.performClick()
+            compose.mainClock.advanceTimeBy(500)
+        } finally {
+            compose.mainClock.autoAdvance = true
+        }
+        captureCozy("coat-selector")
+        compose.activityRule.scenario.recreate()
+        compose.onNodeWithTag("avatar-orange-tabby").performScrollTo().assertIsSelected()
+        save()
+        assertEquals("orange-tabby", store.cats().single { it.id == mimi }.coat)
     }
 
     @Test

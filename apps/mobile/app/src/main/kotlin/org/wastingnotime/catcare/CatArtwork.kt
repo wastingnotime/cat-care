@@ -15,7 +15,12 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 
 @Composable
-fun CatAvatar(coatId: String, modifier: Modifier = Modifier, describe: Boolean = true) {
+fun CatAvatar(
+    coatId: String,
+    modifier: Modifier = Modifier,
+    describe: Boolean = true,
+    eyeOpenness: () -> Float = { 1f },
+) {
     val coat = CatCoat.fromId(coatId)
     val description = tr(R.string.coat_description, tr(coat.label))
     Canvas(if (describe) modifier.semantics { contentDescription = description } else modifier) {
@@ -69,8 +74,10 @@ fun CatAvatar(coatId: String, modifier: Modifier = Modifier, describe: Boolean =
                     CatCoat.SIAMESE -> Color(0xff4c91a3)
                     else -> Color(0xff243c32)
                 }
-            oval(eyes, 29f, 54f, 37f, 62f)
-            oval(eyes, 63f, 54f, 71f, 62f)
+            // Read animation state in drawing, leaving the form out of frame-by-frame updates.
+            val eyeRadius = 1f + 3f * eyeOpenness().coerceIn(0f, 1f)
+            oval(eyes, 29f, 58f - eyeRadius, 37f, 58f + eyeRadius)
+            oval(eyes, 63f, 58f - eyeRadius, 71f, 58f + eyeRadius)
             oval(Color(0xffc48b8b), 45f, 66f, 55f, 72f)
             val mouth = if (coat == CatCoat.BLACK) Color(0xffd8d0bd) else Color(0xff243c32)
             drawLine(mouth, Offset(50f, 72f), Offset(50f, 77f), 2f)
