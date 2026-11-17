@@ -101,3 +101,15 @@ The touch target stays fixed, and other cat illustrations remain static.
 This is the first quiet-playfulness prototype; see the
 [proposal](microinteractions-proposal.md) and
 [validation evidence](../../runs/android-coat-motion-2026-11-16/evidence.md).
+
+## Completion continuity
+
+After a committed care completion refreshes Today, remaining cards and section
+headers settle into their new positions over 220 ms. Completed cards leave
+immediately, with no lingering action or fade. Stable item keys preserve list
+identity; the refreshed snapshot carries the transient completion cause so
+loading, recreation, other edits, clock-based regrouping and Upcoming expansion
+use immediate placement. Disabled system animations also use immediate placement.
+Confirmation, the named success message and the actual recurring next date keep
+their existing behavior. See the
+[validation evidence](../../runs/android-completion-motion-2026-11-17/evidence.md).

@@ -1,5 +1,9 @@
 package org.wastingnotime.catcare
 
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.MotionDurationScale
+import androidx.compose.ui.unit.IntOffset
 import android.content.Intent
 import android.text.format.DateFormat
 import androidx.compose.foundation.BorderStroke
@@ -42,6 +46,17 @@ internal fun CareScreen(
     val history = state.history[selected].orEmpty()
     val zone = ZoneId.systemDefault()
     val agenda = careAgenda(state.tasks, now, zone)
+    // Remember the transition decision for this layout update, not for each animation frame.
+    // A new screen instance starts from the current snapshot and cannot replay an old event.
+    var previousSnapshot by remember { mutableStateOf(state) }
+    val completionPlacement = remember(state, now, upcoming, zone, screen) {
+        screen == "today" && isCompletionRefresh(previousSnapshot, state)
+    }
+    SideEffect { previousSnapshot = state }
+    val motionEnabled = rememberCoroutineScope().coroutineContext[MotionDurationScale]?.scaleFactor != 0f
+    // Keep item placement tracking installed even when snapping; enable motion only on completion.
+    val placement = if (completionPlacement && motionEnabled) tween<IntOffset>(220) else snap<IntOffset>()
+
     LaunchedEffect(Unit) {
         while (true) {
             now = Instant.now()
@@ -82,7 +97,7 @@ internal fun CareScreen(
             } else
                 when (screen) {
                     "today" -> {
-                        item {
+                        item(key = "today-summary") {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 TodayDate(now)
                                 val todayCount = agenda[AgendaSection.TODAY].orEmpty().size
@@ -105,38 +120,46 @@ internal fun CareScreen(
                             val tasks = agenda[section].orEmpty()
                             if (tasks.isNotEmpty()) {
                                 item(key = section.name) {
-                                    val label =
-                                        tr(
-                                            when (section) {
-                                                AgendaSection.OVERDUE -> R.string.agenda_overdue
-                                                AgendaSection.TODAY -> R.string.agenda_today
-                                                AgendaSection.UPCOMING -> R.string.agenda_upcoming
-                                                AgendaSection.UNDATED -> R.string.agenda_undated
-                                            }
-                                        )
-                                    if (section == AgendaSection.UPCOMING)
-                                        TextButton(
-                                            onClick = { upcoming = !upcoming },
-                                            modifier =
-                                                Modifier.testTag("toggle-upcoming").semantics {
-                                                    stateDescription = if (upcoming) "−" else "+"
-                                                },
-                                        ) {
-                                            Text(
-                                                (if (upcoming) "− " else "+ ") +
-                                                    tr(R.string.section_count, label, tasks.size)
+                                    Column(Modifier.animateItem(
+                                        fadeInSpec = null, placementSpec = placement, fadeOutSpec = null,
+                                    )) {
+                                        val label =
+                                            tr(
+                                                when (section) {
+                                                    AgendaSection.OVERDUE -> R.string.agenda_overdue
+                                                    AgendaSection.TODAY -> R.string.agenda_today
+                                                    AgendaSection.UPCOMING -> R.string.agenda_upcoming
+                                                    AgendaSection.UNDATED -> R.string.agenda_undated
+                                                }
                                             )
-                                        }
-                                    else
-                                        Text(
-                                            label,
-                                            Modifier.semantics { heading() },
-                                            style = MaterialTheme.typography.titleMedium,
-                                        )
+                                        if (section == AgendaSection.UPCOMING)
+                                            TextButton(
+                                                onClick = { upcoming = !upcoming },
+                                                modifier =
+                                                    Modifier.testTag("toggle-upcoming").semantics {
+                                                        stateDescription = if (upcoming) "−" else "+"
+                                                    },
+                                            ) {
+                                                Text(
+                                                    (if (upcoming) "− " else "+ ") +
+                                                        tr(R.string.section_count, label, tasks.size)
+                                                )
+                                            }
+                                        else
+                                            Text(
+                                                label,
+                                                Modifier.semantics { heading() },
+                                                style = MaterialTheme.typography.titleMedium,
+                                            )
+                                    }
                                 }
                                 if (section != AgendaSection.UPCOMING || upcoming)
                                     items(tasks, key = { it.id }) {
-                                        TaskCard(it, state, now, busy, model)
+                                        Box(Modifier.animateItem(
+                                            fadeInSpec = null, placementSpec = placement, fadeOutSpec = null,
+                                        )) {
+                                            TaskCard(it, state, now, busy, model)
+                                        }
                                     }
                             }
                         }

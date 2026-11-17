@@ -1,8 +1,9 @@
 # Quiet playfulness: Android interaction review
 
-Status: coat-selector, category-selection and editor Save feedback authorized and
-implemented on 2026-11-16; broader opportunities remain proposals. Subjective feel
-review is pending.
+Status: coat-selector, category-selection and editor Save feedback implemented on
+2026-11-16; completion placement implemented on 2026-11-17. These four increments
+were authorized. Broader opportunities remain proposals; subjective feel review
+is pending.
 Reviewed: 2026-11-16.
 Input: `~/Downloads/cat-care-microinteractions-handoff.md`.
 
@@ -171,6 +172,6 @@ flow; preserve the ViewModel's committed-result semantics. Keep disclosure state
 with each screen. No database, care rules, backup format or shared WNT policy
 changes are needed.
 
-Recommended review decision: approve only the coat-selector experiment first.
-Category feedback and editor-local busy feedback are the next small increments;
-completion transitions require separate review after observing the prototype.
+The first four increments were subsequently authorized and implemented. Review
+their feel together before expanding to disclosures or result-area transitions;
+those remaining opportunities are still proposals.

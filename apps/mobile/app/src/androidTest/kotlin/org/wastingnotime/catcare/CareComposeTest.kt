@@ -16,11 +16,22 @@ import org.junit.runner.RunWith
 
 /** Resets app data; run only on a disposable emulator. */
 @RunWith(AndroidJUnit4::class)
+@OptIn(ExperimentalTestApi::class)
 class CareComposeTest {
     private lateinit var store: CareStore
     private lateinit var mimi: String
     private lateinit var luna: String
-    private val compose = createAndroidComposeRule<MainActivity>()
+    // The test recomposer replaces Android's window recomposer, including its motion scale.
+    private val compose = createAndroidComposeRule<MainActivity>(
+        effectContext = object : androidx.compose.ui.MotionDurationScale {
+            override val scaleFactor: Float by lazy {
+                android.provider.Settings.Global.getFloat(
+                    ApplicationProvider.getApplicationContext<Context>().contentResolver,
+                    android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f,
+                )
+            }
+        },
+    )
     private val fixture =
         object : ExternalResource() {
             override fun before() {
@@ -303,6 +314,46 @@ class CareComposeTest {
         compose.onNodeWithTag("avatar-orange-tabby").performScrollTo().assertIsSelected()
         save()
         assertEquals("orange-tabby", store.cats().single { it.id == mimi }.coat)
+    }
+
+    @Test
+    fun completedCareLeavesImmediatelyWhileRemainingCareSettles() {
+        val due = java.time.Instant.now().minusSeconds(3600).toString()
+        store.saveTask(mimi, null, "A first care", "hygiene", due, 0, 0)
+        store.saveTask(mimi, null, "B remaining care", "hygiene", due, 0, 0)
+        compose.activityRule.scenario.recreate()
+        ready()
+        val first = store.tasks(mimi).single { it.title == "A first care" }
+        val remaining = store.tasks(mimi).single { it.title == "B remaining care" }
+        val remainingNode = compose.onNodeWithTag("task-${remaining.id}")
+        val originalTop = remainingNode.fetchSemanticsNode().boundsInRoot.top
+        compose.onNodeWithTag("complete-${first.id}").performClick()
+        compose.onNodeWithTag("save-editor").assertIsDisplayed()
+        compose.mainClock.autoAdvance = false
+        try {
+            compose.onNodeWithTag("save-editor").performClick()
+            compose.waitUntil(10000) {
+                compose.mainClock.advanceTimeByFrame()
+                compose.onAllNodesWithTag("task-${first.id}").fetchSemanticsNodes().isEmpty()
+            }
+            compose.onNodeWithTag("complete-${first.id}").assertDoesNotExist()
+            compose.mainClock.advanceTimeBy(64)
+            val middleTop = remainingNode.fetchSemanticsNode().boundsInRoot.top
+            compose.mainClock.advanceTimeBy(300)
+            val finalTop = remainingNode.fetchSemanticsNode().boundsInRoot.top
+            assertTrue("Remaining care should move upward", finalTop < originalTop)
+            val motionScale = android.provider.Settings.Global.getFloat(
+                compose.activity.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f,
+            )
+            if (motionScale == 0f)
+                assertEquals("Disabled motion should settle immediately", finalTop, middleTop, .5f)
+            else
+                assertTrue("Remaining care should settle over time", middleTop > finalTop)
+            remainingNode.assertIsDisplayed()
+            assertEquals("completed", store.tasks(mimi).single { it.id == first.id }.state)
+        } finally {
+            compose.mainClock.autoAdvance = true
+        }
     }
 
     @Test
@@ -667,6 +718,9 @@ class CareComposeTest {
             android.text.format.DateFormat.is24HourFormat(compose.activity),
         )
         compose.onNodeWithText("Care for Mimi marked done. Next scheduled care: $date.").assertIsDisplayed()
+        compose.onNodeWithTag("task-${task.id}").assertDoesNotExist()
+        compose.onNodeWithTag("toggle-upcoming").performScrollTo().performClick()
+        compose.onNodeWithTag("task-${next.id}").performScrollTo().assertIsDisplayed()
         captureCozy("completion-en")
     }
 

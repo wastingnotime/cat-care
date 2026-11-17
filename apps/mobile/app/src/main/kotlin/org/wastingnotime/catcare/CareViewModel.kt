@@ -29,6 +29,8 @@ data class CareSnapshot(
     val comments: Map<String, List<CareStore.Comment>> = emptyMap(),
     val summaries: Map<String, CareStore.CatSummary> = emptyMap(),
     val loaded: Boolean = false,
+    // Transient cause of this refreshed snapshot; never persisted or replayed on loading.
+    val completedTaskId: String? = null,
 )
 
 data class CareMessage(
@@ -65,7 +67,7 @@ class CareViewModel(
         runAction { withContext(Dispatchers.IO) { reload() } }
     }
 
-    private fun reload() {
+    private fun reload(completedTaskId: String? = null) {
         val cats = store.cats()
         val history = cats.associate { it.id to store.history(it.id) }
         val comments = history.values.flatten().associate { it.id to store.comments(it.id) }
@@ -78,6 +80,7 @@ class CareViewModel(
                 comments,
                 cats.associate { it.id to store.summary(it.id, Instant.now()) },
                 true,
+                completedTaskId,
             )
         CareReminders.sync(getApplication())
         val backups = CareBackups(getApplication())
@@ -397,7 +400,9 @@ class CareViewModel(
                 "record", "observation" -> CareMessage(R.string.message_note_saved, listOf(catName))
                 else -> CareMessage(R.string.message_saved)
             }
-            withContext(Dispatchers.IO) { reload() }
+            withContext(Dispatchers.IO) {
+                reload(if (value("kind") == "complete") values.getString("target") else null)
+            }
             when (value("kind")) {
                 "cat" -> {
                     selectCat(result.orEmpty())
