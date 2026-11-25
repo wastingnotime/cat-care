@@ -14,6 +14,7 @@
     <string name="onboarding_title">Uma rotina de carinho começa aqui.</string>
     <string name="onboarding_body">Organize a rotina, acompanhe pequenas mudanças e guarde a história do seu gato.</string>
     <string name="add_first_cat">Adicionar meu primeiro gato</string>
+    <string name="onboarding_restore_hint">Já tem um backup do Cat Care? Escolha o arquivo de backup completo para recuperar seus gatos e o histórico de cuidados.</string>
     <string name="offline_tagline">Só você e seus gatos. Até sem internet.</string>
     <string name="all_up_to_date">Tudo em dia por aqui</string>
     <string name="plan_care_action">+ Planejar cuidado</string>
@@ -278,6 +279,8 @@
     <string name="restore_warning">Substituir todos os gatos e registros locais. Novos backups também restauram configurações e pasta/status de backup; backups antigos mantêm as configurações atuais. Não há mesclagem nem desfazer. Faça um backup dos dados atuais primeiro.</string>
     <string name="restore_confirm">Substituir e restaurar</string>
     <string name="restore_success">Cuidados restaurados.</string>
+    <string name="restore_backup_choose_folder">Cuidados restaurados. Escolha uma pasta para ativar os backups automáticos.</string>
+    <string name="restore_backup_reauthorize">Cuidados restaurados. Permita o acesso à pasta salva novamente para retomar os backups automáticos.</string>
     <string name="restore_error">Não foi possível restaurar este arquivo. Escolha um backup completo e válido do Cat Care versão 3 ou 4 de até 16 MiB. Exportações de um gato não podem substituir todos os dados. Nenhuma restauração parcial foi aplicada.</string>
     <string name="backup_saved">Backup salvo.</string>
     <string name="agenda_overdue">Atrasados</string>

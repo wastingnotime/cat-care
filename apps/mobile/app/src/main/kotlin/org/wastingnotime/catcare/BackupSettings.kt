@@ -10,11 +10,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import java.time.Instant
 
 @Composable
-internal fun BackupSettings(model: CareViewModel, busy: Boolean) {
+internal fun BackupSettings(
+    model: CareViewModel,
+    busy: Boolean,
+    restoreBackupSetup: Boolean,
+    chooseRestoreFile: () -> Unit,
+) {
     val context = LocalContext.current
     val backups = remember { CareBackups(context.applicationContext) }
     var status by remember { mutableStateOf(backups.status()) }
@@ -29,13 +37,19 @@ internal fun BackupSettings(model: CareViewModel, busy: Boolean) {
             ActivityResultContracts.OpenDocumentTree(),
             model::configureBackup,
         )
-    val restore =
-        rememberLauncherForActivityResult(
-            ActivityResultContracts.OpenDocument(),
-            model::prepareRestore,
-        )
+    val showRestoreGuidance = restoreBackupSetup && !status.enabled
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(tr(R.string.backup_restore), style = MaterialTheme.typography.titleLarge)
+        if (showRestoreGuidance)
+            Text(
+                tr(
+                    if (status.needsAccess) R.string.restore_backup_reauthorize
+                    else R.string.restore_backup_choose_folder
+                ),
+                modifier = Modifier.testTag("restore-backup-guidance").semantics {
+                    liveRegion = LiveRegionMode.Polite
+                },
+            )
         Text(tr(if (status.enabled) R.string.backup_on_short else R.string.backup_off_short))
         Text(
             if (status.lastSuccess == 0L) tr(R.string.backup_never)
@@ -47,7 +61,8 @@ internal fun BackupSettings(model: CareViewModel, busy: Boolean) {
             modifier = Modifier.testTag("last-backup"),
         )
         status.folder?.let { Text(android.net.Uri.decode(it.substringAfterLast('/'))) }
-        if (status.needsAccess) Text(tr(R.string.backup_reauthorize), color = MaterialTheme.colorScheme.error)
+        if (status.needsAccess && !showRestoreGuidance)
+            Text(tr(R.string.backup_reauthorize), color = MaterialTheme.colorScheme.error)
         var details by rememberSaveable { mutableStateOf(false) }
         TextButton(onClick = { details = !details }) { Text(tr(R.string.backup_details)) }
         if (details) Text(tr(R.string.backup_description), color = Muted)
@@ -85,15 +100,7 @@ internal fun BackupSettings(model: CareViewModel, busy: Boolean) {
             }
         }
         OutlinedButton(
-            onClick = {
-                try {
-                    restore.launch(
-                        arrayOf("application/json", "application/octet-stream", "text/plain")
-                    )
-                } catch (_: android.content.ActivityNotFoundException) {
-                    model.field("kind", "export-unavailable")
-                }
-            },
+            onClick = chooseRestoreFile,
             enabled = !busy,
             modifier = Modifier.testTag("restore-backup"),
         ) {

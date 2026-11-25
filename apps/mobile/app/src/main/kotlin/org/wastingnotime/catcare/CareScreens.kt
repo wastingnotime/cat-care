@@ -34,6 +34,7 @@ internal fun CareScreen(
     busy: Boolean,
     reveal: String?,
     model: CareViewModel,
+    chooseRestoreFile: () -> Unit,
 ) {
     val context = LocalContext.current
     val list = rememberLazyListState()
@@ -42,6 +43,7 @@ internal fun CareScreen(
     var historyType by rememberSaveable { mutableStateOf("all") }
     var historyPeriod by rememberSaveable { mutableStateOf("7") }
     val entryId by model.entryId.collectAsStateWithLifecycle()
+    val restoreBackupSetup by model.restoreBackupSetup.collectAsStateWithLifecycle()
     val selectedCat = state.cats.find { it.id == selected }
     val history = state.history[selected].orEmpty()
     val zone = ZoneId.systemDefault()
@@ -77,6 +79,9 @@ internal fun CareScreen(
                     model.clearReveal()
                 }
     }
+    LaunchedEffect(screen, restoreBackupSetup) {
+        if (screen == "data" && restoreBackupSetup) list.scrollToItem(0)
+    }
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
             Modifier.widthIn(max = 840.dp).fillMaxHeight().testTag("care-list"),
@@ -91,6 +96,8 @@ internal fun CareScreen(
                         Heading(tr(R.string.onboarding_title))
                         Text(tr(R.string.onboarding_body))
                         Primary(tr(R.string.add_first_cat), !busy) { model.openEditor("cat") }
+                        Text(tr(R.string.onboarding_restore_hint))
+                        Secondary(tr(R.string.restore_action), !busy, action = chooseRestoreFile)
                         Text(tr(R.string.offline_tagline), color = Muted)
                     }
                 }
@@ -383,7 +390,7 @@ internal fun CareScreen(
                     "data" ->
                         item {
                             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                BackupSettings(model, busy)
+                                BackupSettings(model, busy, restoreBackupSetup, chooseRestoreFile)
                                 Badge(tr(R.string.local_data))
                                 Text(tr(R.string.data_hint))
                                 CareCard {

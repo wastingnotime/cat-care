@@ -52,6 +52,7 @@ class CareViewModel(
     val draft = saved.getStateFlow("draft", Bundle())
     val discardPrompt = saved.getStateFlow("discardPrompt", false)
     val reminderPrompt = saved.getStateFlow("reminderPrompt", false)
+    val restoreBackupSetup = saved.getStateFlow("restoreBackupSetup", false)
     val entryId = saved.getStateFlow("entryId", "")
     val errorField = saved.getStateFlow("errorField", "")
     private val mutableBusy = MutableStateFlow(false)
@@ -88,8 +89,16 @@ class CareViewModel(
             .onFailure { backups.preferences.edit().putBoolean("failed", true).apply() }
     }
 
-    private fun runAction(action: suspend () -> Unit) {
-        if (mutableBusy.value) return
+    private fun runAction(waitForCurrent: Boolean = false, action: suspend () -> Unit) {
+        if (mutableBusy.value) {
+            // Picker results can arrive while the activity is still reloading on resume.
+            if (waitForCurrent)
+                viewModelScope.launch {
+                    busy.first { !it }
+                    runAction(waitForCurrent, action)
+                }
+            return
+        }
         mutableBusy.value = true
         mutableError.value = null
         viewModelScope.launch {
@@ -134,6 +143,7 @@ class CareViewModel(
 
     fun navigate(route: String) {
         if (route == screen.value) return
+        saved["restoreBackupSetup"] = false
         if (route in listOf("today", "cats", "notes", "history")) {
             saved["backStack"] = arrayListOf<String>()
         } else {
@@ -145,6 +155,7 @@ class CareViewModel(
     }
 
     fun back() {
+        saved["restoreBackupSetup"] = false
         val stack = saved.get<ArrayList<String>>("backStack").orEmpty()
         saved["screen"] = stack.lastOrNull() ?: "today"
         saved["backStack"] = ArrayList(stack.dropLast(1))
@@ -479,7 +490,7 @@ class CareViewModel(
 
     fun configureBackup(uri: Uri?) {
         if (uri == null) return
-        backupAction(R.string.backup_saved) {
+        backupAction(R.string.backup_saved, waitForCurrent = true) {
             val backups = CareBackups(getApplication())
             backups.configure(uri)
             backups.write()
@@ -490,10 +501,15 @@ class CareViewModel(
 
     fun disableBackup() = backupAction { CareBackups(getApplication()).disable() }
 
-    private fun backupAction(success: Int = R.string.backup_updated, action: () -> Unit) =
-        runAction {
+    private fun backupAction(
+        success: Int = R.string.backup_updated,
+        waitForCurrent: Boolean = false,
+        action: () -> Unit,
+    ) =
+        runAction(waitForCurrent) {
             try {
                 withContext(Dispatchers.IO) { action() }
+                saved["restoreBackupSetup"] = false
                 mutableMessage.value = CareMessage(success)
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -504,7 +520,7 @@ class CareViewModel(
 
     fun prepareRestore(uri: Uri?) {
         if (uri == null) return
-        runAction {
+        runAction(waitForCurrent = true) {
             try {
                 val preview =
                     withContext(Dispatchers.IO) {
@@ -578,7 +594,14 @@ class CareViewModel(
         discardRestore()
         saved["draft"] = Bundle()
         saved["selected"] = ""
-        mutableMessage.value = CareMessage(R.string.restore_success)
+        val backupsEnabled = withContext(Dispatchers.IO) { CareBackups(getApplication()).status().enabled }
+        if (backupsEnabled) {
+            saved["restoreBackupSetup"] = false
+            mutableMessage.value = CareMessage(R.string.restore_success)
+        } else {
+            navigate("data")
+            saved["restoreBackupSetup"] = true
+        }
         withContext(Dispatchers.IO) { reload() }
     }
 

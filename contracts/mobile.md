@@ -220,7 +220,13 @@ Time and explains local storage, no network/analytics/remote crash reporting,
 provider-controlled backups/sharing and deletion coverage in both app languages.
 
 Data leads with backup status and last successful time; operational explanation
-is expandable. Restore still presents scope and replacement warnings before writing.
+is expandable. The welcome card shown when there are no cats offers Restore backup
+alongside adding a first cat. Both entry points use the Android file picker and
+present scope and replacement warnings before writing. After a successful restore,
+if automatic backups are off, Data opens at the backup controls and prompts the
+owner to choose a folder or grant access to the remembered folder again. If
+automatic backups are already active after restore, the owner stays on the
+originating screen.
 Data can persist read/write access to a user-selected document tree. Selection
 checks create/rename/delete capability and writes an initial full-data backup.
 Android JobScheduler performs approximate daily automatic saves; its persisted

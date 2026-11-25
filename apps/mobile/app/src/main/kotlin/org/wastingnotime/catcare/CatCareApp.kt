@@ -68,6 +68,19 @@ fun CatCareApp(model: CareViewModel) {
             ActivityResultContracts.CreateDocument("application/json"),
             model::export,
         )
+    val restore =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.OpenDocument(),
+            model::prepareRestore,
+        )
+    val chooseRestoreFile = {
+        model.clearError()
+        try {
+            restore.launch(arrayOf("application/json", "application/octet-stream", "text/plain"))
+        } catch (_: android.content.ActivityNotFoundException) {
+            model.field("kind", "export-unavailable")
+        }
+    }
     val messageText = message?.let {
         val text = tr(it.resource, *it.arguments.toTypedArray())
         if (it.nextDue.isNullOrEmpty()) text
@@ -213,7 +226,7 @@ fun CatCareApp(model: CareViewModel) {
                     }
                     if (state.loaded)
                         screenStates.SaveableStateProvider(screen) {
-                            CareScreen(screen, selected, state, busy, reveal, model)
+                            CareScreen(screen, selected, state, busy, reveal, model, chooseRestoreFile)
                         }
                 }
             }

@@ -763,6 +763,7 @@ class CareComposeTest {
         ready()
         nav("history")
         compose.onNodeWithTag("filter-$mimi").performClick()
+        compose.onNodeWithTag("history-filter-period-all").performClick().assertIsSelected()
         val date = "Data informada: 18/11/2023 (horário não informado)"
         compose.onNodeWithTag("care-list").performScrollToNode(hasText(date))
         compose.onNodeWithText(date).assertIsDisplayed()
@@ -791,15 +792,18 @@ class CareComposeTest {
     }
 
     @Test
-    fun childNavigationReturnsToOriginAndProfileProvidesCareContext() {
+    fun catCardOpensProfileEditorAndChildNavigationReturnsToOrigin() {
         ready()
         nav("cats")
         compose.onNodeWithTag("cat-card-$mimi").performClick()
-        compose.onNodeWithText("Água da Mimi").assertExists()
+        compose.onNodeWithText("Editar perfil").assertIsDisplayed()
+        compose.onNodeWithTag("field-name").assertTextContains("Mimi")
+        compose.activityRule.scenario.recreate()
+        compose.onNodeWithTag("field-name").assertTextContains("Mimi")
+        compose.onNodeWithTag("close-editor").performClick()
+        compose.onNodeWithTag("nav-cats").assertIsSelected()
         nav("settings")
         compose.activityRule.scenario.recreate()
-        compose.onNodeWithTag("navigate-up").performClick()
-        compose.onNodeWithTag("activity-title").assertTextContains("Perfil do gato")
         compose.onNodeWithTag("navigate-up").performClick()
         compose.onNodeWithTag("nav-cats").assertIsSelected()
         nav("history")
