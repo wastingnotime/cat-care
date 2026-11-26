@@ -5,6 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.relocation.BringIntoViewRequester
@@ -97,6 +98,7 @@ fun CatCareApp(model: CareViewModel) {
         with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() } >= 600.dp
     BackHandler(enabled = screen != "today" && draft.isEmpty, onBack = model::back)
     CareTheme {
+        val visualInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout)
         val title =
             tr(
                 when (screen) {
@@ -111,7 +113,11 @@ fun CatCareApp(model: CareViewModel) {
                 }
             )
         Scaffold(
+            modifier = Modifier
+                .background(Paper)
+                .windowInsetsPadding(visualInsets.only(WindowInsetsSides.Horizontal)),
             containerColor = Paper,
+            contentWindowInsets = visualInsets,
             topBar = {
                 TopAppBar(
                     title = { Text(title, Modifier.testTag("activity-title")) },
@@ -152,11 +158,15 @@ fun CatCareApp(model: CareViewModel) {
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Paper),
+                    windowInsets = visualInsets.only(WindowInsetsSides.Top),
                 )
             },
             bottomBar = {
                 if (primary && !wide)
-                    NavigationBar(containerColor = Paper) {
+                    NavigationBar(
+                        containerColor = Paper,
+                        windowInsets = visualInsets.only(WindowInsetsSides.Bottom),
+                    ) {
                         destinations.forEach { destination ->
                             NavigationBarItem(
                                 selected = screen == destination.route,
@@ -202,7 +212,7 @@ fun CatCareApp(model: CareViewModel) {
             },
             snackbarHost = { SnackbarHost(snackbar) },
         ) { insets ->
-            Row(Modifier.fillMaxSize().padding(insets)) {
+            Row(Modifier.fillMaxSize().padding(insets).consumeWindowInsets(insets)) {
                 if (primary && wide)
                     NavigationRail(containerColor = Paper) {
                         destinations.forEach { destination ->
@@ -849,6 +859,11 @@ internal fun DateField(
             )
         DatePickerDialog(
             onDismissRequest = { open = false },
+            modifier = Modifier.safeDrawingPadding(),
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false,
+            ),
             confirmButton = {
                 TextButton(
                     onClick = {

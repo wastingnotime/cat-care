@@ -18,6 +18,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import java.time.*
 import org.json.JSONObject
 
@@ -120,6 +121,11 @@ internal fun TimeField(value: String, enabled: Boolean, change: (String) -> Unit
         var numeric by rememberSaveable { mutableStateOf(false) }
         AlertDialog(
             onDismissRequest = { open = false },
+            modifier = Modifier.safeDrawingPadding().padding(horizontal = 16.dp),
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false,
+            ),
             title = { Text(tr(R.string.choose_time)) },
             text = {
                 Column(

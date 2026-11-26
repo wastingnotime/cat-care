@@ -11,7 +11,7 @@ This table describes `apps/mobile`; the web, API and simulation have separate st
 | Async | Coroutines + StateFlow | ViewModel-scoped coroutines move database/export work to `Dispatchers.IO`. Immutable snapshots and saved navigation/drafts are collected with lifecycle awareness. |
 | Networking | Neither Retrofit nor Ktor | Intentionally absent: core Android workflows are entirely local, with no internet permission, account, server dependency or cloud sync. Revisit the client choice if network scope is authorized. |
 | Dependency injection | Manual constructor injection | `MainActivity` supplies `CareStore` through a ViewModel factory. The factory uses `createSavedStateHandle()` to retain saved-state restoration. The ViewModel owns and closes its store when cleared. Hilt is unnecessary for the current small dependency graph. |
-| Build | Gradle Kotlin DSL | Root, settings and app scripts use `.gradle.kts`. Gradle 8.11.1 and AGP 8.9.2 remain pinned; builds use JDK 21. |
+| Build | Gradle Kotlin DSL | Root, settings and app scripts use `.gradle.kts`. Builds use Gradle 8.13, AGP 8.11.1 and JDK 21. Release builds use R8 and resource shrinking. |
 | Backup scheduling | Android JobScheduler + DocumentFile | User-selected document-tree access, approximate daily persisted jobs, seven-copy retention and confirmed transactional restore. Android device backup remains disabled. |
 | Testing | JUnit + Compose UI tests | JUnit 4 JVM tests cover domain rules; Android instrumentation covers SQLite, reminders and Compose interactions/restoration. |
 

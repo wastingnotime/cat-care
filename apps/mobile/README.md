@@ -12,7 +12,7 @@ choices and rationale, including manual injection and the offline networking bou
 
 Install JDK 21 and Android SDK platform 36/build tools 35.0.0. Set `ANDROID_HOME`
 (or use Android Studio's generated, ignored `local.properties`). Open this
-folder in Android Studio or use the checked-in Gradle 8.11.1 wrapper:
+folder in Android Studio or use the checked-in Gradle 8.13 wrapper:
 
 ```bash
 ./gradlew testDebugUnitTest lintDebug assembleDebug
@@ -58,8 +58,8 @@ only Platform-Tools are required for this command, alongside the build SDK/JDK.
 The debug APK is `app/build/outputs/apk/debug/app-debug.apk`; it is for local
 installation, not a signed production release. Dependencies and SDK downloads
 require internet during development; installed core app workflows work offline.
-AGP 8.9.2 uses Gradle 8.11.1 (see
-[Android compatibility notes](https://developer.android.com/build/releases/past-releases/agp-8-9-0-release-notes)).
+AGP 8.11.1 uses Gradle 8.13 and supports Kotlin 2.2 in optimized release builds.
+[Android build compatibility](https://developer.android.com/build/kotlin-support)
 
 ## Device checks
 
